@@ -6,6 +6,7 @@ import re
 import sys
 
 cursors = {}
+statements = {}
 
 def handle_parse(cursor, params):
     c = {}
@@ -30,32 +31,47 @@ def handle_parse(cursor, params):
         if key[0] == 'sqlid':
             c['sql_id'] = key[1]
 
+    c['execs'] = 0
+    c['fetches'] = 0
     c['exec_hist_elapsed'] = HdrHistogram(1, 1000000000, 4)
     c['exec_hist_cpu'] = HdrHistogram(1, 1000000000, 4)
     c['fetch_hist_elapsed'] = HdrHistogram(1, 1000000000, 4)
     c['fetch_hist_cpu'] = HdrHistogram(1, 1000000000, 4)
-    # FIXME: what if cursors are not unique in different instances?
-    cursors[cursor] = c
+
+    if c['sql_id'] not in statements.keys():
+        statements[c['sql_id']] = c
+
+    # Not sure if (cursor, sql_id) is unique, just overwrite the mapping if they are not
+    cursors[cursor] = c['sql_id']
+#    print("handle_parse: cursor = {}, params = {}".format(cursor, params))
 
 def handle_exec(cursor, params):
-    elapsed = cursors[cursor]['exec_hist_elapsed']
-    cpu = cursors[cursor]['exec_hist_cpu']
+    sql_id = cursors[cursor]
+    statement = statements[sql_id]
+#    print("handle_exec0: cursor = {}, sql_id = {}".format(cursor, sql_id))
+    elapsed = statement['exec_hist_elapsed']
+    cpu = statement['exec_hist_cpu']
     for item in params.split(','):
         key = item.split('=')
         if key[0] == 'c':
             cpu.record_value(int(key[1]))
         if key[0] == 'e':
             elapsed.record_value(int(key[1]))
+    statement['execs'] = statement['execs'] + 1
+#    print(statement)
+#    print("handle_exec1: cursor = {}, params = {}, sql_id = {}".format(cursor, params, cursors[cursor]))
 
 def handle_fetch(cursor, params):
-    elapsed = cursors[cursor]['fetch_hist_elapsed']
-    cpu = cursors[cursor]['fetch_hist_cpu']
+    statement = statements[cursors[cursor]]
+    elapsed = statement['fetch_hist_elapsed']
+    cpu = statement['fetch_hist_cpu']
     for item in params.split(','):
         key = item.split('=')
         if key[0] == 'c':
             cpu.record_value(int(key[1]))
         if key[0] == 'e':
             elapsed.record_value(int(key[1]))
+    statement['fetches'] = statement['fetches'] + 1
 
 parser = argparse.ArgumentParser(description='Do stuff with Oracle 19c trace files')
 parser.add_argument('trace_files', metavar='files', type=str, nargs='+',
@@ -81,9 +97,13 @@ for fname in args.trace_files:
 #                print(line)
 
 for c in cursors.keys():
-    cursor = cursors[c]
+    print("cursor: {}, sql_id: {}".format(c, cursors[c]))
+for s in statements.values():
+    print(s)
+for c in statements.keys():
+    cursor = statements[c]
     print('----------------------------------------')
-    print("cursor: {}, sql_id: {}".format(c, cursor['sql_id']))
+    print("sql_id: {}, execs: {}, fetches: {}".format(cursor['sql_id'], cursor['execs'], cursor['fetches']))
     with open("exec_hist_elapsed_{}.out".format(cursor['sql_id']), 'wb') as f:
         cursor['exec_hist_elapsed'].output_percentile_distribution(f, 1.0)
     with open("exec_hist_cpu_{}.out".format(cursor['sql_id']), 'wb') as f:
