@@ -5,7 +5,8 @@ from hdrh.histogram import HdrHistogram
 import re
 import sys
 
-max_elapsed = 500000
+max_fetch_elapsed = 500000
+max_exec_elapsed = 50000
 cursors = {}
 statements = {}
 latest_waits = []
@@ -31,14 +32,14 @@ def handle_parse(cursor, params):
         if key[0] == 'ad':
             c['address'] = key[1]
         if key[0] == 'sqlid':
-            c['sql_id'] = key[1]
+            c['sql_id'] = key[1].replace("'", "")
 
     c['execs'] = 0
     c['fetches'] = 0
-    c['exec_hist_elapsed'] = HdrHistogram(1, 1000000000, 0)
-    c['exec_hist_cpu'] = HdrHistogram(1, 1000000000, 0)
-    c['fetch_hist_elapsed'] = HdrHistogram(1, 1000000000, 0)
-    c['fetch_hist_cpu'] = HdrHistogram(1, 1000000000, 0)
+    c['exec_hist_elapsed'] = HdrHistogram(1, 1000000000, 1)
+    c['exec_hist_cpu'] = HdrHistogram(1, 1000000000, 1)
+    c['fetch_hist_elapsed'] = HdrHistogram(1, 1000000000, 1)
+    c['fetch_hist_cpu'] = HdrHistogram(1, 1000000000, 1)
 
     if c['sql_id'] not in statements.keys():
         statements[c['sql_id']] = c
@@ -56,10 +57,13 @@ def handle_exec(cursor, params):
     for item in params.split(','):
         key = item.split('=')
         if key[0] == 'c':
-            cpu.record_value(int(key[1]))
+            c = int(key[1])
+            cpu.record_value(c)
         if key[0] == 'e':
-            elapsed.record_value(int(key[1]))
+            e = int(key[1])
+            elapsed.record_value(e)
     statement['execs'] = statement['execs'] + 1
+    return (cursor, c, e)
 #    print(statement)
 #    print("handle_exec1: cursor = {}, params = {}, sql_id = {}".format(cursor, params, cursors[cursor]))
 
@@ -106,12 +110,16 @@ for fname in args.trace_files:
                     handle_parse(match.group(2), match.group(4))
                     latest_waits = []
                 if match.group(1) == 'EXEC':
-                    handle_exec(match.group(2), match.group(4))
+                    e = handle_exec(match.group(2), match.group(4))
+                    if e[2] > max_exec_elapsed:
+                        print("EXEC: sql_id: {}, cursor: {}, cpu: {}, elapsed: {}".format(cursors[e[0]], e[0], e[1], e[2]))
+                        for w in latest_waits:
+                            print("    name: {}, elapsed: {}, timestamp: {}".format(w['name'], w['elapsed'], w['timestamp']))
                     latest_waits = []
                 if match.group(1) == 'FETCH':
                     f = handle_fetch(match.group(2), match.group(4))
-                    if f[2] > max_elapsed:
-                        print("sql_id: {}, cursor: {}, cpu: {}, elapsed: {}".format(cursors[f[0]], f[0], f[1], f[2]))
+                    if f[2] > max_fetch_elapsed:
+                        print("FETCH: sql_id: {}, cursor: {}, cpu: {}, elapsed: {}".format(cursors[f[0]], f[0], f[1], f[2]))
                         for w in latest_waits:
                             print("    name: {}, elapsed: {}, timestamp: {}".format(w['name'], w['elapsed'], w['timestamp']))
                     latest_waits = []
