@@ -11,49 +11,59 @@ cursors = {}
 statements = {}
 latest_waits = []
 
+class Statement:
+    def __init__(self, cursor, params):
+        self.cursor = cursor
+
+        for item in params.split():
+            key = item.split('=')
+            if key[0] == 'len':
+                self.statement_length = key[1]
+            if key[0] == 'dep':
+                self.rec_depth = key[1]
+            if key[0] == 'uid':
+                self.schema_uid = key[1]
+            if key[0] == 'oct':
+                self.command_type = key[1]
+            if key[0] == 'lid':
+                self.priv_user_id = key[1]
+            if key[0] == 'tim':
+                self.timestamp = key[1]
+            if key[0] == 'hv':
+                self.hash_id = key[1]
+            if key[0] == 'ad':
+                self.address = key[1]
+            if key[0] == 'sqlid':
+                self.sql_id = key[1].replace("'", "")
+
+        self.execs = 0
+        self.fetches = 0
+
+        self.exec_hist_elapsed = HdrHistogram(1, 1000000000, 1)
+        self.exec_hist_cpu = HdrHistogram(1, 1000000000, 1)
+        self.fetch_hist_elapsed = HdrHistogram(1, 1000000000, 1)
+        self.fetch_hist_cpu = HdrHistogram(1, 1000000000, 1)
+    def increase_exec_count(self):
+        self.execs = self.execs + 1
+    def increase_fetch_count(self):
+        self.fetches = self.fetches + 1
+
 def handle_parse(cursor, params):
-    c = {}
-    for item in params.split():
-        key = item.split('=')
-        if key[0] == 'len':
-            c['statement_length'] = key[1]
-        if key[0] == 'dep':
-            c['rec_depth'] = key[1]
-        if key[0] == 'uid':
-            c['schema_uid'] = key[1]
-        if key[0] == 'oct':
-            c['command_type'] = key[1]
-        if key[0] == 'lid':
-            c['priv_user_id'] = key[1]
-        if key[0] == 'tim':
-            c['timestamp'] = key[1]
-        if key[0] == 'hv':
-            c['hash_id'] = key[1]
-        if key[0] == 'ad':
-            c['address'] = key[1]
-        if key[0] == 'sqlid':
-            c['sql_id'] = key[1].replace("'", "")
+    s = Statement(cursor, params)
 
-    c['execs'] = 0
-    c['fetches'] = 0
-    c['exec_hist_elapsed'] = HdrHistogram(1, 1000000000, 1)
-    c['exec_hist_cpu'] = HdrHistogram(1, 1000000000, 1)
-    c['fetch_hist_elapsed'] = HdrHistogram(1, 1000000000, 1)
-    c['fetch_hist_cpu'] = HdrHistogram(1, 1000000000, 1)
-
-    if c['sql_id'] not in statements.keys():
-        statements[c['sql_id']] = c
+    if s.sql_id not in statements.keys():
+        statements[s.sql_id] = s
 
     # Not sure if (cursor, sql_id) is unique, just overwrite the mapping if they are not
-    cursors[cursor] = c['sql_id']
+    cursors[cursor] = s.sql_id
 #    print("handle_parse: cursor = {}, params = {}".format(cursor, params))
 
 def handle_exec(cursor, params):
     sql_id = cursors[cursor]
     statement = statements[sql_id]
 #    print("handle_exec0: cursor = {}, sql_id = {}".format(cursor, sql_id))
-    elapsed = statement['exec_hist_elapsed']
-    cpu = statement['exec_hist_cpu']
+    elapsed = statement.exec_hist_elapsed
+    cpu = statement.exec_hist_cpu
     for item in params.split(','):
         key = item.split('=')
         if key[0] == 'c':
@@ -62,24 +72,30 @@ def handle_exec(cursor, params):
         if key[0] == 'e':
             e = int(key[1])
             elapsed.record_value(e)
-    statement['execs'] = statement['execs'] + 1
+    statement.increase_exec_count()
     return (cursor, c, e)
 #    print(statement)
 #    print("handle_exec1: cursor = {}, params = {}, sql_id = {}".format(cursor, params, cursors[cursor]))
 
-def handle_fetch(cursor, params):
+def handle_fetch(cursor, params, last_exec):
     statement = statements[cursors[cursor]]
-    elapsed = statement['fetch_hist_elapsed']
-    cpu = statement['fetch_hist_cpu']
+    elapsed = statement.fetch_hist_elapsed
+    cpu = statement.fetch_hist_cpu
     for item in params.split(','):
         key = item.split('=')
         if key[0] == 'c':
-            c = int(key[1])
+            if args.merge:
+                c = int(key[1]) + last_exec[1]
+            else:
+                c = int(key[1])
             cpu.record_value(c)
         if key[0] == 'e':
-            e = int(key[1])
+            if args.merge:
+                e = int(key[1]) + last_exec[2]
+            else:
+                e = int(key[1])
             elapsed.record_value(e)
-    statement['fetches'] = statement['fetches'] + 1
+    statement.increase_fetch_count()
     return (cursor, c, e)
 
 def handle_wait(cursor, params):
@@ -97,11 +113,17 @@ def handle_wait(cursor, params):
 parser = argparse.ArgumentParser(description='Do stuff with Oracle 19c trace files')
 parser.add_argument('trace_files', metavar='files', type=str, nargs='+',
                             help='Trace files to process')
+parser.add_argument('--merge', type=bool, default=False, dest='merge',
+                            help='EXEC should be merged to the next FETCH.')
 args = parser.parse_args()
+
+if args.merge:
+    print('Merging EXEC and FETCH')
 
 for fname in args.trace_files:
     print("Processing {}".format(fname))
     with open(fname, 'r') as f:
+        last_exec = ()
         for line in f:
             match = re.match(r'''^(PARSING IN CURSOR|EXEC|FETCH|WAIT) (#\d+)(:| )(.*)''', line)
             if match:
@@ -110,19 +132,20 @@ for fname in args.trace_files:
                     handle_parse(match.group(2), match.group(4))
                     latest_waits = []
                 if match.group(1) == 'EXEC':
-                    e = handle_exec(match.group(2), match.group(4))
-                    if e[2] > max_exec_elapsed:
-                        print("EXEC: sql_id: {}, cursor: {}, cpu: {}, elapsed: {}".format(cursors[e[0]], e[0], e[1], e[2]))
+                    last_exec = handle_exec(match.group(2), match.group(4))
+                    if last_exec[2] > max_exec_elapsed:
+                        print("EXEC: sql_id: {}, cursor: {}, cpu: {}, elapsed: {}".format(cursors[last_exec[0]], last_exec[0], last_exec[1], last_exec[2]))
                         for w in latest_waits:
                             print("    name: {}, elapsed: {}, timestamp: {}".format(w['name'], w['elapsed'], w['timestamp']))
                     latest_waits = []
                 if match.group(1) == 'FETCH':
-                    f = handle_fetch(match.group(2), match.group(4))
+                    f = handle_fetch(match.group(2), match.group(4), last_exec)
                     if f[2] > max_fetch_elapsed:
                         print("FETCH: sql_id: {}, cursor: {}, cpu: {}, elapsed: {}".format(cursors[f[0]], f[0], f[1], f[2]))
                         for w in latest_waits:
                             print("    name: {}, elapsed: {}, timestamp: {}".format(w['name'], w['elapsed'], w['timestamp']))
                     latest_waits = []
+                    last_exec = ()
                 if match.group(1) == 'WAIT':
                     handle_wait(match.group(2), match.group(4))
 
@@ -131,15 +154,15 @@ for fname in args.trace_files:
 #for s in statements.values():
 #    print(s)
 for c in statements.keys():
-    cursor = statements[c]
+    stat = statements[c]
     print('----------------------------------------')
-    print("sql_id: {}, execs: {}, fetches: {}".format(cursor['sql_id'], cursor['execs'], cursor['fetches']))
-    with open("exec_hist_elapsed_{}.out".format(cursor['sql_id']), 'wb') as f:
-        cursor['exec_hist_elapsed'].output_percentile_distribution(f, 1.0)
-    with open("exec_hist_cpu_{}.out".format(cursor['sql_id']), 'wb') as f:
-        cursor['exec_hist_cpu'].output_percentile_distribution(f, 1.0)
-    with open("fetch_hist_elapsed_{}.out".format(cursor['sql_id']), 'wb') as f:
-        cursor['fetch_hist_elapsed'].output_percentile_distribution(f, 1.0)
-    with open("fetch_hist_cpu_{}.out".format(cursor['sql_id']), 'wb') as f:
-        cursor['fetch_hist_cpu'].output_percentile_distribution(f, 1.0)
+    print("sql_id: {}, execs: {}, fetches: {}".format(stat.sql_id, stat.execs, stat.fetches))
+    with open("exec_hist_elapsed_{}.out".format(stat.sql_id), 'wb') as f:
+        stat.exec_hist_elapsed.output_percentile_distribution(f, 1.0)
+    with open("exec_hist_cpu_{}.out".format(stat.sql_id), 'wb') as f:
+        stat.exec_hist_cpu.output_percentile_distribution(f, 1.0)
+    with open("fetch_hist_elapsed_{}.out".format(stat.sql_id), 'wb') as f:
+        stat.fetch_hist_elapsed.output_percentile_distribution(f, 1.0)
+    with open("fetch_hist_cpu_{}.out".format(stat.sql_id), 'wb') as f:
+        stat.fetch_hist_cpu.output_percentile_distribution(f, 1.0)
 
