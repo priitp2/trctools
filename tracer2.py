@@ -84,6 +84,16 @@ def handle_parse(cursor, params):
     cursors[cursor] = s.sql_id
 #    print("handle_parse: cursor = {}, params = {}".format(cursor, params))
 
+def get_ce(params):
+    ce = (0, 0)
+    for item in params.split(','):
+        key = item.split('=')
+        if key[0] == 'c':
+            ce[0] = int(key[1])
+        if key[0] == 'e':
+            ce[1] = int(key[1])
+    return ce
+
 def handle_exec(cursor, params):
     sql_id = cursors[cursor]
     statement = statements[sql_id]
