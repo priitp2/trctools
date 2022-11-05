@@ -105,6 +105,8 @@ def handle_exec(cursor, params):
 
 def handle_fetch(cursor, params, last_exec):
     statement = statements[cursors[cursor]]
+    if len(last_exec) > 0 and cursor != last_exec[0]:
+        raise("handle_fetch: cursor mismatch: cursor = {}, cursor from last_exec = {}".format(cursor, last_exec[0]))
     for item in params.split(','):
         key = item.split('=')
         if key[0] == 'c':
