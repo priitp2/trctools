@@ -109,22 +109,21 @@ def handle_fetch(cursor, params, last_exec):
     statement = statements[cursors[cursor]]
     if len(last_exec) > 0 and cursor != last_exec[0]:
         raise("handle_fetch: cursor mismatch: cursor = {}, cursor from last_exec = {}".format(cursor, last_exec[0]))
-    for item in params.split(','):
-        key = item.split('=')
-        if key[0] == 'c':
-            if args.merge and len(last_exec) != 0:
-                c = int(key[1]) + last_exec[1]
-            else:
-                c = int(key[1])
-            statement.record_fetch_cpu(c)
-        if key[0] == 'e':
-            if args.merge and len(last_exec) != 0:
-                e = int(key[1]) + last_exec[2]
-            else:
-                e = int(key[1])
-            statement.record_fetch_elapsed(e)
+    ce = get_ce(params)
+
+    if args.merge and len(last_exec) != 0:
+        cpu = ce[0] + last_exec[1]
+    else:
+        cpu = ce[0]
+    statement.record_fetch_cpu(cpu)
+
+    if args.merge and len(last_exec) != 0:
+        elapsed = ce[1] + last_exec[2]
+    else:
+        elapsed = ce[1]
+    statement.record_fetch_elapsed(elapsed)
     statement.increase_fetch_count()
-    return (cursor, c, e)
+    return (cursor, cpu, elapsed)
 
 def handle_wait(cursor, params):
     #match = re.match(r""" nam=([:alnum:]+) ela = (\d+) (.*) tim=(\d+)""", params)
