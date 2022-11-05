@@ -136,6 +136,9 @@ def handle_wait(cursor, params):
     else:
         print("handle_wait: no match: cursor={}, params = ->{}<-".format(cursor, params))
 
+def handle_close(cursor, params):
+    print("handle_close: {}, {}".format(cursor, params))
+
 parser = argparse.ArgumentParser(description='Do stuff with Oracle 19c trace files')
 parser.add_argument('trace_files', metavar='files', type=str, nargs='+',
                             help='Trace files to process')
@@ -155,7 +158,7 @@ for fname in args.trace_files:
     with open(fname, 'r') as f:
         last_exec = ()
         for line in f:
-            match = re.match(r'''^(PARSING IN CURSOR|EXEC|FETCH|WAIT) (#\d+)(:| )(.*)''', line)
+            match = re.match(r'''^(PARSING IN CURSOR|EXEC|FETCH|WAIT|CLOSE|BINDS) (#\d+)(:| )(.*)''', line)
             if match:
                 #print(match.groups())
                 if match.group(1) == 'PARSING IN CURSOR':
@@ -179,6 +182,10 @@ for fname in args.trace_files:
                     last_exec = ()
                 if match.group(1) == 'WAIT':
                     handle_wait(match.group(2), match.group(4))
+                if match.group(1) == 'CLOSE':
+                    handle_close(match.group(2), match.group(4))
+                if match.group(1) == 'BINDS':
+                    pass
 
 #for c in cursors.keys():
 #    print("cursor: {}, sql_id: {}".format(c, cursors[c]))
