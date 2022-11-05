@@ -115,6 +115,8 @@ parser.add_argument('trace_files', metavar='files', type=str, nargs='+',
                             help='Trace files to process')
 parser.add_argument('--merge', type=bool, default=False, dest='merge',
                             help='EXEC should be merged to the next FETCH.')
+parser.add_argument('--sql_id', type=str, dest='sqlid',
+                            help="Comma separated list of sql_id's for which histograms are produced")
 args = parser.parse_args()
 
 if args.merge:
@@ -153,16 +155,18 @@ for fname in args.trace_files:
 #    print("cursor: {}, sql_id: {}".format(c, cursors[c]))
 #for s in statements.values():
 #    print(s)
+ids = args.sqlid.split(',')
 for c in statements.keys():
     stat = statements[c]
-    print('----------------------------------------')
-    print("sql_id: {}, execs: {}, fetches: {}".format(stat.sql_id, stat.execs, stat.fetches))
-    with open("exec_hist_elapsed_{}.out".format(stat.sql_id), 'wb') as f:
-        stat.exec_hist_elapsed.output_percentile_distribution(f, 1.0)
-    with open("exec_hist_cpu_{}.out".format(stat.sql_id), 'wb') as f:
-        stat.exec_hist_cpu.output_percentile_distribution(f, 1.0)
-    with open("fetch_hist_elapsed_{}.out".format(stat.sql_id), 'wb') as f:
-        stat.fetch_hist_elapsed.output_percentile_distribution(f, 1.0)
-    with open("fetch_hist_cpu_{}.out".format(stat.sql_id), 'wb') as f:
-        stat.fetch_hist_cpu.output_percentile_distribution(f, 1.0)
+    if stat.sql_id in ids:
+        print('----------------------------------------')
+        print("sql_id: {}, execs: {}, fetches: {}".format(stat.sql_id, stat.execs, stat.fetches))
+        with open("exec_hist_elapsed_{}.out".format(stat.sql_id), 'wb') as f:
+            stat.exec_hist_elapsed.output_percentile_distribution(f, 1.0)
+        with open("exec_hist_cpu_{}.out".format(stat.sql_id), 'wb') as f:
+            stat.exec_hist_cpu.output_percentile_distribution(f, 1.0)
+        with open("fetch_hist_elapsed_{}.out".format(stat.sql_id), 'wb') as f:
+            stat.fetch_hist_elapsed.output_percentile_distribution(f, 1.0)
+        with open("fetch_hist_cpu_{}.out".format(stat.sql_id), 'wb') as f:
+            stat.fetch_hist_cpu.output_percentile_distribution(f, 1.0)
 
