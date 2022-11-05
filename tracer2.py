@@ -138,7 +138,8 @@ def handle_wait(cursor, params):
         print("handle_wait: no match: cursor={}, params = ->{}<-".format(cursor, params))
 
 def handle_close(cursor, params):
-    print("handle_close: {}, {}".format(cursor, params))
+    ce = get_ce(params)
+    return (cursor, ce[0], ce[1])
 
 parser = argparse.ArgumentParser(description='Do stuff with Oracle 19c trace files')
 parser.add_argument('trace_files', metavar='files', type=str, nargs='+',
@@ -184,7 +185,7 @@ for fname in args.trace_files:
                 if match.group(1) == 'WAIT':
                     handle_wait(match.group(2), match.group(4))
                 if match.group(1) == 'CLOSE':
-                    handle_close(match.group(2), match.group(4))
+                    c = handle_close(match.group(2), match.group(4))
                 if match.group(1) == 'BINDS':
                     pass
 
