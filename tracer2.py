@@ -98,8 +98,6 @@ def handle_exec(cursor, params):
     sql_id = cursors[cursor]
     statement = statements[sql_id]
 #    print("handle_exec0: cursor = {}, sql_id = {}".format(cursor, sql_id))
-    elapsed = statement.exec_hist_elapsed
-    cpu = statement.exec_hist_cpu
     for item in params.split(','):
         key = item.split('=')
         if key[0] == 'c':
