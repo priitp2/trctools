@@ -4,6 +4,7 @@ import argparse
 from hdrh.histogram import HdrHistogram
 import re
 import sys
+from scipy.stats import shapiro,kstest
 
 max_fetch_elapsed = 500000
 max_exec_elapsed = 50000
@@ -12,7 +13,7 @@ statements = {}
 latest_waits = []
 
 class Statement:
-    def __init__(self, cursor, params):
+    def __init__(self, cursor, params, norm):
         self.cursor = cursor
 
         for item in params.split():
@@ -38,18 +39,43 @@ class Statement:
 
         self.execs = 0
         self.fetches = 0
+        self.norm = False
 
         self.exec_hist_elapsed = HdrHistogram(1, 1000000000, 1)
         self.exec_hist_cpu = HdrHistogram(1, 1000000000, 1)
         self.fetch_hist_elapsed = HdrHistogram(1, 1000000000, 1)
         self.fetch_hist_cpu = HdrHistogram(1, 1000000000, 1)
+
+        if norm:
+            self.exec_elapsed = []
+            self.exec_cpu = []
+            self.fetch_elapsed = []
+            self.fetch_cpu = []
+            self.norm = True
+
     def increase_exec_count(self):
         self.execs = self.execs + 1
     def increase_fetch_count(self):
         self.fetches = self.fetches + 1
+    def record_exec_cpu(self, cpu):
+        self.exec_hist_cpu.record_value(cpu)
+        if self.norm:
+            self.exec_cpu.append(cpu)
+    def record_exec_elapsed(self, elapsed):
+        self.exec_hist_elapsed.record_value(elapsed)
+        if self.norm:
+            self.exec_elapsed.append(elapsed)
+    def record_fetch_cpu(self, cpu):
+        self.fetch_hist_cpu.record_value(cpu)
+        if self.norm:
+            self.fetch_cpu.append(cpu)
+    def record_fetch_elapsed(self, elapsed):
+        self.fetch_hist_elapsed.record_value(elapsed)
+        if self.norm:
+            self.fetch_elapsed.append(elapsed)
 
 def handle_parse(cursor, params):
-    s = Statement(cursor, params)
+    s = Statement(cursor, params, args.norm)
 
     if s.sql_id not in statements.keys():
         statements[s.sql_id] = s
@@ -68,10 +94,10 @@ def handle_exec(cursor, params):
         key = item.split('=')
         if key[0] == 'c':
             c = int(key[1])
-            cpu.record_value(c)
+            statement.record_exec_cpu(c)
         if key[0] == 'e':
             e = int(key[1])
-            elapsed.record_value(e)
+            statement.record_exec_elapsed(e)
     statement.increase_exec_count()
     return (cursor, c, e)
 #    print(statement)
@@ -79,8 +105,6 @@ def handle_exec(cursor, params):
 
 def handle_fetch(cursor, params, last_exec):
     statement = statements[cursors[cursor]]
-    elapsed = statement.fetch_hist_elapsed
-    cpu = statement.fetch_hist_cpu
     for item in params.split(','):
         key = item.split('=')
         if key[0] == 'c':
@@ -88,13 +112,13 @@ def handle_fetch(cursor, params, last_exec):
                 c = int(key[1]) + last_exec[1]
             else:
                 c = int(key[1])
-            cpu.record_value(c)
+            statement.record_fetch_cpu(c)
         if key[0] == 'e':
             if args.merge:
                 e = int(key[1]) + last_exec[2]
             else:
                 e = int(key[1])
-            elapsed.record_value(e)
+            statement.record_fetch_elapsed(e)
     statement.increase_fetch_count()
     return (cursor, c, e)
 
@@ -117,6 +141,8 @@ parser.add_argument('--merge', type=bool, default=False, dest='merge',
                             help='EXEC should be merged to the next FETCH.')
 parser.add_argument('--sql_id', type=str, dest='sqlid',
                             help="Comma separated list of sql_id's for which histograms are produced")
+parser.add_argument('--norm', type=bool, default = False, dest='norm',
+                            help="Perform Shapiro-Wilk normality test on values")
 args = parser.parse_args()
 
 if args.merge:
@@ -161,6 +187,11 @@ for c in statements.keys():
     if stat.sql_id in ids:
         print('----------------------------------------')
         print("sql_id: {}, execs: {}, fetches: {}".format(stat.sql_id, stat.execs, stat.fetches))
+        if args.norm:
+            print("Normality test(Shapiro-Wilkes) on cpu: {}".format(shapiro(stat.exec_cpu)))
+            print("Normality test(Shapiro-Wilkes) on elapsed: {}".format(shapiro(stat.fetch_elapsed)))
+            print("Normality test(Kolmogorov-Smirnov) on cpu: {}".format(kstest(stat.exec_cpu, 'norm')))
+            print("Normality test(Kolmogorov-Smirnov) on elapsed: {}".format(kstest(stat.fetch_elapsed, 'norm')))
         with open("exec_hist_elapsed_{}.out".format(stat.sql_id), 'wb') as f:
             stat.exec_hist_elapsed.output_percentile_distribution(f, 1.0)
         with open("exec_hist_cpu_{}.out".format(stat.sql_id), 'wb') as f:
