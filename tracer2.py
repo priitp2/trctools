@@ -85,29 +85,23 @@ def handle_parse(cursor, params):
 #    print("handle_parse: cursor = {}, params = {}".format(cursor, params))
 
 def get_ce(params):
-    ce = (0, 0)
     for item in params.split(','):
         key = item.split('=')
         if key[0] == 'c':
-            ce[0] = int(key[1])
+            cpu = int(key[1])
         if key[0] == 'e':
-            ce[1] = int(key[1])
-    return ce
+            elapsed = int(key[1])
+    return (cpu, elapsed)
 
 def handle_exec(cursor, params):
     sql_id = cursors[cursor]
     statement = statements[sql_id]
 #    print("handle_exec0: cursor = {}, sql_id = {}".format(cursor, sql_id))
-    for item in params.split(','):
-        key = item.split('=')
-        if key[0] == 'c':
-            c = int(key[1])
-            statement.record_exec_cpu(c)
-        if key[0] == 'e':
-            e = int(key[1])
-            statement.record_exec_elapsed(e)
+    ce = get_ce(params)
+    statement.record_exec_cpu(ce[0])
+    statement.record_exec_elapsed(ce[1])
     statement.increase_exec_count()
-    return (cursor, c, e)
+    return (cursor, ce[0], ce[1])
 #    print(statement)
 #    print("handle_exec1: cursor = {}, params = {}, sql_id = {}".format(cursor, params, cursors[cursor]))
 
