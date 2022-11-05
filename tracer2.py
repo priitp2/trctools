@@ -167,6 +167,7 @@ for fname in args.trace_files:
                             print("    name: {}, elapsed: {}, timestamp: {}".format(w['name'], w['elapsed'], w['timestamp']))
                     latest_waits = []
                 if match.group(1) == 'FETCH':
+                    # FIXME: fetches should be added to execs, not other way around
                     f = handle_fetch(match.group(2), match.group(4), last_exec)
                     if f[2] > max_fetch_elapsed:
                         print("FETCH: sql_id: {}, cursor: {}, cpu: {}, elapsed: {}".format(cursors[f[0]], f[0], f[1], f[2]))
