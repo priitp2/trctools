@@ -5,74 +5,13 @@ from hdrh.histogram import HdrHistogram
 import re
 import sys
 from scipy.stats import shapiro,kstest
+from statement import Statement
 
-max_fetch_elapsed = 500000
+max_fetch_elapsed = 700000
 max_exec_elapsed = 50000
 cursors = {}
 statements = {}
 latest_waits = []
-
-class Statement:
-    def __init__(self, cursor, params, norm):
-        self.cursor = cursor
-
-        for item in params.split():
-            key = item.split('=')
-            if key[0] == 'len':
-                self.statement_length = key[1]
-            if key[0] == 'dep':
-                self.rec_depth = key[1]
-            if key[0] == 'uid':
-                self.schema_uid = key[1]
-            if key[0] == 'oct':
-                self.command_type = key[1]
-            if key[0] == 'lid':
-                self.priv_user_id = key[1]
-            if key[0] == 'tim':
-                self.timestamp = key[1]
-            if key[0] == 'hv':
-                self.hash_id = key[1]
-            if key[0] == 'ad':
-                self.address = key[1]
-            if key[0] == 'sqlid':
-                self.sql_id = key[1].replace("'", "")
-
-        self.execs = 0
-        self.fetches = 0
-        self.norm = False
-
-        self.exec_hist_elapsed = HdrHistogram(1, 1000000000, 1)
-        self.exec_hist_cpu = HdrHistogram(1, 1000000000, 1)
-        self.fetch_hist_elapsed = HdrHistogram(1, 1000000000, 1)
-        self.fetch_hist_cpu = HdrHistogram(1, 1000000000, 1)
-
-        if norm:
-            self.exec_elapsed = []
-            self.exec_cpu = []
-            self.fetch_elapsed = []
-            self.fetch_cpu = []
-            self.norm = True
-
-    def increase_exec_count(self):
-        self.execs = self.execs + 1
-    def increase_fetch_count(self):
-        self.fetches = self.fetches + 1
-    def record_exec_cpu(self, cpu):
-        self.exec_hist_cpu.record_value(cpu)
-        if self.norm:
-            self.exec_cpu.append(cpu)
-    def record_exec_elapsed(self, elapsed):
-        self.exec_hist_elapsed.record_value(elapsed)
-        if self.norm:
-            self.exec_elapsed.append(elapsed)
-    def record_fetch_cpu(self, cpu):
-        self.fetch_hist_cpu.record_value(cpu)
-        if self.norm:
-            self.fetch_cpu.append(cpu)
-    def record_fetch_elapsed(self, elapsed):
-        self.fetch_hist_elapsed.record_value(elapsed)
-        if self.norm:
-            self.fetch_elapsed.append(elapsed)
 
 def handle_parse(cursor, params):
     s = Statement(cursor, params, args.norm)
@@ -111,19 +50,15 @@ def handle_fetch(cursor, params, last_exec):
         raise("handle_fetch: cursor mismatch: cursor = {}, cursor from last_exec = {}".format(cursor, last_exec[0]))
     ce = get_ce(params)
 
+    lat = (cursor, ce[0], ce[1])
     if args.merge and len(last_exec) != 0:
-        cpu = ce[0] + last_exec[1]
-    else:
-        cpu = ce[0]
-    statement.record_fetch_cpu(cpu)
+        merge_lat_objects(lat, last_exec)
 
-    if args.merge and len(last_exec) != 0:
-        elapsed = ce[1] + last_exec[2]
-    else:
-        elapsed = ce[1]
-    statement.record_fetch_elapsed(elapsed)
+    statement.record_fetch_cpu(lat[1])
+    statement.record_fetch_elapsed(lat[2])
     statement.increase_fetch_count()
-    return (cursor, cpu, elapsed)
+
+    return lat
 
 def handle_wait(cursor, params):
     #match = re.match(r""" nam=([:alnum:]+) ela = (\d+) (.*) tim=(\d+)""", params)
@@ -142,12 +77,14 @@ def handle_close(cursor, params):
     return (cursor, ce[0], ce[1])
 
 def merge_lat_objects(dest, source):
+    if source != list():
+        source = [source]
     for s in source:
         if dest[0] != s[0]:
-            raise("merge_lat_objects: cursor mismatch: dest cursor = {}, source cursor = {}".format(dest[0], s[0]))
-        dest[0] = dest[0] + s[0]
-        dest[1] = dest[1] + s[1]
-    return dest
+            raise(BaseException("merge_lat_objects: cursor mismatch: dest cursor = {}, source cursor = {}".format(dest[0], s[0])))
+        cpu = dest[0] + s[0]
+        elapsed = dest[1] + s[1]
+    return (dest[0], cpu, elapsed)
 
 parser = argparse.ArgumentParser(description='Do stuff with Oracle 19c trace files')
 parser.add_argument('trace_files', metavar='files', type=str, nargs='+',
