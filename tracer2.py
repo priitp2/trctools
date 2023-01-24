@@ -138,7 +138,13 @@ for fname in args.trace_files:
 #    print("cursor: {}, sql_id: {}".format(c, cursors[c]))
 #for s in statements.values():
 #    print(s)
-ids = args.sqlid.split(',')
+
+# Silly bandaid in case sqlids argument isn't specified
+if args.sqlid:
+    ids = args.sqlid.split(',')
+else:
+    ids = [statements[s].sql_id for s in statements.keys()]
+
 for c in statements.keys():
     stat = statements[c]
     if stat.sql_id in ids:
