@@ -14,7 +14,7 @@ cursors = {}
 statements = {}
 latest_waits = []
 
-def handle_parse(cursor, params):
+def handle_parsing(cursor, params):
     if args.norm or args.db:
         record_data = True
     else:
@@ -123,6 +123,7 @@ if args.merge:
 
 if args.db:
     database = DB()
+
 for fname in args.trace_files:
     print("Processing {}".format(fname))
     with open(fname, 'r') as f:
@@ -132,7 +133,7 @@ for fname in args.trace_files:
             if match:
                 #print(match.groups())
                 if match.group(1) == 'PARSING IN CURSOR':
-                    handle_parse(match.group(2), match.group(4))
+                    handle_parsing(match.group(2), match.group(4))
                     latest_waits = []
                 if match.group(1) == 'EXEC':
                     last_exec = handle_exec(match.group(2), match.group(4))
