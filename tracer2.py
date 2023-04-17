@@ -15,7 +15,7 @@ statements = {}
 latest_waits = []
 
 def handle_parse(cursor, params):
-    if args.norm or args.csv:
+    if args.norm or args.db:
         record_data = True
     else:
         record_data = False
@@ -27,6 +27,13 @@ def handle_parse(cursor, params):
     # Not sure if (cursor, sql_id) is unique, just overwrite the mapping if they are not
     cursors[cursor] = s.sql_id
 #    print("handle_parse: cursor = {}, params = {}".format(cursor, params))
+
+def split_event(ev):
+    out = {}
+    for item in ev.split(','):
+        key = item.split('=')
+        out[key[0]] = key[1]
+    return out
 
 def get_ce(params):
     for item in params.split(','):
@@ -45,6 +52,13 @@ def handle_exec(cursor, params):
     statement.record_exec_cpu(ce[0])
     statement.record_exec_elapsed(ce[1])
     statement.increase_exec_count()
+    if args.db:
+        ev = split_event(params)
+        ev['parent_id'] = 0
+        ev['cursor'] = cursor
+        ev['event'] = 'FETCH'
+        ev['type'] = 0
+        database.add_event(ev)
     return (cursor, ce[0], ce[1])
 #    print(statement)
 #    print("handle_exec1: cursor = {}, params = {}, sql_id = {}".format(cursor, params, cursors[cursor]))
@@ -107,6 +121,8 @@ args = parser.parse_args()
 if args.merge:
     print('Merging EXEC and FETCH')
 
+if args.db:
+    database = DB()
 for fname in args.trace_files:
     print("Processing {}".format(fname))
     with open(fname, 'r') as f:
@@ -165,8 +181,7 @@ for c in statements.keys():
         with open("exec_hist_elapsed_{}.out".format(stat.sql_id), 'wb') as f:
             stat.exec_hist_elapsed.output_percentile_distribution(f, 1.0)
             if args.db:
-                d = DB()
-                d.add_rows(stat.sql_id, stat.exec_elapsed)
+                database.add_rows(stat.sql_id, stat.exec_elapsed)
         with open("exec_hist_cpu_{}.out".format(stat.sql_id), 'wb') as f:
             stat.exec_hist_cpu.output_percentile_distribution(f, 1.0)
         with open("fetch_hist_elapsed_{}.out".format(stat.sql_id), 'wb') as f:
