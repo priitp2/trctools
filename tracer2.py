@@ -6,6 +6,7 @@ import re
 import sys
 from scipy.stats import shapiro,kstest
 from statement import Statement
+from oracle import DB
 
 max_fetch_elapsed = 700000
 max_exec_elapsed = 50000
@@ -14,7 +15,11 @@ statements = {}
 latest_waits = []
 
 def handle_parse(cursor, params):
-    s = Statement(cursor, params, args.norm)
+    if args.norm or args.csv:
+        record_data = True
+    else:
+        record_data = False
+    s = Statement(cursor, params, record_data)
 
     if s.sql_id not in statements.keys():
         statements[s.sql_id] = s
@@ -95,6 +100,8 @@ parser.add_argument('--sql_id', type=str, dest='sqlid',
                             help="Comma separated list of sql_id's for which histograms are produced")
 parser.add_argument('--norm', type=bool, default = False, dest='norm',
                             help="Perform Shapiro-Wilk normality test on values")
+parser.add_argument('--db', type=bool, default = False, dest='db',
+                            help="persists raw data in the db")
 args = parser.parse_args()
 
 if args.merge:
@@ -157,6 +164,9 @@ for c in statements.keys():
             print("Normality test(Kolmogorov-Smirnov) on elapsed: {}".format(kstest(stat.fetch_elapsed, 'norm')))
         with open("exec_hist_elapsed_{}.out".format(stat.sql_id), 'wb') as f:
             stat.exec_hist_elapsed.output_percentile_distribution(f, 1.0)
+            if args.db:
+                d = DB()
+                d.add_rows(stat.sql_id, stat.exec_elapsed)
         with open("exec_hist_cpu_{}.out".format(stat.sql_id), 'wb') as f:
             stat.exec_hist_cpu.output_percentile_distribution(f, 1.0)
         with open("fetch_hist_elapsed_{}.out".format(stat.sql_id), 'wb') as f:
