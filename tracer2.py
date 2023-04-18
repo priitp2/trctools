@@ -135,6 +135,8 @@ parser.add_argument('--norm', type=bool, default = False, dest='norm',
                             help="Perform Shapiro-Wilk normality test on values")
 parser.add_argument('--db', type=bool, default = False, dest='db',
                             help="persists raw data in the db")
+parser.add_argument('--merge_all', type=bool, default = False, dest='merge_all',
+                            help="Merges all sql statements into one histogram. Helpful without the bind variables")
 args = parser.parse_args()
 
 if args.merge:
@@ -194,6 +196,28 @@ if args.sqlid:
     ids = args.sqlid.split(',')
 else:
     ids = [statements[s].sql_id for s in statements.keys()]
+
+if args.merge_all:
+    exec_hist_elapsed = HdrHistogram(1, 1000000000, 1)
+    exec_hist_cpu = HdrHistogram(1, 1000000000, 1)
+    fetch_hist_elapsed = HdrHistogram(1, 1000000000, 1)
+    fetch_hist_cpu = HdrHistogram(1, 1000000000, 1)
+
+    for c in statements.keys():
+        stat = statements[c]
+        exec_hist_elapsed.add(stat.exec_hist_elapsed)
+        exec_hist_cpu.add(stat.exec_hist_cpu)
+        fetch_hist_elapsed.add(stat.fetch_hist_elapsed)
+        fetch_hist_cpu.add(stat.fetch_hist_cpu)
+    with open("exec_hist_elapsed_all.out", 'wb') as f:
+        exec_hist_elapsed.output_percentile_distribution(f, 1.0)
+    with open("exec_hist_cpu_all.out", 'wb') as f:
+        exec_hist_cpu.output_percentile_distribution(f, 1.0)
+    with open("fetch_hist_elapsed_all.out", 'wb') as f:
+        fetch_hist_elapsed.output_percentile_distribution(f, 1.0)
+    with open("fetch_hist_cpu_all.out", 'wb') as f:
+        fetch_hist_cpu.output_percentile_distribution(f, 1.0)
+    sys.exit(0)
 
 for c in statements.keys():
     stat = statements[c]
