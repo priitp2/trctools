@@ -1,4 +1,5 @@
 from hdrh.histogram import HdrHistogram
+from oracle import DB
 
 class Statement:
     def __init__(self, cursor, params, norm):
@@ -40,6 +41,8 @@ class Statement:
             self.fetch_elapsed = []
             self.fetch_cpu = []
             self.norm = True
+            db = DB()
+            db.add_cursor(self)
 
     def increase_exec_count(self):
         self.execs = self.execs + 1
