@@ -1,4 +1,5 @@
 import oracledb
+import sys
 
 class DB:
     def __init__(self):
@@ -23,6 +24,10 @@ class DB:
     def add_event(self, ev):
         cursor = self.connection.cursor()
         out = cursor.var(int)
-        cursor.execute("insert into events(parent_id, event, cursor_id, cpu_time, elapsed_time, ph_reads, cr_reads, current_reads, cursor_missed, rows_processed, rec_call_dp, opt_goal, ts, c_type) values(:1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12, :13, :14) returning id into :15", [ev['parent_id'], ev['event'], ev['cursor'], ev['c'], ev['e'], ev['p'], ev['cr'], ev['cu'], ev['mis'], ev['r'], ev['dep'], ev['og'], ev['tim'], ev['type'], out])
+        try:
+            cursor.execute("insert into events(parent_id, event, cursor_id, cpu_time, elapsed_time, ph_reads, cr_reads, current_reads, cursor_missed, rows_processed, rec_call_dp, opt_goal, ts, c_type) values(:1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12, :13, :14) returning id into :15", [ev['parent_id'], ev['event'], ev['cursor'], ev['c'], ev['e'], ev['p'], ev['cr'], ev['cu'], ev['mis'], ev['r'], ev['dep'], ev['og'], ev['tim'], ev['type'], out])
+        except:
+            print(ev)
+            raise sys.exception()
         self.connection.commit()
         return out.getvalue()

@@ -44,6 +44,15 @@ def get_ce(params):
             elapsed = int(key[1])
     return (cpu, elapsed)
 
+def handle_parse(cursor, params):
+    if args.db:
+        ev = split_event(params)
+        ev['parent_id'] = 0
+        ev['cursor'] = cursor
+        ev['event'] = 'PARSE'
+        ev['type'] = 0
+        database.add_event(ev)
+
 def handle_exec(cursor, params):
     sql_id = cursors[cursor]
     statement = statements[sql_id]
@@ -52,18 +61,20 @@ def handle_exec(cursor, params):
     statement.record_exec_cpu(ce[0])
     statement.record_exec_elapsed(ce[1])
     statement.increase_exec_count()
+    id = []
+    id.append(-1)
     if args.db:
         ev = split_event(params)
         ev['parent_id'] = 0
         ev['cursor'] = cursor
-        ev['event'] = 'FETCH'
+        ev['event'] = 'EXEC'
         ev['type'] = 0
-        database.add_event(ev)
-    return (cursor, ce[0], ce[1])
+        id = database.add_event(ev)
+    return (cursor, ce[0], ce[1], id[0])
 #    print(statement)
 #    print("handle_exec1: cursor = {}, params = {}, sql_id = {}".format(cursor, params, cursors[cursor]))
 
-def handle_fetch(cursor, params, last_exec):
+def handle_fetch(cursor, params, last_exec, last_exec_id):
     statement = statements[cursors[cursor]]
     if len(last_exec) > 0 and cursor != last_exec[0]:
         raise("handle_fetch: cursor mismatch: cursor = {}, cursor from last_exec = {}".format(cursor, last_exec[0]))
@@ -77,6 +88,14 @@ def handle_fetch(cursor, params, last_exec):
     statement.record_fetch_elapsed(lat[2])
     statement.increase_fetch_count()
 
+    id = -1
+    if args.db:
+        ev = split_event(params)
+        ev['parent_id'] = last_exec_id
+        ev['cursor'] = cursor
+        ev['event'] = 'FETCH'
+        ev['type'] = 0
+        id = database.add_event(ev)
     return lat
 
 def handle_wait(cursor, params):
@@ -128,15 +147,20 @@ for fname in args.trace_files:
     print("Processing {}".format(fname))
     with open(fname, 'r') as f:
         last_exec = ()
+        last_parse_id = -1
+        last_exec_id = -1
         for line in f:
-            match = re.match(r'''^(PARSING IN CURSOR|EXEC|FETCH|WAIT|CLOSE|BINDS) (#\d+)(:| )(.*)''', line)
+            match = re.match(r'''^(PARSE|PARSING IN CURSOR|EXEC|FETCH|WAIT|CLOSE|BINDS) (#\d+)(:| )(.*)''', line)
             if match:
                 #print(match.groups())
                 if match.group(1) == 'PARSING IN CURSOR':
                     handle_parsing(match.group(2), match.group(4))
                     latest_waits = []
+                if match.group(1) == 'PARSE':
+                    last_parse_id = handle_parse(match.group(2), match.group(4))
                 if match.group(1) == 'EXEC':
                     last_exec = handle_exec(match.group(2), match.group(4))
+                    last_exec_id = last_exec[3]
                     if last_exec[2] > max_exec_elapsed:
                         print("EXEC: sql_id: {}, cursor: {}, cpu: {}, elapsed: {}".format(cursors[last_exec[0]], last_exec[0], last_exec[1], last_exec[2]))
                         for w in latest_waits:
@@ -144,7 +168,7 @@ for fname in args.trace_files:
                     latest_waits = []
                 if match.group(1) == 'FETCH':
                     # FIXME: fetches should be added to execs, not other way around
-                    f = handle_fetch(match.group(2), match.group(4), last_exec)
+                    f = handle_fetch(match.group(2), match.group(4), last_exec, last_exec_id)
                     if f[2] > max_fetch_elapsed:
                         print("FETCH: sql_id: {}, cursor: {}, cpu: {}, elapsed: {}".format(cursors[f[0]], f[0], f[1], f[2]))
                         for w in latest_waits:
@@ -155,6 +179,8 @@ for fname in args.trace_files:
                     handle_wait(match.group(2), match.group(4))
                 if match.group(1) == 'CLOSE':
                     c = handle_close(match.group(2), match.group(4))
+                    last_parse_id = -1
+                    last_exec_id = -1
                 if match.group(1) == 'BINDS':
                     pass
 
