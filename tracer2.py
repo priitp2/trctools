@@ -9,26 +9,21 @@ from statement import Statement
 from oracle import DB
 from current_statement import CurrentStatement
 import util
+from cursor_tracker import CursorTracker
 
 max_fetch_elapsed = 700000
 max_exec_elapsed = 50000
 cursors = {}
 statements = {}
 latest_waits = []
+tracker = CursorTracker(cursors, statements)
 
 def handle_parsing(cursor, params):
     if args.norm or args.db:
         record_data = True
     else:
         record_data = False
-    s = Statement(cursor, params, record_data)
-
-    if s.sql_id not in statements.keys():
-        statements[s.sql_id] = s
-
-    # Not sure if (cursor, sql_id) is unique, just overwrite the mapping if they are not
-    cursors[cursor] = s.sql_id
-#    print("handle_parse: cursor = {}, params = {}".format(cursor, params))
+    tracker.add_parsing_in(cursor, params)
     return (cursor, None)
 
 def split_event(ev):
@@ -60,13 +55,7 @@ def handle_parse(cursor, params):
     return (cursor, int(ev['c']), int(ev['e']), id[0])
 
 def handle_exec(cursor, params):
-    sql_id = cursors[cursor]
-    statement = statements[sql_id]
-#    print("handle_exec0: cursor = {}, sql_id = {}".format(cursor, sql_id))
     ce = get_ce(params)
-    statement.record_exec_cpu(ce[0])
-    statement.record_exec_elapsed(ce[1])
-    statement.increase_exec_count()
     id = []
     id.append(-1)
     if args.db:
@@ -81,23 +70,11 @@ def handle_exec(cursor, params):
 #    print("handle_exec1: cursor = {}, params = {}, sql_id = {}".format(cursor, params, cursors[cursor]))
 
 def handle_fetch(cursor, params, last_exec, last_exec_id, last_parse):
-    statement = statements[cursors[cursor]]
     if len(last_exec) > 0 and cursor != last_exec[0]:
         raise("handle_fetch: cursor mismatch: cursor = {}, cursor from last_exec = {}".format(cursor, last_exec[0]))
     ce = get_ce(params)
 
     lat = (cursor, ce[0], ce[1])
-    if args.merge and len(last_exec) != 0:
-        lat = util.merge_lat_objects(lat, last_exec)
-    #    try:
-    #        lat = util.merge_lat_objects(lat, last_parse)
-    #    except:
-    #        print("lat = {}, last_parse = {}".format(lat, last_parse))
-
-#    statement.record_fetch_cpu(lat[1])
-#    statement.record_fetch_elapsed(lat[2])
-#    statement.increase_fetch_count()
-
     id = -1
     if args.db:
         ev = split_event(params)
@@ -173,20 +150,10 @@ for fname in args.trace_files:
                 if match.group(1) == 'PARSING IN CURSOR':
                     p = handle_parsing(match.group(2), match.group(4))
                     latest_waits = []
-                    if current_statement == None:
-                        current_statement = CurrentStatement(p[0])
-                    if current_statement.cursor != match.group(2):
-                        statement = statements[cursors[current_statement.cursor]]
-                        statement.add_current_statement(current_statement)
-                        current_statement = CurrentStatement(match.group(2))
                 if match.group(1) == 'PARSE':
                     last_parse = handle_parse(match.group(2), match.group(4))
                     last_parse_id = last_parse[3]
-                    if current_statement.cursor != match.group(2) or current_statement.parse != None:
-                        statement = statements[cursors[match.group(2)]]
-                        statement.add_current_statement(current_statement)
-                        current_statement = CurrentStatement(match.group(2))
-                    current_statement.add_parse(last_parse)
+                    tracker.add_parse(match.group(2), last_parse)
                 if match.group(1) == 'EXEC':
                     last_exec = handle_exec(match.group(2), match.group(4))
                     last_exec_id = last_exec[3]
@@ -195,13 +162,7 @@ for fname in args.trace_files:
                         for w in latest_waits:
                             print("    name: {}, elapsed: {}, timestamp: {}".format(w['name'], w['elapsed'], w['timestamp']))
                     latest_waits = []
-                    if current_statement == None:
-                        current_statement = CurrentStatement(p[0])
-                    if current_statement.exec != None or current_statement.cursor != match.group(2):
-                        statement = statements[cursors[match.group(2)]]
-                        statement.add_current_statement(current_statement)
-                        current_statement = CurrentStatement(match.group(2))
-                    current_statement.add_exec(last_exec)
+                    tracker.add_exec(match.group(2), last_exec)
                 if match.group(1) == 'FETCH':
                     # FIXME: fetches should be added to execs, not other way around
                     f = handle_fetch(match.group(2), match.group(4), last_exec, last_exec_id, last_parse)
@@ -211,29 +172,16 @@ for fname in args.trace_files:
                             print("    name: {}, elapsed: {}, timestamp: {}".format(w['name'], w['elapsed'], w['timestamp']))
                     latest_waits = []
                     last_exec = ()
-                    # FIXME: ignores out-of-order fetches
-                    try:
-                        current_statement.add_fetch(f)
-                    except:
-                        print("fetch: f = {}, line = {}".format(f, line))
+                    tracker.add_fetch(match.group(2), f)
                 if match.group(1) == 'WAIT':
                     w = handle_wait(match.group(2), match.group(4))
-                    # Beginning of the trace file can contain stray events
-                    try:
-                        if current_statement != None and w[0] != '#0':
-                            current_statement.add_wait(w)
-                    except:
-                        print("wait: w = {}, line = {}".format(w, line))
+                    tracker.add_fetch(match.group(2), w)
                 if match.group(1) == 'CLOSE':
                     c = handle_close(match.group(2), match.group(4))
                     last_parse = ()
                     last_parse_id = -1
                     last_exec_id = -1
-                    if current_statement.cursor != match.group(2):
-                        pass
-                        #print("Warning: got stray CLOSE, ignoring. filename = {}, line = {}".format(fname, line))
-                    else:
-                        current_statement.add_close(c)
+                    tracker.add_close(match.group(2), c)
 
                 if match.group(1) == 'BINDS':
                     pass
