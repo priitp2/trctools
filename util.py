@@ -8,6 +8,8 @@ def merge_lat_objects(dest, source):
     a = dest[1]
     b = dest[2]
     for s in source:
+        if len(s) < 3:
+            continue
         if dest[0] != s[0]:
             raise(BaseException("merge_lat_objects: cursor mismatch: dest cursor = {}, source cursor = {}".format(dest[0], s[0])))
         a = a + s[1]
