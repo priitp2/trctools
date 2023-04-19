@@ -39,5 +39,18 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(ret[1], 2)
         self.assertEqual(ret[2], 4)
 
+        ret = util.merge_lat_objects(obj3, ())
+        self.assertEqual(ret[0], cursor1)
+        self.assertEqual(ret[1], obj3[1])
+        self.assertEqual(ret[2], obj3[2])
+
+        with self.assertRaises(TypeError):
+            ret = util.merge_lat_objects(obj3, 666)
+
+        ret = util.merge_lat_objects(obj3, (cursor1, -1))
+        self.assertEqual(ret[0], cursor1)
+        self.assertEqual(ret[1], obj3[1])
+        self.assertEqual(ret[2], obj3[2])
+
 if __name__ == '__main__':
     unittest.main()
