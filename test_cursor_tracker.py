@@ -85,6 +85,14 @@ class TestCursorTracker(unittest.TestCase):
         st = tr.statements[tr.cursors[cursor]]
         self.assertEqual(st.fetch_hist_cpu.get_total_count(), 1)
         self.assertEqual(st.fetch_hist_elapsed.get_total_count(), 1)
+    def test_stray_cursors(self):
+        # When PARSING is missing in the trace file
+        tr = CursorTracker({}, {})
+        fetch_lat = ('#1234', 1, 100)
+        tr.add_fetch('#1234', fetch_lat)
+        tr.add_parsing_in('#1234', params)
+        # FIXME: what to do with those? What if there's another parse call later?
+
 
 if __name__ == '__main__':
     unittest.main()
