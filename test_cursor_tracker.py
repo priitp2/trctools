@@ -1,0 +1,90 @@
+import unittest
+from cursor_tracker import CursorTracker
+
+cursor = '#140131077570528'
+params = "len=80 dep=0 uid=331 oct=3 lid=331 tim=1648763822995 hv=1167462720 ad='8ff705c50' sqlid='6v48b7j2tc4a0'"
+
+class TestCursorTracker(unittest.TestCase):
+    def test_init(self):
+        tr = CursorTracker({}, {})
+    def test_add_cursor(self):
+        tr = CursorTracker({}, {})
+        tr.add_parsing_in(cursor, params)
+        self.assertEqual(len(tr.cursors), 1)
+        self.assertEqual(len(tr.statements), 1)
+
+
+        tr.add_latest_cursor(cursor)
+        self.assertEqual(len(tr.latest_cursors), 1)
+        tr.add_latest_cursor(cursor)
+        self.assertEqual(len(tr.latest_cursors), 1)
+    def test_add_parse(self):
+        tr = CursorTracker({}, {})
+        tr.add_parsing_in(cursor, params)
+
+        parse_lat = (cursor, 1, 100)
+        tr.add_parse(cursor, parse_lat)
+        self.assertEqual(len(tr.latest_cursors), 1)
+        self.assertEqual(len(tr.statements), 1)
+        self.assertEqual(len(tr.cursors), 1)
+        st = tr.statements[tr.cursors[cursor]]
+        # Histograms should be empty
+        self.assertEqual(st.fetch_hist_cpu.get_total_count(), 0)
+        self.assertEqual(st.fetch_hist_elapsed.get_total_count(), 0)
+
+        # This merges the item in tr.latest_cursors with statements and overwrites the item
+        tr.add_parse(cursor, parse_lat)
+        self.assertEqual(len(tr.latest_cursors), 1)
+        self.assertEqual(len(tr.statements), 1)
+        self.assertEqual(len(tr.cursors), 1)
+
+        # Since we merged the current cursor with the statement, there should be 1 item in 'fetch' histograms
+        self.assertEqual(st.fetch_hist_cpu.get_total_count(), 1)
+        self.assertEqual(st.fetch_hist_elapsed.get_total_count(), 1)
+    def test_add_exec(self):
+        tr = CursorTracker({}, {})
+        tr.add_parsing_in(cursor, params)
+        exec_lat = (cursor, 1, 100)
+        tr.add_exec(cursor, exec_lat)
+
+        tr.add_exec(cursor, exec_lat)
+        self.assertEqual(len(tr.latest_cursors), 1)
+        self.assertEqual(len(tr.statements), 1)
+        self.assertEqual(len(tr.cursors), 1)
+
+        st = tr.statements[tr.cursors[cursor]]
+        self.assertEqual(st.fetch_hist_cpu.get_total_count(), 1)
+        self.assertEqual(st.fetch_hist_elapsed.get_total_count(), 1)
+    def test_add_fetch(self):
+        tr = CursorTracker({}, {})
+        tr.add_parsing_in(cursor, params)
+        fetch_lat = (cursor, 1, 100)
+        tr.add_fetch(cursor, fetch_lat)
+        tr.add_fetch(cursor, fetch_lat)
+        tr.add_fetch(cursor, fetch_lat)
+        cs = tr.latest_cursors[cursor]
+        self.assertEqual(len(cs.fetches), 3)
+    def test_add_wait(self):
+        tr = CursorTracker({}, {})
+        tr.add_parsing_in(cursor, params)
+        wait_lat = (cursor, 1, 100)
+        tr.add_wait(cursor, wait_lat)
+        tr.add_wait(cursor, wait_lat)
+        tr.add_wait(cursor, wait_lat)
+        cs = tr.latest_cursors[cursor]
+        self.assertEqual(len(cs.waits), 3)
+    def test_add_close(self):
+        tr = CursorTracker({}, {})
+        tr.add_parsing_in(cursor, params)
+        close_lat = (cursor, 1, 100)
+        tr.add_close(cursor, close_lat)
+        cs = tr.latest_cursors[cursor]
+        self.assertEqual(cs.close, None)
+        self.assertEqual(cs.exec, None)
+        st = tr.statements[tr.cursors[cursor]]
+        self.assertEqual(st.fetch_hist_cpu.get_total_count(), 1)
+        self.assertEqual(st.fetch_hist_elapsed.get_total_count(), 1)
+
+if __name__ == '__main__':
+    unittest.main()
+
