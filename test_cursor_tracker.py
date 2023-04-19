@@ -15,16 +15,17 @@ class TestCursorTracker(unittest.TestCase):
 
 
         tr.add_latest_cursor(cursor)
-        self.assertEqual(len(tr.latest_cursors), 1)
+        # There is a special cursor '#0'
+        self.assertEqual(len(tr.latest_cursors), 2)
         tr.add_latest_cursor(cursor)
-        self.assertEqual(len(tr.latest_cursors), 1)
+        self.assertEqual(len(tr.latest_cursors), 2)
     def test_add_parse(self):
         tr = CursorTracker({}, {})
         tr.add_parsing_in(cursor, params)
 
         parse_lat = (cursor, 1, 100)
         tr.add_parse(cursor, parse_lat)
-        self.assertEqual(len(tr.latest_cursors), 1)
+        self.assertEqual(len(tr.latest_cursors), 2)
         self.assertEqual(len(tr.statements), 1)
         self.assertEqual(len(tr.cursors), 1)
         st = tr.statements[tr.cursors[cursor]]
@@ -34,7 +35,7 @@ class TestCursorTracker(unittest.TestCase):
 
         # This merges the item in tr.latest_cursors with statements and overwrites the item
         tr.add_parse(cursor, parse_lat)
-        self.assertEqual(len(tr.latest_cursors), 1)
+        self.assertEqual(len(tr.latest_cursors), 2)
         self.assertEqual(len(tr.statements), 1)
         self.assertEqual(len(tr.cursors), 1)
 
@@ -48,7 +49,7 @@ class TestCursorTracker(unittest.TestCase):
         tr.add_exec(cursor, exec_lat)
 
         tr.add_exec(cursor, exec_lat)
-        self.assertEqual(len(tr.latest_cursors), 1)
+        self.assertEqual(len(tr.latest_cursors), 2)
         self.assertEqual(len(tr.statements), 1)
         self.assertEqual(len(tr.cursors), 1)
 

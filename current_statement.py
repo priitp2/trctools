@@ -2,7 +2,7 @@ import util
 
 class CurrentStatement:
     def __init__(self, cursor):
-        if not len(cursor) > 2:
+        if len(cursor) < 2 and cursor != '#0':
             raise(BaseException("init: got empty cursor"))
         self.cursor = cursor
         self.parsing_in = None

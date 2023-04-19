@@ -11,6 +11,8 @@ class CursorTracker:
         self.latest_cursors = {}
         self.cursors = cursors
         self.statements = statements
+
+        self.add_latest_cursor('#0')
     def add_latest_cursor(self, cursor):
         ''' If cursor is present then this is new execution, so merge the cursor with the statement and
             overwrite the latest_cursor.
