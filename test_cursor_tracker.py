@@ -78,8 +78,13 @@ class TestCursorTracker(unittest.TestCase):
         tr = CursorTracker({}, {})
         tr.add_parsing_in(cursor, params)
         close_lat = (cursor, 1, 100)
-        tr.add_close(cursor, close_lat)
+        current_st = tr.add_close(cursor, close_lat)
         cs = tr.latest_cursors[cursor]
+
+        # Got back the old object
+        self.assertNotEqual(current_st.close, None)
+
+        # New one hasn't been touched
         self.assertEqual(cs.close, None)
         self.assertEqual(cs.exec, None)
         st = tr.statements[tr.cursors[cursor]]

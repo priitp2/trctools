@@ -58,4 +58,5 @@ class CursorTracker:
         cs = self.latest_cursors[cursor]
         cs.add_close(params)
         self.add_latest_cursor(cursor)
+        return cs
 
