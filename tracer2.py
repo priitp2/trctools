@@ -102,18 +102,6 @@ def handle_close(cursor, params):
     ce = get_ce(params)
     return (cursor, ce[0], ce[1])
 
-#def util.merge_lat_objects(dest, source):
-#    if source != list():
-#        source = [source]
-#    if len(source) < 3:
-#        return dest
-#    for s in source:
-#        if dest[0] != s[0]:
-#            raise(BaseException("util.merge_lat_objects: cursor mismatch: dest cursor = {}, source cursor = {}".format(dest[0], s[0])))
-#        cpu = dest[1] + s[1]
-#        elapsed = dest[2] + s[2]
-#    return (dest[0], cpu, elapsed)
-
 parser = argparse.ArgumentParser(description='Do stuff with Oracle 19c trace files')
 parser.add_argument('trace_files', metavar='files', type=str, nargs='+',
                             help='Trace files to process')
