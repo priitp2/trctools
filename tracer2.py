@@ -105,8 +105,6 @@ def handle_close(cursor, params):
 parser = argparse.ArgumentParser(description='Do stuff with Oracle 19c trace files')
 parser.add_argument('trace_files', metavar='files', type=str, nargs='+',
                             help='Trace files to process')
-parser.add_argument('--merge', type=bool, default=False, dest='merge',
-                            help='EXEC should be merged to the next FETCH.')
 parser.add_argument('--sql_id', type=str, dest='sqlid',
                             help="Comma separated list of sql_id's for which histograms are produced")
 parser.add_argument('--norm', type=bool, default = False, dest='norm',
@@ -116,9 +114,6 @@ parser.add_argument('--db', type=bool, default = False, dest='db',
 parser.add_argument('--merge_all', type=bool, default = False, dest='merge_all',
                             help="Merges all sql statements into one histogram. Helpful without the bind variables")
 args = parser.parse_args()
-
-if args.merge:
-    print('Merging EXEC and FETCH')
 
 if args.db:
     database = DB()
