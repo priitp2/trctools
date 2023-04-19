@@ -64,4 +64,9 @@ class Statement:
         self.fetch_hist_elapsed.record_value(elapsed)
         if self.norm:
             self.fetch_elapsed.append(elapsed)
+    def add_current_statement(self, s):
+        lat = s.merge()
+        self.record_fetch_cpu(lat[1])
+        self.record_fetch_elapsed(lat[2])
+        self.increase_fetch_count()
 
