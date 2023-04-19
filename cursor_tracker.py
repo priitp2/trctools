@@ -46,6 +46,9 @@ class CursorTracker:
             cs = self.add_latest_cursor(cursor)
         cs.add_exec(params)
     def add_fetch(self, cursor, params):
+        # FIXME: stray cursors, PARSING is probably not in the trace file
+        if cursor not in self.latest_cursors.keys():
+            self.latest_cursors[cursor] = CurrentStatement(cursor)
         cs = self.latest_cursors[cursor]
         cs.add_fetch(params)
     def add_wait(self, cursor, params):
