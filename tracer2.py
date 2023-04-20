@@ -11,8 +11,8 @@ from current_statement import CurrentStatement
 import util
 from cursor_tracker import CursorTracker
 
-max_fetch_elapsed = 700000
-max_exec_elapsed = 50000
+max_fetch_elapsed = 500000
+max_exec_elapsed = 500000
 cursors = {}
 statements = {}
 latest_waits = []
@@ -94,13 +94,33 @@ def handle_wait(cursor, params):
         wait['elapsed'] = match.group(2)
         wait['timestamp'] = match.group(4)
         latest_waits.append(wait)
-        return (cursor, 0, int(match.group(2)))
+        return (cursor, 0, int(match.group(2)), params)
     else:
         print("handle_wait: no match: cursor={}, params = ->{}<-".format(cursor, params))
 
 def handle_close(cursor, params):
     ce = get_ce(params)
     return (cursor, ce[0], ce[1])
+
+def print_naughty_exec(cs):
+    lat = cs.merge()
+    if lat[2] > max_exec_elapsed:
+        print('----------------------------------------------')
+        statement = statements[cursors[lat[0]]]
+        print("sql_id = {}, cursor = {}, elapsed = {}, fetches = {}".format(statement.sql_id, lat[0], lat[2], len(cs.fetches)))
+        if len(cs.fetches) < 10:
+            for f in cs.fetches:
+                print("     {}".format(f))
+        else:
+            elapsed = util.merge_lat_objects((cs.cursor, 0, 0), cs.fetches)
+            print("    fetches = {}, elapsed = {}".format(len(cs.fetches), elapsed[2]))
+        if len(cs.waits) < 10:
+            for w in cs.waits:
+                print("     {}".format(w[3]))
+        else:
+            elapsed = util.merge_lat_objects((cs.cursor, 0, 0), cs.waits)
+            print("    waits = {}, elapsed = {}".format(len(cs.waits), elapsed[2]))
+        print('----------------------------------------------')
 
 parser = argparse.ArgumentParser(description='Do stuff with Oracle 19c trace files')
 parser.add_argument('trace_files', metavar='files', type=str, nargs='+',
@@ -136,35 +156,28 @@ for fname in args.trace_files:
                 if match.group(1) == 'PARSE':
                     last_parse = handle_parse(match.group(2), match.group(4))
                     last_parse_id = last_parse[3]
-                    tracker.add_parse(match.group(2), last_parse)
+                    cs = tracker.add_parse(match.group(2), last_parse)
+                    print_naughty_exec(cs)
                 if match.group(1) == 'EXEC':
                     last_exec = handle_exec(match.group(2), match.group(4))
                     last_exec_id = last_exec[3]
-                    if last_exec[2] > max_exec_elapsed:
-                        print("EXEC: sql_id: {}, cursor: {}, cpu: {}, elapsed: {}".format(cursors[last_exec[0]], last_exec[0], last_exec[1], last_exec[2]))
-                        for w in latest_waits:
-                            print("    name: {}, elapsed: {}, timestamp: {}".format(w['name'], w['elapsed'], w['timestamp']))
-                    latest_waits = []
-                    tracker.add_exec(match.group(2), last_exec)
+                    cs = tracker.add_exec(match.group(2), last_exec)
+                    if cs != None:
+                        print_naughty_exec(cs)
                 if match.group(1) == 'FETCH':
                     # FIXME: fetches should be added to execs, not other way around
                     f = handle_fetch(match.group(2), match.group(4), last_exec, last_exec_id, last_parse)
-                    if f[2] > max_fetch_elapsed:
-                        print("FETCH: sql_id: {}, cursor: {}, cpu: {}, elapsed: {}".format(cursors[f[0]], f[0], f[1], f[2]))
-                        for w in latest_waits:
-                            print("    name: {}, elapsed: {}, timestamp: {}".format(w['name'], w['elapsed'], w['timestamp']))
-                    latest_waits = []
-                    last_exec = ()
                     tracker.add_fetch(match.group(2), f)
                 if match.group(1) == 'WAIT':
                     w = handle_wait(match.group(2), match.group(4))
-                    tracker.add_fetch(match.group(2), w)
+                    tracker.add_wait(match.group(2), w)
                 if match.group(1) == 'CLOSE':
                     c = handle_close(match.group(2), match.group(4))
                     last_parse = ()
                     last_parse_id = -1
                     last_exec_id = -1
-                    tracker.add_close(match.group(2), c)
+                    cs = tracker.add_close(match.group(2), c)
+                    print_naughty_exec(cs)
 
                 if match.group(1) == 'BINDS':
                     pass

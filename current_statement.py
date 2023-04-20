@@ -48,7 +48,7 @@ class CurrentStatement:
         ret = (self.cursor, 0, 0)
         ret = util.merge_lat_objects(ret, self.parse)
         ret = util.merge_lat_objects(ret, self.exec)
-        #util.merge_lat_objects(ret, self.waits)
-        util.merge_lat_objects(ret, self.fetches)
+        ret = util.merge_lat_objects(ret, self.waits)
+        ret = util.merge_lat_objects(ret, self.fetches)
         ret = util.merge_lat_objects(ret, self.close)
         return ret

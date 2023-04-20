@@ -24,7 +24,10 @@ class TestCursorTracker(unittest.TestCase):
         tr.add_parsing_in(cursor, params)
 
         parse_lat = (cursor, 1, 100)
-        tr.add_parse(cursor, parse_lat)
+        cs = tr.add_parse(cursor, parse_lat)
+        # add_parsing_in adds item to latest_cursors
+        self.assertNotEqual(cs, None)
+        self.assertNotEqual(cs.parse, None)
         self.assertEqual(len(tr.latest_cursors), 2)
         self.assertEqual(len(tr.statements), 1)
         self.assertEqual(len(tr.cursors), 1)
@@ -33,8 +36,10 @@ class TestCursorTracker(unittest.TestCase):
         self.assertEqual(st.fetch_hist_cpu.get_total_count(), 0)
         self.assertEqual(st.fetch_hist_elapsed.get_total_count(), 0)
 
-        # This merges the item in tr.latest_cursors with statements and overwrites the item
-        tr.add_parse(cursor, parse_lat)
+        # This merges the item in tr.latest_cursors with statements, overwrites the item, and returns the old (overwritten) item
+        cs = tr.add_parse(cursor, parse_lat)
+        self.assertNotEqual(cs, None)
+        self.assertNotEqual(cs.parse, None)
         self.assertEqual(len(tr.latest_cursors), 2)
         self.assertEqual(len(tr.statements), 1)
         self.assertEqual(len(tr.cursors), 1)
@@ -46,9 +51,14 @@ class TestCursorTracker(unittest.TestCase):
         tr = CursorTracker({}, {})
         tr.add_parsing_in(cursor, params)
         exec_lat = (cursor, 1, 100)
-        tr.add_exec(cursor, exec_lat)
+        cs = tr.add_exec(cursor, exec_lat)
+        self.assertEqual(cs, None)
 
-        tr.add_exec(cursor, exec_lat)
+        cs = tr.add_exec(cursor, exec_lat)
+        # Got back the old object
+        self.assertNotEqual(cs, None)
+        self.assertNotEqual(cs.exec, None)
+
         self.assertEqual(len(tr.latest_cursors), 2)
         self.assertEqual(len(tr.statements), 1)
         self.assertEqual(len(tr.cursors), 1)
