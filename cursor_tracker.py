@@ -12,6 +12,9 @@ class CursorTracker:
         self.cursors = cursors
         self.statements = statements
 
+        s = Statement('#0', "sqlid='dummy'", False)
+        self.statements[s.sql_id] = s
+        self.cursors['#0'] = s.sql_id
         self.add_latest_cursor('#0')
     def add_latest_cursor(self, cursor):
         ''' If cursor is present then this is new execution, so merge the cursor with the statement and
@@ -68,4 +71,7 @@ class CursorTracker:
         cs.add_close(params)
         self.add_latest_cursor(cursor)
         return cs
+    def flush(self):
+        for c in self.latest_cursors:
+            self.add_latest_cursor(c)
 
