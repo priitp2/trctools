@@ -30,21 +30,28 @@ class CursorTracker:
         self.cursors[cursor] = s.sql_id
         self.latest_cursors[cursor] = CurrentStatement(cursor)
     def add_parse(self, cursor, params):
+        cs_old = None
         if cursor in self.latest_cursors.keys():
             cs = self.latest_cursors[cursor]
+            cs_old = cs
             if cs.parse != None:
                 cs = self.add_latest_cursor(cursor)
         else:
             cs = self.add_latest_cursor(cursor)
         cs.add_parse(params)
+        return cs_old
     def add_exec(self, cursor, params):
+        old_cs = None
         if cursor in self.latest_cursors.keys():
             cs = self.latest_cursors[cursor]
             if cs.exec != None:
+                old_cs = cs
                 cs = self.add_latest_cursor(cursor)
         else:
+            old_cs = cs
             cs = self.add_latest_cursor(cursor)
         cs.add_exec(params)
+        return old_cs
     def add_fetch(self, cursor, params):
         # FIXME: stray cursors, PARSING is probably not in the trace file
         if cursor not in self.latest_cursors.keys():
@@ -52,6 +59,8 @@ class CursorTracker:
         cs = self.latest_cursors[cursor]
         cs.add_fetch(params)
     def add_wait(self, cursor, params):
+        if cursor not in self.latest_cursors.keys():
+            self.latest_cursors[cursor] = CurrentStatement(cursor)
         cs = self.latest_cursors[cursor]
         cs.add_wait(params)
     def add_close(self, cursor, params):
