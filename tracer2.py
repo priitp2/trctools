@@ -190,16 +190,10 @@ if args.merge_all:
         stat = statements[c]
         exec_hist_elapsed.add(stat.exec_hist_elapsed)
         exec_hist_cpu.add(stat.exec_hist_cpu)
-        fetch_hist_elapsed.add(stat.fetch_hist_elapsed)
-        fetch_hist_cpu.add(stat.fetch_hist_cpu)
     with open("exec_hist_elapsed_all.out", 'wb') as f:
         exec_hist_elapsed.output_percentile_distribution(f, 1.0)
     with open("exec_hist_cpu_all.out", 'wb') as f:
         exec_hist_cpu.output_percentile_distribution(f, 1.0)
-    with open("fetch_hist_elapsed_all.out", 'wb') as f:
-        fetch_hist_elapsed.output_percentile_distribution(f, 1.0)
-    with open("fetch_hist_cpu_all.out", 'wb') as f:
-        fetch_hist_cpu.output_percentile_distribution(f, 1.0)
     sys.exit(0)
 
 for c in statements.keys():
@@ -218,8 +212,4 @@ for c in statements.keys():
                 database.add_rows(stat.sql_id, stat.exec_elapsed)
         with open("exec_hist_cpu_{}.out".format(stat.sql_id), 'wb') as f:
             stat.exec_hist_cpu.output_percentile_distribution(f, 1.0)
-        with open("fetch_hist_elapsed_{}.out".format(stat.sql_id), 'wb') as f:
-            stat.fetch_hist_elapsed.output_percentile_distribution(f, 1.0)
-        with open("fetch_hist_cpu_{}.out".format(stat.sql_id), 'wb') as f:
-            stat.fetch_hist_cpu.output_percentile_distribution(f, 1.0)
 

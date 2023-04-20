@@ -32,14 +32,10 @@ class Statement:
 
         self.exec_hist_elapsed = HdrHistogram(1, 1000000000, 1)
         self.exec_hist_cpu = HdrHistogram(1, 1000000000, 1)
-        self.fetch_hist_elapsed = HdrHistogram(1, 1000000000, 1)
-        self.fetch_hist_cpu = HdrHistogram(1, 1000000000, 1)
 
         if norm:
             self.exec_elapsed = []
             self.exec_cpu = []
-            self.fetch_elapsed = []
-            self.fetch_cpu = []
             self.norm = True
             db = DB()
             db.add_cursor(self)
@@ -56,17 +52,9 @@ class Statement:
         self.exec_hist_elapsed.record_value(elapsed)
         if self.norm:
             self.exec_elapsed.append(elapsed)
-    def record_fetch_cpu(self, cpu):
-        self.fetch_hist_cpu.record_value(cpu)
-        if self.norm:
-            self.fetch_cpu.append(cpu)
-    def record_fetch_elapsed(self, elapsed):
-        self.fetch_hist_elapsed.record_value(elapsed)
-        if self.norm:
-            self.fetch_elapsed.append(elapsed)
     def add_current_statement(self, s):
         lat = s.merge()
-        self.record_fetch_cpu(lat[1])
-        self.record_fetch_elapsed(lat[2])
-        self.increase_fetch_count()
+        self.record_exec_cpu(lat[1])
+        self.record_exec_elapsed(lat[2])
+        self.increase_exec_count()
 
