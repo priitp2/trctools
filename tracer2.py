@@ -69,16 +69,14 @@ def handle_exec(cursor, params):
 #    print(statement)
 #    print("handle_exec1: cursor = {}, params = {}, sql_id = {}".format(cursor, params, cursors[cursor]))
 
-def handle_fetch(cursor, params, last_exec, last_exec_id, last_parse):
-    if len(last_exec) > 0 and cursor != last_exec[0]:
-        raise("handle_fetch: cursor mismatch: cursor = {}, cursor from last_exec = {}".format(cursor, last_exec[0]))
+def handle_fetch(cursor, params):
     ce = get_ce(params)
 
     lat = (cursor, ce[0], ce[1])
     id = -1
     if args.db:
         ev = split_event(params)
-        ev['parent_id'] = last_exec_id
+        ev['parent_id'] = -1
         ev['cursor'] = cursor
         ev['event'] = 'FETCH'
         ev['type'] = 0
@@ -141,41 +139,30 @@ if args.db:
 for fname in args.trace_files:
     print("Processing {}".format(fname))
     with open(fname, 'r') as f:
-        current_statement = None
-        last_exec = ()
-        last_parse = ()
-        last_parse_id = -1
-        last_exec_id = -1
         for line in f:
             match = re.match(r'''^(PARSE|PARSING IN CURSOR|EXEC|FETCH|WAIT|CLOSE|BINDS) (#\d+)(:| )(.*)''', line)
             if match:
                 #print(match.groups())
                 if match.group(1) == 'PARSING IN CURSOR':
                     p = handle_parsing(match.group(2), match.group(4))
-                    latest_waits = []
                 if match.group(1) == 'PARSE':
                     last_parse = handle_parse(match.group(2), match.group(4))
-                    last_parse_id = last_parse[3]
                     cs = tracker.add_parse(match.group(2), last_parse)
                     print_naughty_exec(cs)
                 if match.group(1) == 'EXEC':
                     last_exec = handle_exec(match.group(2), match.group(4))
-                    last_exec_id = last_exec[3]
                     cs = tracker.add_exec(match.group(2), last_exec)
                     if cs != None:
                         print_naughty_exec(cs)
                 if match.group(1) == 'FETCH':
                     # FIXME: fetches should be added to execs, not other way around
-                    f = handle_fetch(match.group(2), match.group(4), last_exec, last_exec_id, last_parse)
+                    f = handle_fetch(match.group(2), match.group(4))
                     tracker.add_fetch(match.group(2), f)
                 if match.group(1) == 'WAIT':
                     w = handle_wait(match.group(2), match.group(4))
                     tracker.add_wait(match.group(2), w)
                 if match.group(1) == 'CLOSE':
                     c = handle_close(match.group(2), match.group(4))
-                    last_parse = ()
-                    last_parse_id = -1
-                    last_exec_id = -1
                     cs = tracker.add_close(match.group(2), c)
                     print_naughty_exec(cs)
 
