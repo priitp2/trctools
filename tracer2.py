@@ -168,6 +168,7 @@ for fname in args.trace_files:
 
                 if match.group(1) == 'BINDS':
                     pass
+tracker.flush()
 
 #for c in cursors.keys():
 #    print("cursor: {}, sql_id: {}".format(c, cursors[c]))
