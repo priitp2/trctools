@@ -14,7 +14,7 @@ from cursor_tracker import CursorTracker
 max_fetch_elapsed = 500000
 max_exec_elapsed = 500000
 latest_waits = []
-tracker = CursorTracker(cursors, statements)
+tracker = CursorTracker()
 
 def handle_parsing(cursor, params):
     if args.norm or args.db:
@@ -102,7 +102,7 @@ def print_naughty_exec(cs):
     lat = cs.merge()
     if lat[2] > max_exec_elapsed:
         print('----------------------------------------------')
-        statement = statements[cursors[lat[0]]]
+        statement = tracker.statements[tracker.cursors[lat[0]]]
         print("sql_id = {}, cursor = {}, elapsed = {}, fetches = {}".format(statement.sql_id, lat[0], lat[2], len(cs.fetches)))
         if cs.fetch_count < cs.max_list_size:
             for f in cs.fetches:
@@ -193,8 +193,8 @@ if args.merge_all:
     fetch_hist_cpu = HdrHistogram(1, 1000000000, 1)
     response_hist = HdrHistogram(1, 1000000000, 1)
 
-    for c in statements.keys():
-        stat = statements[c]
+    for c in tracker.statements.keys():
+        stat = tracker.statements[c]
         exec_hist_elapsed.add(stat.exec_hist_elapsed)
         exec_hist_cpu.add(stat.exec_hist_cpu)
         response_hist.add(stat.resp_hist)
@@ -206,8 +206,8 @@ if args.merge_all:
         response_hist.output_percentile_distribution(f, 1.0)
     sys.exit(0)
 
-for c in statements.keys():
-    stat = statements[c]
+for c in tracker.statements.keys():
+    stat = tracker.statements[c]
     if stat.sql_id in ids:
         print('----------------------------------------')
         print("sql_id: {}, execs: {}, fetches: {}".format(stat.sql_id, stat.execs, stat.fetches))

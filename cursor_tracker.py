@@ -7,7 +7,7 @@ class CursorTracker:
         add_parse, and add_exec add new cursors if needed. If new cursor is added, events
         in the old one are added to the statement.
     '''
-    def __init__(self, cursors, statements):
+    def __init__(self):
         self.latest_cursors = {}
         self.cursors = {}
         self.statements = {}
