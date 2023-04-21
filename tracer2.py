@@ -92,7 +92,7 @@ def handle_wait(cursor, params):
         wait['elapsed'] = match.group(2)
         wait['timestamp'] = match.group(4)
         latest_waits.append(wait)
-        return (cursor, 0, int(match.group(2)), params, wait)
+        return (cursor, 0, int(match.group(2)), wait)
     else:
         print("handle_wait: no match: cursor={}, params = ->{}<-".format(cursor, params))
 
@@ -106,18 +106,18 @@ def print_naughty_exec(cs):
         print('----------------------------------------------')
         statement = statements[cursors[lat[0]]]
         print("sql_id = {}, cursor = {}, elapsed = {}, fetches = {}".format(statement.sql_id, lat[0], lat[2], len(cs.fetches)))
-        if len(cs.fetches) < 10:
+        if cs.fetch_count < cs.max_list_size:
             for f in cs.fetches:
                 print("     {}".format(f))
         else:
             elapsed = util.merge_lat_objects((cs.cursor, 0, 0), cs.fetches)
-            print("    fetches = {}, elapsed = {}".format(len(cs.fetches), elapsed[2]))
-        if len(cs.waits) < 10:
+            print("    fetches = {}, elapsed = {}".format(cs.fetch_count, elapsed[2]))
+        if cs.wait_count < cs.max_list_size:
             for w in cs.waits:
                 print("     {}".format(w[3]))
         else:
             elapsed = util.merge_lat_objects((cs.cursor, 0, 0), cs.waits)
-            print("    waits = {}, elapsed = {}".format(len(cs.waits), elapsed[2]))
+            print("    waits = {}, elapsed = {}".format(cs.wait_count, elapsed[2]))
         elapsed = cs.get_elapsed()
         if elapsed != None:
             print("    estimated elapsed time = {}".format(elapsed))
