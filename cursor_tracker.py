@@ -9,8 +9,8 @@ class CursorTracker:
     '''
     def __init__(self, cursors, statements):
         self.latest_cursors = {}
-        self.cursors = cursors
-        self.statements = statements
+        self.cursors = {}
+        self.statements = {}
 
         s = Statement('#0', "sqlid='dummy'", False)
         self.statements[s.sql_id] = s
