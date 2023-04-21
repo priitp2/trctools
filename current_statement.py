@@ -15,18 +15,18 @@ class CurrentStatement:
         self.fetch_count = 0
         self.close = None
     def add_parsing_in(self, params):
-        if self.parsing_in != None:
+        if self.parsing_in:
             raise(BaseException("add_parsing_in: already set!"))
         else:
             self.parsing_in = params
     def add_parse(self, params):
-        if self.parse != None:
+        if self.parse:
             raise(BaseException("add_parse: already set!"))
         if self.cursor != params[0]:
             raise(BaseException("add_parse: got cursor {}, have: {}, params: {}".format(params[0], self.cursor, params)))
         self.parse = params
     def add_exec(self, params):
-        if self.exec != None:
+        if self.exec:
             raise(BaseException("add_exec: already set!"))
         if self.cursor != params[0]:
             raise(BaseException("add_exec: got cursor {}, have: {}".format(params[0], self.cursor)))
@@ -50,7 +50,7 @@ class CurrentStatement:
     def add_close(self, params):
         if self.cursor != params[0]:
             raise(BaseException("add_close: got cursor {}, have: {}".format(params[0], self.cursor)))
-        if self.close != None:
+        if self.close:
             util.merge_lat_objects(self.close, params)
             #raise(BaseException("add_close: already set! "))
         else:
@@ -65,11 +65,11 @@ class CurrentStatement:
         return ret
     def get_elapsed(self):
         start = None
-        if self.parse != None:
+        if self.parse:
             start = self.parse[4]['tim']
-        elif self.exec != None:
+        elif self.exec:
             start = self.exec[4]['tim']
-        if start != None and self.close != None:
+        if start and self.close:
             return int(self.close[3]['tim']) - int(start)
         else:
             return None 
