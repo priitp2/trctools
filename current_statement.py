@@ -52,3 +52,14 @@ class CurrentStatement:
         ret = util.merge_lat_objects(ret, self.fetches)
         ret = util.merge_lat_objects(ret, self.close)
         return ret
+    def get_elapsed(self):
+        start = None
+        if self.parse != None:
+            start = self.parse[4]['tim']
+        elif self.exec != None:
+            start = self.exec[4]['tim']
+        if start != None and self.close != None:
+            return int(self.close[3]['tim']) - int(start)
+        else:
+            return None 
+

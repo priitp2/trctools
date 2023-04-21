@@ -52,7 +52,7 @@ def handle_parse(cursor, params):
         ev['event'] = 'PARSE'
         ev['type'] = 0
         id = database.add_event(ev)
-    return (cursor, int(ev['c']), int(ev['e']), id[0])
+    return (cursor, int(ev['c']), int(ev['e']), id[0], ev)
 
 def handle_exec(cursor, params):
     ce = get_ce(params)
@@ -65,14 +65,14 @@ def handle_exec(cursor, params):
         ev['event'] = 'EXEC'
         ev['type'] = 0
         id = database.add_event(ev)
-    return (cursor, int(ce[0]), int(ce[1]), id[0])
+    return (cursor, int(ce[0]), int(ce[1]), id[0], split_event(params))
 #    print(statement)
 #    print("handle_exec1: cursor = {}, params = {}, sql_id = {}".format(cursor, params, cursors[cursor]))
 
 def handle_fetch(cursor, params):
     ce = get_ce(params)
 
-    lat = (cursor, ce[0], ce[1])
+    lat = (cursor, ce[0], ce[1], split_event(params))
     id = -1
     if args.db:
         ev = split_event(params)
@@ -92,13 +92,13 @@ def handle_wait(cursor, params):
         wait['elapsed'] = match.group(2)
         wait['timestamp'] = match.group(4)
         latest_waits.append(wait)
-        return (cursor, 0, int(match.group(2)), params)
+        return (cursor, 0, int(match.group(2)), params, wait)
     else:
         print("handle_wait: no match: cursor={}, params = ->{}<-".format(cursor, params))
 
 def handle_close(cursor, params):
     ce = get_ce(params)
-    return (cursor, ce[0], ce[1])
+    return (cursor, ce[0], ce[1], split_event(params))
 
 def print_naughty_exec(cs):
     lat = cs.merge()
@@ -118,6 +118,10 @@ def print_naughty_exec(cs):
         else:
             elapsed = util.merge_lat_objects((cs.cursor, 0, 0), cs.waits)
             print("    waits = {}, elapsed = {}".format(len(cs.waits), elapsed[2]))
+        elapsed = cs.get_elapsed()
+        if elapsed != None:
+            print("    estimated elapsed time = {}".format(elapsed))
+
         print('----------------------------------------------')
 
 parser = argparse.ArgumentParser(description='Do stuff with Oracle 19c trace files')
@@ -149,11 +153,13 @@ for fname in args.trace_files:
                     last_parse = handle_parse(match.group(2), match.group(4))
                     cs = tracker.add_parse(match.group(2), last_parse)
                     print_naughty_exec(cs)
+                    del cs
                 if match.group(1) == 'EXEC':
                     last_exec = handle_exec(match.group(2), match.group(4))
                     cs = tracker.add_exec(match.group(2), last_exec)
                     if cs != None:
                         print_naughty_exec(cs)
+                        del cs
                 if match.group(1) == 'FETCH':
                     # FIXME: fetches should be added to execs, not other way around
                     f = handle_fetch(match.group(2), match.group(4))
@@ -165,6 +171,7 @@ for fname in args.trace_files:
                     c = handle_close(match.group(2), match.group(4))
                     cs = tracker.add_close(match.group(2), c)
                     print_naughty_exec(cs)
+                    del cs
 
                 if match.group(1) == 'BINDS':
                     pass
@@ -186,15 +193,19 @@ if args.merge_all:
     exec_hist_cpu = HdrHistogram(1, 1000000000, 1)
     fetch_hist_elapsed = HdrHistogram(1, 1000000000, 1)
     fetch_hist_cpu = HdrHistogram(1, 1000000000, 1)
+    response_hist = HdrHistogram(1, 1000000000, 1)
 
     for c in statements.keys():
         stat = statements[c]
         exec_hist_elapsed.add(stat.exec_hist_elapsed)
         exec_hist_cpu.add(stat.exec_hist_cpu)
+        response_hist.add(stat.resp_hist)
     with open("exec_hist_elapsed_all.out", 'wb') as f:
         exec_hist_elapsed.output_percentile_distribution(f, 1.0)
     with open("exec_hist_cpu_all.out", 'wb') as f:
         exec_hist_cpu.output_percentile_distribution(f, 1.0)
+    with open("response_hist_all.out", 'wb') as f:
+        response_hist.output_percentile_distribution(f, 1.0)
     sys.exit(0)
 
 for c in statements.keys():
@@ -213,4 +224,6 @@ for c in statements.keys():
                 database.add_rows(stat.sql_id, stat.exec_elapsed)
         with open("exec_hist_cpu_{}.out".format(stat.sql_id), 'wb') as f:
             stat.exec_hist_cpu.output_percentile_distribution(f, 1.0)
+        with open("response_hist_{}.out".format(stat.sql_id), 'wb') as f:
+            stat.resp_hist.output_percentile_distribution(f, 1.0)
 

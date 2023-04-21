@@ -33,6 +33,8 @@ class Statement:
         self.exec_hist_elapsed = HdrHistogram(1, 1000000000, 1)
         self.exec_hist_cpu = HdrHistogram(1, 1000000000, 1)
 
+        self.resp_hist = HdrHistogram(1, 1000000000, 1)
+
         if norm:
             self.exec_elapsed = []
             self.exec_cpu = []
@@ -58,4 +60,8 @@ class Statement:
         self.record_exec_elapsed(lat[2])
         self.increase_exec_count()
         self.fetches += len(s.fetches)
+
+        elapsed = s.get_elapsed()
+        if elapsed != None:
+            self.resp_hist.record_value(elapsed)
 
