@@ -13,8 +13,6 @@ from cursor_tracker import CursorTracker
 
 max_fetch_elapsed = 500000
 max_exec_elapsed = 500000
-cursors = {}
-statements = {}
 latest_waits = []
 tracker = CursorTracker(cursors, statements)
 
