@@ -14,6 +14,7 @@ class CurrentStatement:
         self.fetches = []
         self.fetch_count = 0
         self.close = None
+        self.__slots__ = ('max_list_size', 'cursor', 'parsing_in', 'parse', 'exec', 'waits', 'wait_count', 'fetches', 'fetch_count', 'close')
     def add_parsing_in(self, params):
         if self.parsing_in:
             raise(BaseException("add_parsing_in: already set!"))
