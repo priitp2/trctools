@@ -13,7 +13,6 @@ from cursor_tracker import CursorTracker
 
 max_fetch_elapsed = 500000
 max_exec_elapsed = 500000
-latest_waits = []
 tracker = CursorTracker()
 
 def handle_parsing(cursor, params):
@@ -89,7 +88,6 @@ def handle_wait(cursor, params):
         wait['name'] = match.group(1)
         wait['elapsed'] = match.group(2)
         wait['timestamp'] = match.group(4)
-        latest_waits.append(wait)
         return (cursor, 0, int(match.group(2)), wait)
     else:
         print("handle_wait: no match: cursor={}, params = ->{}<-".format(cursor, params))
