@@ -62,6 +62,6 @@ class Statement:
         self.fetches += len(s.fetches)
 
         elapsed = s.get_elapsed()
-        if elapsed != None:
+        if elapsed:
             self.resp_hist.record_value(elapsed)
 

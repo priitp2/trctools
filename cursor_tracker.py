@@ -37,7 +37,7 @@ class CursorTracker:
         if cursor in self.latest_cursors.keys():
             cs = self.latest_cursors[cursor]
             cs_old = cs
-            if cs.parse != None:
+            if cs.parse:
                 cs = self.add_latest_cursor(cursor)
         else:
             cs = self.add_latest_cursor(cursor)
@@ -47,7 +47,7 @@ class CursorTracker:
         old_cs = None
         if cursor in self.latest_cursors.keys():
             cs = self.latest_cursors[cursor]
-            if cs.exec != None:
+            if cs.exec:
                 old_cs = cs
                 cs = self.add_latest_cursor(cursor)
         else:
