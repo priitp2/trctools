@@ -59,7 +59,7 @@ class Statement:
         self.record_exec_cpu(lat[1])
         self.record_exec_elapsed(lat[2])
         self.increase_exec_count()
-        self.fetches += len(s.fetches)
+        self.fetches += s.fetch_count
 
         elapsed = s.get_elapsed()
         if elapsed:

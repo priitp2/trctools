@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python3.9
 
 import argparse
 from hdrh.histogram import HdrHistogram
@@ -103,7 +103,7 @@ def print_naughty_exec(cs):
     if lat[2] > max_exec_elapsed:
         print('----------------------------------------------')
         statement = tracker.statements[tracker.cursors[lat[0]]]
-        print("sql_id = {}, cursor = {}, elapsed = {}, fetches = {}".format(statement.sql_id, lat[0], lat[2], cs.fetch_count)))
+        print("sql_id = {}, cursor = {}, elapsed = {}, fetches = {}".format(statement.sql_id, lat[0], lat[2], cs.fetch_count))
         if cs.fetch_count < cs.max_list_size:
             for f in cs.fetches:
                 print("     {}".format(f))
