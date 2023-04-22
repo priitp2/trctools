@@ -30,15 +30,6 @@ def split_event(ev):
         out[key[0]] = key[1]
     return out
 
-def get_ce(params):
-    for item in params.split(','):
-        key = item.split('=')
-        if key[0] == 'c':
-            cpu = int(key[1])
-        if key[0] == 'e':
-            elapsed = int(key[1])
-    return (cpu, elapsed)
-
 def handle_parse(cursor, params):
     ev = split_event(params)
     id = []
@@ -52,7 +43,7 @@ def handle_parse(cursor, params):
     return (cursor, int(ev['c']), int(ev['e']), id[0], ev)
 
 def handle_exec(cursor, params):
-    ce = get_ce(params)
+    ev = split_event(params)
     id = []
     id.append(-1)
     if args.db:
@@ -62,14 +53,14 @@ def handle_exec(cursor, params):
         ev['event'] = 'EXEC'
         ev['type'] = 0
         id = database.add_event(ev)
-    return (cursor, int(ce[0]), int(ce[1]), id[0], split_event(params))
+    return (cursor, int(ev['c']), int(ev['e']), id[0], ev)
 #    print(statement)
 #    print("handle_exec1: cursor = {}, params = {}, sql_id = {}".format(cursor, params, cursors[cursor]))
 
 def handle_fetch(cursor, params):
-    ce = get_ce(params)
+    ev = split_event(params)
 
-    lat = (cursor, ce[0], ce[1], split_event(params))
+    lat = (cursor, int(ev['c']), int(ev['e']), ev)
     id = -1
     if args.db:
         ev = split_event(params)
@@ -93,8 +84,8 @@ def handle_wait(cursor, params):
         print("handle_wait: no match: cursor={}, params = ->{}<-".format(cursor, params))
 
 def handle_close(cursor, params):
-    ce = get_ce(params)
-    return (cursor, ce[0], ce[1], split_event(params))
+    ev = split_event(params)
+    return (cursor, int(ev['c']), int(ev['e']), ev)
 
 def print_naughty_exec(cs):
     lat = cs.merge()
