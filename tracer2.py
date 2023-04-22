@@ -182,7 +182,7 @@ tracker.flush()
 if args.sqlid:
     ids = args.sqlid.split(',')
 else:
-    ids = [statements[s].sql_id for s in statements.keys()]
+    ids = [tracker.statements[s].sql_id for s in tracker.statements.keys()]
 
 if args.merge_all:
     exec_hist_elapsed = HdrHistogram(1, 1000000000, 1)
