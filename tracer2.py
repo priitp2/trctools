@@ -149,13 +149,11 @@ for fname in args.trace_files:
                     last_parse = handle_parse(match.group(2), match.group(4))
                     cs = tracker.add_parse(match.group(2), last_parse)
                     print_naughty_exec(cs)
-                    del cs
                 if match.group(1) == 'EXEC':
                     last_exec = handle_exec(match.group(2), match.group(4))
                     cs = tracker.add_exec(match.group(2), last_exec)
                     if cs != None:
                         print_naughty_exec(cs)
-                        del cs
                 if match.group(1) == 'FETCH':
                     # FIXME: fetches should be added to execs, not other way around
                     f = handle_fetch(match.group(2), match.group(4))
@@ -167,7 +165,6 @@ for fname in args.trace_files:
                     c = handle_close(match.group(2), match.group(4))
                     cs = tracker.add_close(match.group(2), c)
                     print_naughty_exec(cs)
-                    del cs
 
                 if match.group(1) == 'BINDS':
                     pass
