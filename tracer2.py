@@ -23,15 +23,8 @@ def handle_parsing(cursor, params):
     tracker.add_parsing_in(cursor, params)
     return (cursor, None)
 
-def split_event(ev):
-    out = {}
-    for item in ev.split(','):
-        key = item.split('=')
-        out[key[0]] = key[1]
-    return out
-
 def handle_parse(cursor, params):
-    ev = split_event(params)
+    ev = util.split_event(params)
     id = []
     id.append(-1)
     if args.db:
@@ -43,11 +36,11 @@ def handle_parse(cursor, params):
     return (cursor, int(ev['c']), int(ev['e']), id[0], ev)
 
 def handle_exec(cursor, params):
-    ev = split_event(params)
+    ev = util.split_event(params)
     id = []
     id.append(-1)
     if args.db:
-        ev = split_event(params)
+        ev = util.split_event(params)
         ev['parent_id'] = 0
         ev['cursor'] = cursor
         ev['event'] = 'EXEC'
@@ -58,12 +51,12 @@ def handle_exec(cursor, params):
 #    print("handle_exec1: cursor = {}, params = {}, sql_id = {}".format(cursor, params, cursors[cursor]))
 
 def handle_fetch(cursor, params):
-    ev = split_event(params)
+    ev = util.split_event(params)
 
     lat = (cursor, int(ev['c']), int(ev['e']), ev)
     id = -1
     if args.db:
-        ev = split_event(params)
+        ev = util.split_event(params)
         ev['parent_id'] = -1
         ev['cursor'] = cursor
         ev['event'] = 'FETCH'
@@ -84,7 +77,7 @@ def handle_wait(cursor, params):
         print("handle_wait: no match: cursor={}, params = ->{}<-".format(cursor, params))
 
 def handle_close(cursor, params):
-    ev = split_event(params)
+    ev = util.split_event(params)
     return (cursor, int(ev['c']), int(ev['e']), ev)
 
 def print_naughty_exec(cs):

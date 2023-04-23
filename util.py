@@ -16,3 +16,11 @@ def merge_lat_objects(dest, source):
         b = b + s[2]
     return (dest[0], a, b)
 
+def split_event(ev):
+    out = {}
+    for item in ev.split(','):
+        key = item.split('=')
+        if len(key) == 2:
+            out[key[0]] = key[1]
+    return out
+
