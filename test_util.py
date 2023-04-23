@@ -52,5 +52,18 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(ret[1], obj3[1])
         self.assertEqual(ret[2], obj3[2])
 
+    def test_split_event(self):
+        ev = 'c=143,e=143,p=0,cr=0,cu=0,mis=0,r=0,dep=0,og=1,plh=1164377159,tim=5185921053409'
+
+        out = util.split_event('')
+        self.assertEqual(len(out), 0)
+
+        out = util.split_event('xxx yyyy')
+        self.assertEqual(len(out), 0)
+
+        out = util.split_event(ev)
+        self.assertEqual(len(out), 11)
+        self.assertEqual(out['og'], '1')
+
 if __name__ == '__main__':
     unittest.main()
