@@ -84,6 +84,9 @@ def print_naughty_exec(cs):
     lat = cs.merge()
     if lat[2] > max_exec_elapsed:
         print('----------------------------------------------')
+        if lat[0] not in tracker.cursors.keys():
+            print("print_naughty_exec: missing cursor {}".format(lat[0]))
+            return
         statement = tracker.statements[tracker.cursors[lat[0]]]
         print("sql_id = {}, cursor = {}, elapsed = {}, fetches = {}".format(statement.sql_id, lat[0], lat[2], cs.fetch_count))
         if cs.fetch_count < cs.max_list_size:
@@ -132,11 +135,12 @@ for fname in args.trace_files:
                 if match.group(1) == 'PARSE':
                     last_parse = handle_parse(match.group(2), match.group(4))
                     cs = tracker.add_parse(match.group(2), last_parse)
-                    print_naughty_exec(cs)
+                    if cs:
+                        print_naughty_exec(cs)
                 if match.group(1) == 'EXEC':
                     last_exec = handle_exec(match.group(2), match.group(4))
                     cs = tracker.add_exec(match.group(2), last_exec)
-                    if cs != None:
+                    if cs:
                         print_naughty_exec(cs)
                 if match.group(1) == 'FETCH':
                     # FIXME: fetches should be added to execs, not other way around
@@ -148,7 +152,8 @@ for fname in args.trace_files:
                 if match.group(1) == 'CLOSE':
                     c = handle_close(match.group(2), match.group(4))
                     cs = tracker.add_close(match.group(2), c)
-                    print_naughty_exec(cs)
+                    if cs:
+                        print_naughty_exec(cs)
 
                 if match.group(1) == 'BINDS':
                     pass
