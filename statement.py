@@ -1,5 +1,6 @@
 from hdrh.histogram import HdrHistogram
 from oracle import DB
+import util
 
 class Statement:
     def __init__(self, cursor, params, norm):
@@ -35,6 +36,7 @@ class Statement:
 
         self.resp_hist = HdrHistogram(1, 1000000000, 1)
 
+        self.resp_without_waits_hist = HdrHistogram(1, 1000000000, 1)
         if norm:
             self.exec_elapsed = []
             self.exec_cpu = []
@@ -64,4 +66,16 @@ class Statement:
         elapsed = s.get_elapsed()
         if elapsed:
             self.resp_hist.record_value(elapsed)
+
+        elapsed_nowait = 0
+        if s.parse:
+            elapsed_nowait += s.parse[2] 
+        if s.close:
+            elapsed_nowait += s.close[2]
+        if s.exec:
+            elapsed_nowait += s.exec[2]
+        fetches = util.merge_lat_objects((s.cursor, 0, 0), s.fetches)[2]
+        if fetches:
+            elapsed_nowait += fetches
+        self.resp_without_waits_hist.record_value(elapsed_nowait)
 

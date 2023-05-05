@@ -1,6 +1,8 @@
 def merge_lat_objects(dest, source):
-    if source == None:
+    if not source:
         return dest
+    if not dest:
+        dest = (None, 0, 0)
     if not isinstance(source, list):
         source = [source]
     if len(dest) < 3:

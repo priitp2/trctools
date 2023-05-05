@@ -89,7 +89,8 @@ def print_naughty_exec(cs):
             return
         statement = tracker.statements[tracker.cursors[lat[0]]]
         print("sql_id = {}, cursor = {}, elapsed = {}, fetches = {}".format(statement.sql_id, lat[0], lat[2], cs.fetch_count))
-        print("    exec: cpu = {}, elapsed = {}, timestamp = {}".format(cs.exec[1], cs.exec[2], cs.exec[4]['tim']))
+        if cs.exec:
+            print("    exec: cpu = {}, elapsed = {}, timestamp = {}".format(cs.exec[1], cs.exec[2], cs.exec[4]['tim']))
         if cs.fetch_count < cs.max_list_size:
             for f in cs.fetches:
                 print("     {}".format(f))
@@ -209,4 +210,6 @@ for c in tracker.statements.keys():
             stat.exec_hist_cpu.output_percentile_distribution(f, 1.0)
         with open("response_hist_{}.out".format(stat.sql_id), 'wb') as f:
             stat.resp_hist.output_percentile_distribution(f, 1.0)
+        with open("response_hist_without_waits_{}.out".format(stat.sql_id), 'wb') as f:
+            stat.resp_without_waits_hist.output_percentile_distribution(f, 1.0)
 
