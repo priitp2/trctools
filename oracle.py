@@ -31,3 +31,17 @@ class DB:
             raise sys.exception()
         self.connection.commit()
         return out.getvalue()
+
+    def get_exec_id(self):
+        cursor = self.connection.cursor()
+        out = cursor.execute('select cursor_exec_id.nextval from dual')
+        return out.fetchone()
+    def insert_ops(self, ops, op_close):
+        if len(ops) == 0:
+            return
+        cursor = self.connection.cursor()
+        cursor.executemany('insert into cursor_exec(id, cursor_id, ops, cpu_time, elapsed_time, ph_reads, cr_reads, current_reads, cursor_missed, rows_processed, rec_call_dp, opt_goal, ts) values(:1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12, :13)', ops)
+        if op_close:
+            cursor.execute('insert into cursor_exec(id, cursor_id, ops, cpu_time, elapsed_time, rec_call_dp, c_type, ts) values(:1, :2, :3, :4, :5, :6, :7, :8)', op_close)
+        self.connection.commit()
+

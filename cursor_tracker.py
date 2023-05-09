@@ -7,12 +7,13 @@ class CursorTracker:
         add_parse, and add_exec add new cursors if needed. If new cursor is added, events
         in the old one are added to the statement.
     '''
-    def __init__(self):
+    def __init__(self, db):
+        self.db = db
         self.latest_cursors = {}
         self.cursors = {}
         self.statements = {}
 
-        s = Statement('#0', "sqlid='dummy'", False)
+        s = Statement('#0', "sqlid='dummy'", False, db)
         self.statements[s.sql_id] = s
         self.cursors['#0'] = s.sql_id
         self.add_latest_cursor('#0')
@@ -29,14 +30,14 @@ class CursorTracker:
                 return None
             cs = self.latest_cursors[cursor]
             statement.add_current_statement(cs)
-        self.latest_cursors[cursor] = CurrentStatement(cursor)
+        self.latest_cursors[cursor] = CurrentStatement(cursor, self.db)
         return self.latest_cursors[cursor]
     def add_parsing_in(self, cursor, params):
-        s = Statement(cursor, params, False)
+        s = Statement(cursor, params, False, self.db)
         if s.sql_id not in self.statements.keys():
             self.statements[s.sql_id] = s
         self.cursors[cursor] = s.sql_id
-        self.latest_cursors[cursor] = CurrentStatement(cursor)
+        self.latest_cursors[cursor] = CurrentStatement(cursor, self.db)
     def add_parse(self, cursor, params):
         cs_old = None
         if cursor in self.latest_cursors.keys():
@@ -67,12 +68,12 @@ class CursorTracker:
     def add_fetch(self, cursor, params):
         # FIXME: stray cursors, PARSING is probably not in the trace file
         if cursor not in self.latest_cursors.keys():
-            self.latest_cursors[cursor] = CurrentStatement(cursor)
+            self.latest_cursors[cursor] = CurrentStatement(cursor, self.db)
         cs = self.latest_cursors[cursor]
         cs.add_fetch(params)
     def add_wait(self, cursor, params):
         if cursor not in self.latest_cursors.keys():
-            self.latest_cursors[cursor] = CurrentStatement(cursor)
+            self.latest_cursors[cursor] = CurrentStatement(cursor, self.db)
         cs = self.latest_cursors[cursor]
         cs.add_wait(params)
     def add_close(self, cursor, params):

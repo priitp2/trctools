@@ -13,7 +13,6 @@ from cursor_tracker import CursorTracker
 
 max_fetch_elapsed = 500000
 max_exec_elapsed = 500000
-tracker = CursorTracker()
 
 def handle_parsing(cursor, params):
     if args.norm or args.db:
@@ -27,25 +26,12 @@ def handle_parse(cursor, params):
     ev = util.split_event(params)
     id = []
     id.append(-1)
-    if args.db:
-        ev['parent_id'] = 0
-        ev['cursor'] = cursor
-        ev['event'] = 'PARSE'
-        ev['type'] = 0
-        id = database.add_event(ev)
     return (cursor, int(ev['c']), int(ev['e']), id[0], ev)
 
 def handle_exec(cursor, params):
     ev = util.split_event(params)
     id = []
     id.append(-1)
-    if args.db:
-        ev = util.split_event(params)
-        ev['parent_id'] = 0
-        ev['cursor'] = cursor
-        ev['event'] = 'EXEC'
-        ev['type'] = 0
-        id = database.add_event(ev)
     return (cursor, int(ev['c']), int(ev['e']), id[0], ev)
 #    print(statement)
 #    print("handle_exec1: cursor = {}, params = {}, sql_id = {}".format(cursor, params, cursors[cursor]))
@@ -55,13 +41,6 @@ def handle_fetch(cursor, params):
 
     lat = (cursor, int(ev['c']), int(ev['e']), ev)
     id = -1
-    if args.db:
-        ev = util.split_event(params)
-        ev['parent_id'] = -1
-        ev['cursor'] = cursor
-        ev['event'] = 'FETCH'
-        ev['type'] = 0
-        id = database.add_event(ev)
     return lat
 
 def handle_wait(cursor, params):
@@ -124,6 +103,10 @@ args = parser.parse_args()
 
 if args.db:
     database = DB()
+else:
+    database = None
+
+tracker = CursorTracker(database)
 
 for fname in args.trace_files:
     print("Processing {}".format(fname))
@@ -204,8 +187,6 @@ for c in tracker.statements.keys():
             print("Normality test(Kolmogorov-Smirnov) on elapsed: {}".format(kstest(stat.fetch_elapsed, 'norm')))
         with open("exec_hist_elapsed_{}.out".format(stat.sql_id), 'wb') as f:
             stat.exec_hist_elapsed.output_percentile_distribution(f, 1.0)
-            if args.db:
-                database.add_rows(stat.sql_id, stat.exec_elapsed)
         with open("exec_hist_cpu_{}.out".format(stat.sql_id), 'wb') as f:
             stat.exec_hist_cpu.output_percentile_distribution(f, 1.0)
         with open("response_hist_{}.out".format(stat.sql_id), 'wb') as f:
