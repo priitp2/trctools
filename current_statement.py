@@ -1,7 +1,7 @@
 import util
 
 class CurrentStatement:
-    def __init__(self, cursor):
+    def __init__(self, cursor, db):
         if len(cursor) < 2 and cursor != '#0':
             raise(BaseException("init: got empty cursor"))
         self.max_list_size = 10
@@ -15,6 +15,7 @@ class CurrentStatement:
         self.fetch_count = 0
         self.close = None
         self.__slots__ = ('max_list_size', 'cursor', 'parsing_in', 'parse', 'exec', 'waits', 'wait_count', 'fetches', 'fetch_count', 'close')
+        self.db = db
     def add_parsing_in(self, params):
         if self.parsing_in:
             raise(BaseException("add_parsing_in: already set!"))
@@ -74,4 +75,22 @@ class CurrentStatement:
             return int(self.close[3]['tim']) - int(start)
         else:
             return None 
+    def dump_to_db(self):
+        exec_id = self.db.get_exec_id()[0]
+        st = []
+        if self.parse:
+            st.append(util.ops2tuple(exec_id, self.cursor, 'PARSE', self.parse[4]))
+        if self.exec:
+            st.append(util.ops2tuple(exec_id, self.cursor, 'EXEC', self.exec[4]))
+        for f in self.fetches:
+            # FIXME: why is f[3] missing?
+            if len(f) > 3:
+                st.append(util.ops2tuple(exec_id, self.cursor, 'FETCH', f[3]))
+        #if self.close:
+        #    st.append(util.ops2tuple_close(exec_id, 'CLOSE', self.close))
+        if self.close:
+            cl = util.ops2tuple(exec_id, self.cursor, 'CLOSE', self.close[3])
+        else:
+            cl = None
+        self.db.insert_ops(st, cl)
 

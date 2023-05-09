@@ -12,23 +12,22 @@ CREATE TABLE cursors (
     sql_id           VARCHAR2(64) NOT NULL
 );
 
-CREATE TABLE events (
-    id             INTEGER
-        GENERATED AS IDENTITY
-    PRIMARY KEY,
-    parent_id      INTEGER,
-    event          VARCHAR2(12) NOT NULL,
-    cursor_id      VARCHAR2(64),
-    cpu_time       INTEGER NOT NULL,
-    elapsed_time   INTEGER NOT NULL,
-    ph_reads       INTEGER NOT NULL,
-    cr_reads       INTEGER NOT NULL,
-    current_reads  INTEGER NOT NULL,
-    cursor_missed  INTEGER,
-    rows_processed INTEGER,
-    rec_call_dp    INTEGER,
-    opt_goal       INTEGER,
-    ts             INTEGER NOT NULL,
+create sequence cursor_exec_id;
+
+CREATE TABLE cursor_exec (
+    id             INTEGER,
+    cursor_id      VARCHAR2(64) NOT NULL,
+    ops            VARCHAR2(12) NOT NULL,
+    cpu_time       INTEGER NOT NULL, -- c
+    elapsed_time   INTEGER NOT NULL, -- e
+    ph_reads       INTEGER, -- p
+    cr_reads       INTEGER, -- cr
+    current_reads  INTEGER, -- cu
+    cursor_missed  INTEGER,          -- mis
+    rows_processed INTEGER,          -- r
+    rec_call_dp    INTEGER,          -- dep
+    opt_goal       INTEGER,          -- og
+    ts             INTEGER NOT NULL, -- tim
     c_type integer
 );
 

@@ -25,4 +25,8 @@ def split_event(ev):
         if len(key) == 2:
             out[key[0]] = key[1]
     return out
-
+def ops2tuple(exec_id, cursor, ops_type, params):
+    if ops_type == 'CLOSE':
+        return [exec_id, cursor, ops_type, params['c'], params['e'], params['dep'], params['type'], params['tim']]
+    else:
+        return [exec_id, cursor, ops_type, params['c'], params['e'], params['cr'], params['cu'],params['mis'], params['r'], params['dep'], params['og'], params['plh'], params['tim']]

@@ -3,8 +3,9 @@ from oracle import DB
 import util
 
 class Statement:
-    def __init__(self, cursor, params, norm):
+    def __init__(self, cursor, params, norm, db):
         self.cursor = cursor
+        self.db = db
 
         for item in params.split():
             key = item.split('=')
@@ -78,4 +79,6 @@ class Statement:
         if fetches:
             elapsed_nowait += fetches
         self.resp_without_waits_hist.record_value(elapsed_nowait)
+        if self.db:
+            s.dump_to_db()
 
