@@ -64,7 +64,7 @@ else:
 tracker = CursorTracker(database)
 
 for fname in args.trace_files:
-    process_file(tracker, fname)
+    util.process_file(tracker, fname)
 #    print("Processing {}".format(fname))
 #    with open(fname, 'r') as f:
 #        for line in f:
