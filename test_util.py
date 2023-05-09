@@ -78,8 +78,11 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(len(tracker.cursors), 2)
 
         s = tracker.statements['atxg62s17nkj4']
-        self.assertEqual(s.execs, 1)
+        #self.assertEqual(s.execs, 1)
         self.assertEqual(s.fetches, 2)
+        self.assertEqual(s.exec_hist_elapsed.total_count, 1)
+        self.assertEqual(s.exec_hist_cpu.total_count, 1)
+
 
 
 if __name__ == '__main__':
