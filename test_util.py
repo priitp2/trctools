@@ -1,5 +1,6 @@
 import unittest
 import util
+from cursor_tracker import CursorTracker
 
 cursor1 = '#123223'
 class TestUtil(unittest.TestCase):
@@ -68,6 +69,18 @@ class TestUtil(unittest.TestCase):
         out = util.split_event(ev)
         self.assertEqual(len(out), 11)
         self.assertEqual(out['og'], '1')
+    def test_process_file(self):
+        tracker = CursorTracker(None)
+        util.process_file(tracker, 'tests/simple_trace.trc')
+
+        # There is special statement for cursor #0, so len == 2
+        self.assertEqual(len(tracker.statements), 2)
+        self.assertEqual(len(tracker.cursors), 2)
+
+        s = tracker.statements['atxg62s17nkj4']
+        self.assertEqual(s.execs, 1)
+        self.assertEqual(s.fetches, 2)
+
 
 if __name__ == '__main__':
     unittest.main()

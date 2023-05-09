@@ -1,18 +1,11 @@
 import unittest
-from tracer import Tracer
+from cursor_tracker import CursorTracker
+import tracer2
 
 class TestTracer(unittest.TestCase):
-    def test_init(self):
-        t = Tracer(True)
-    def test_handle_parse(self):
-        t = Tracer(True)
-
-        with self.assertRaisesRegex(AttributeError, 'sql_id'):
-            t.handle_parse('', '')
-
-        t.handle_parse('666', 'sqlid=666 fubar = xxx')
-
-        self.assertEqual(len(t.statements), 1)
+    def test_process_file(self):
+        tracker = CursorTracker(None)
+        tracer2.process_file(tracker, 'tests/simple_trace.trc')
 
 if __name__ == '__main__':
     unittest.main()
