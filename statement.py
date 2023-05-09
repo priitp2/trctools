@@ -23,9 +23,9 @@ class Statement:
             if key[0] == 'hv':
                 self.hash_id = key[1]
             if key[0] == 'ad':
-                self.address = key[1]
+                self.address = key[1].strip("'")
             if key[0] == 'sqlid':
-                self.sql_id = key[1].replace("'", "")
+                self.sql_id = key[1].strip("'")
 
         self.execs = 0
         self.fetches = 0

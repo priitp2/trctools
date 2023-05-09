@@ -19,14 +19,15 @@ class TestStatement(unittest.TestCase):
         self.assertEqual(s.timestamp, '1648763822995')
         self.assertEqual(s.hash_id, '1167462720')
         self.assertEqual(s.address, '8ff705c50')
-        self.assertEqual(s.sqlid, '6v48b7j2tc4a0')
+        self.assertEqual(s.sql_id, '6v48b7j2tc4a0')
 
+        s = Statement(cursor, '', False)
+        with self.assertRaises(AttributeError):
+            self.assertEqual(s.statement_length, '80')
     def test_normality(self):
         s = Statement(cursor, params, False)
         s.record_exec_cpu(1)
         s.record_exec_elapsed(1)
-        s.record_fetch_cpu(1)
-        s.record_fetch_elapsed(1)
 
         with self.assertRaises(AttributeError):
             self.assertEqual(len(s.exec_cpu), 0)
@@ -40,18 +41,12 @@ class TestStatement(unittest.TestCase):
         s = Statement(cursor, params, True)
         s.record_exec_cpu(1)
         s.record_exec_elapsed(1)
-        s.record_fetch_cpu(1)
-        s.record_fetch_elapsed(1)
 
         self.assertEqual(len(s.exec_cpu), 1)
         self.assertEqual(len(s.exec_elapsed), 1)
-        self.assertEqual(len(s.fetch_cpu), 1)
-        self.assertEqual(len(s.fetch_elapsed), 1)
 
         self.assertEqual(s.exec_hist_elapsed.total_count, 1)
         self.assertEqual(s.exec_hist_cpu.total_count, 1)
-        self.assertEqual(s.fetch_hist_elapsed.total_count, 1)
-        self.assertEqual(s.fetch_hist_cpu.total_count, 1)
     def test_increment(self):
         s = Statement(cursor, params, False)
         s.increase_exec_count()
