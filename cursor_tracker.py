@@ -54,16 +54,17 @@ class CursorTracker:
         cs = None
         if cursor in self.latest_cursors.keys():
             cs = self.latest_cursors[cursor]
-            if cs and cs.exec:
-                old_cs = cs
-                cs = self.add_latest_cursor(cursor)
-            else:
-                return None
+            if cs:
+                if cs.exec:
+                    old_cs = cs
+            cs = self.add_latest_cursor(cursor)
+            if cs:
+                cs.add_exec(params)
         else:
             #cs = self.add_latest_cursor(cursor)
             #old_cs = cs
+            print("add_exec: second None")
             return None
-        cs.add_exec(params)
         return old_cs
     def add_fetch(self, cursor, params):
         # FIXME: stray cursors, PARSING is probably not in the trace file
