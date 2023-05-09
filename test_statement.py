@@ -25,6 +25,7 @@ class TestStatement(unittest.TestCase):
         with self.assertRaises(AttributeError):
             self.assertEqual(s.statement_length, '80')
     def test_normality(self):
+        # FIXME: this needs proper test case
         s = Statement(cursor, params, False)
         s.record_exec_cpu(1)
         s.record_exec_elapsed(1)
@@ -48,6 +49,7 @@ class TestStatement(unittest.TestCase):
         self.assertEqual(s.exec_hist_elapsed.total_count, 1)
         self.assertEqual(s.exec_hist_cpu.total_count, 1)
     def test_increment(self):
+        # FIXME: increase* methods are unused
         s = Statement(cursor, params, False)
         s.increase_exec_count()
         s.increase_fetch_count()
