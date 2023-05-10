@@ -35,15 +35,11 @@ def ops2tuple(exec_id, cursor, ops_type, params):
 
 def handle_parse(cursor, params):
     ev = split_event(params)
-    id = []
-    id.append(-1)
-    return (cursor, int(ev['c']), int(ev['e']), id[0], ev)
+    return (cursor, int(ev['c']), int(ev['e']), 0, ev)
 
 def handle_exec(cursor, params):
     ev = split_event(params)
-    id = []
-    id.append(-1)
-    return (cursor, int(ev['c']), int(ev['e']), id[0], ev)
+    return (cursor, int(ev['c']), int(ev['e']), 0, ev)
 #    print(statement)
 #    print("handle_exec1: cursor = {}, params = {}, sql_id = {}".format(cursor, params, cursors[cursor]))
 
@@ -51,7 +47,6 @@ def handle_fetch(cursor, params):
     ev = split_event(params)
 
     lat = (cursor, int(ev['c']), int(ev['e']), ev)
-    id = -1
     return lat
 
 def handle_wait(cursor, params):
@@ -65,6 +60,7 @@ def handle_wait(cursor, params):
         return (cursor, 0, int(match.group(2)), wait)
     else:
         print("handle_wait: no match: cursor={}, params = ->{}<-".format(cursor, params))
+        return None
 
 def handle_close(cursor, params):
     ev = split_event(params)
