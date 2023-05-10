@@ -70,6 +70,12 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(len(out), 11)
         self.assertEqual(out['og'], '1')
     def test_process_file(self):
+        # Calculated from the trace file
+        cpu = 553
+        elapsed = 1353
+        ela_diff = 1221
+        ela_nowait = 598
+
         tracker = CursorTracker(None)
         util.process_file(tracker, 'tests/simple_trace.trc')
 
@@ -78,10 +84,14 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(len(tracker.cursors), 2)
 
         s = tracker.statements['atxg62s17nkj4']
-        #self.assertEqual(s.execs, 1)
         self.assertEqual(s.fetches, 2)
         self.assertEqual(s.exec_hist_elapsed.total_count, 1)
         self.assertEqual(s.exec_hist_cpu.total_count, 1)
+        self.assertEqual(s.exec_hist_elapsed.max_value, elapsed)
+        self.assertEqual(s.exec_hist_cpu.max_value, cpu)
+        self.assertEqual(s.resp_hist.max_value, ela_diff)
+        self.assertEqual(s.resp_without_waits_hist.max_value, ela_nowait)
+
 
 
 
