@@ -36,3 +36,7 @@ class Ops:
             out.e += o.e
 
         return out
+    def to_list(self, exec_id):
+        # FIXME: does not handle WAIT
+        return [exec_id, self.cursor, self.op_type, self.c, self.e, self.p, self.cr, self.cu, self.mis, self.r, self.dep, self.og, self.plh, self.tim, self.type]
+
