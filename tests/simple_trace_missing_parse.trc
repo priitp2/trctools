@@ -18,6 +18,10 @@ STAT #140641987987624 id=1 cnt=14 pid=0 pos=1 obj=89440 op='INDEX RANGE SCAN CUS
 WAIT #140641987987624: nam='SQL*Net message from client' ela= 223 driver id=675562835 #bytes=1 p3=0 obj#=89440 tim=5793511831891
 CLOSE #140641987987624:c=3,e=3,dep=0,type=1,tim=5793511831927
 XCTEND rlbk=0, rd_only=1, tim=5793511831940
+
+PARSING IN CURSOR #140641987987624 len=123 dep=0 uid=127 oct=3 lid=127 tim=5793511830707 hv=41568804 ad='b3cba2e50' sqlid='atxg62s17nkj4'
+select distinct customerse0_.SEGMENT_NAME as col_0_0_ from CUSTOMER_SEGMENT customerse0_ where customerse0_.CUSTOMER_ID=:1
+END OF STMT
 PARSE #140641987987624:c=12,e=12,p=0,cr=0,cu=0,mis=0,r=0,dep=0,og=1,plh=2725028981,tim=5793512313698
 BINDS #140641987987624:
 
