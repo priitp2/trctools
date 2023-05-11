@@ -21,12 +21,14 @@ class CurrentStatement:
             raise(BaseException("add_parsing_in: already set!"))
         else:
             self.parsing_in = params
-    def add_parse(self, params):
+    def add_parse(self, ops):
+        if ops.op_type != 'PARSE':
+            raise(BaseException("add_parse: wrong op_type = {}".format(ops.op_type)))
         if self.parse:
             raise(BaseException("add_parse: already set!"))
-        if self.cursor != params[0]:
-            raise(BaseException("add_parse: got cursor {}, have: {}, params: {}".format(params[0], self.cursor, params)))
-        self.parse = params
+        if self.cursor != ops.cursor:
+            raise(BaseException("add_parse: got cursor {}, have: {}, params: {}".format(ops.cursor, self.cursor, ops)))
+        self.parse = ops
     def add_exec(self, params):
         if self.exec:
             raise(BaseException("add_exec: already set!"))
