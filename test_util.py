@@ -69,7 +69,7 @@ class TestUtil(unittest.TestCase):
         out = util.split_event(ev)
         self.assertEqual(len(out), 11)
         self.assertEqual(out['og'], '1')
-    def test_process_file(self):
+    def test_process_file_simple(self):
         # Calculated from the trace file
         cpu = 553
         elapsed = 1353
@@ -92,6 +92,30 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(s.resp_hist.max_value, ela_diff)
         self.assertEqual(s.resp_without_waits_hist.max_value, ela_nowait)
 
+    def test_process_file_simple_2x(self):
+        # Calculated from the trace file
+        # From 1st exec
+        cpu = 553
+        # From 2nd exec
+        elapsed = 2357
+        ela_diff = 1637
+        ela_nowait = 1146
+
+        tracker = CursorTracker(None)
+        util.process_file(tracker, 'tests/simple_trace_2x.trc')
+
+        # There is special statement for cursor #0, so len == 2
+        self.assertEqual(len(tracker.statements), 2)
+        self.assertEqual(len(tracker.cursors), 2)
+
+        s = tracker.statements['atxg62s17nkj4']
+        self.assertEqual(s.fetches, 4)
+        self.assertEqual(s.exec_hist_elapsed.total_count, 2)
+        self.assertEqual(s.exec_hist_cpu.total_count, 2)
+        self.assertEqual(s.exec_hist_elapsed.max_value, elapsed)
+        self.assertEqual(s.exec_hist_cpu.max_value, cpu)
+        self.assertEqual(s.resp_hist.max_value, ela_diff)
+        self.assertEqual(s.resp_without_waits_hist.max_value, ela_nowait)
 
 
 
