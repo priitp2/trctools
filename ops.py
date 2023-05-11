@@ -13,8 +13,9 @@ class Ops:
             self.__slots__ = (op_type, cursor, 'raw', 'name', 'e', 'tim')
         else:
             for item in params.split(','):
-                key = item.split('=')
-                self.__dict__[key[0]] = int(key[1])
+                if len(item):
+                    key = item.split('=')
+                    self.__dict__[key[0]] = int(key[1])
             self.__slots__ = ('op_type', 'cursor', 'c', 'e', 'p', 'cr', 'cu', 'mis', 'r', 'dep', 'og', 'plh', 'tim', 'type')
 
     def __getattr__(self, name):
@@ -22,3 +23,16 @@ class Ops:
                 return 0
             else:
                 raise AttributeError("Wrong attribute: {}".format(name))
+    def merge(self, ops1):
+        if not isinstance(ops1, list):
+            ops1 = [ops1]
+        out = Ops(self.op_type, self.cursor, '')
+        out.c = self.c
+        out.e = self.e
+        for o in ops1:
+            if out.cursor != o.cursor:
+                raise ValueError("Ops.merge: cursor = {}, o.cursor = {}".format(self.cursor, o.cursor))
+            out.c += o.c
+            out.e += o.e
+
+        return out
