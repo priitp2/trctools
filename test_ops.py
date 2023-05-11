@@ -45,6 +45,20 @@ class TestOps(unittest.TestCase):
         with self.assertRaises(AttributeError):
             self.assertEqual(o.og, 1)
 
+    def test_merge(self):
+        o1 = Ops('EXEC', cursor, 'c=73,e=73,p=0,cr=0,cu=0,mis=0,r=0,dep=0,og=1,plh=2725028981,tim=5793511830834')
+
+        o2 = Ops('EXEC', '#0', 'c=123,e=223,p=0,cr=0,cu=0,mis=0,r=0,dep=0,og=1,plh=2725028981,tim=5793511830834')
+        with self.assertRaises(ValueError):
+            o3 = o2.merge(o1)
+
+        o2 = Ops('EXEC', cursor, 'c=123,e=223,p=0,cr=0,cu=0,mis=0,r=0,dep=0,og=1,plh=2725028981,tim=5793511830834')
+        o3 = o2.merge(o1)
+        self.assertEqual(o2.op_type, o3.op_type)
+        self.assertEqual(o3.c, 196)
+        self.assertEqual(o3.e, 296)
+        self.assertEqual(o3.tim, 0)
+
 if __name__ == '__main__':
     unittest.main()
 
