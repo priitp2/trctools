@@ -46,7 +46,6 @@ class TestOps(unittest.TestCase):
             self.assertEqual(o.og, 1)
 
     def test_merge(self):
-        # FIXME: test for iterable
         o1 = Ops('EXEC', cursor, 'c=73,e=73,p=0,cr=0,cu=0,mis=0,r=0,dep=0,og=1,plh=2725028981,tim=5793511830834')
 
         o2 = Ops('EXEC', '#0', 'c=123,e=223,p=0,cr=0,cu=0,mis=0,r=0,dep=0,og=1,plh=2725028981,tim=5793511830834')
@@ -60,6 +59,10 @@ class TestOps(unittest.TestCase):
         self.assertEqual(o3.e, 296)
         self.assertEqual(o3.tim, 0)
 
+        o3 = Ops('EXEC', cursor, 'c=123,e=223,p=0,cr=0,cu=0,mis=0,r=0,dep=0,og=1,plh=2725028981,tim=5793511830834')
+        o4 = o3.merge([o1, o2])
+        self.assertEqual(o4.c, o1.c + o2.c + o3.c)
+        self.assertEqual(o4.e, o1.e + o2.e + o3.e)
     def test_to_list(self):
         o1 = Ops('EXEC', cursor, 'c=73,e=73,p=1,cr=2,cu=3,mis=4,r=5,dep=6,og=7,plh=2725028981,tim=5793511830834')
         l = o1.to_list(0)
