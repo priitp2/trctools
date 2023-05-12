@@ -1,4 +1,5 @@
 import util
+from ops import Ops
 
 class CurrentStatement:
     def __init__(self, cursor, db):
@@ -29,70 +30,75 @@ class CurrentStatement:
         if self.cursor != ops.cursor:
             raise(BaseException("add_parse: got cursor {}, have: {}, params: {}".format(ops.cursor, self.cursor, ops)))
         self.parse = ops
-    def add_exec(self, params):
+    def add_exec(self, ops):
+        if ops.op_type != 'EXEC':
+            raise(BaseException("add_exec: wrong op_type = {}".format(ops.op_type)))
         if self.exec:
             raise(BaseException("add_exec: already set!"))
-        if self.cursor != params[0]:
-            raise(BaseException("add_exec: got cursor {}, have: {}".format(params[0], self.cursor)))
-        self.exec = params
-    def add_wait(self, params):
-        if self.cursor != params[0]:
-            raise(BaseException("add_wait: got cursor {}, have: {}".format(params[0], self.cursor)))
+        if self.cursor != ops.cursor:
+            raise(BaseException("add_exec: got cursor {}, have: {}".format(ops.cursor, self.cursor)))
+        self.exec = ops
+    def add_wait(self, ops):
+        if ops.op_type != 'WAIT':
+            raise(BaseException("add_wait: wrong op_type = {}".format(ops.op_type)))
+        if self.cursor != ops.cursor:
+            raise(BaseException("add_wait: got cursor {}, have: {}".format(ops.cursor, self.cursor)))
         self.wait_count += 1
-        self.waits.append(params)
+        self.waits.append(ops)
         if len(self.waits) > self.max_list_size:
-            ret = util.merge_lat_objects((self.cursor, 0, 0), self.waits)
+            ret = ops.merge(self.waits)
             self.waits = [ret]
-    def add_fetch(self, params):
-        if self.cursor != params[0]:
-            raise(BaseException("add_exec: got cursor {}, have: {}".format(params[0], self.cursor)))
+    def add_fetch(self, ops):
+        if ops.op_type != 'FETCH':
+            raise(BaseException("add_fetch: wrong op_type = {}".format(ops.op_type)))
+        if self.cursor != ops.cursor:
+            raise(BaseException("add_fetch: got cursor {}, have: {}".format(ops.cursor, self.cursor)))
         self.fetch_count += 1
-        self.fetches.append(params)
+        self.fetches.append(ops)
         if len(self.fetches) > self.max_list_size:
-            ret = util.merge_lat_objects((self.cursor, 0, 0), self.fetches)
+            ret = ops.merge(self.fetches)
             self.fetches = [ret]
-    def add_close(self, params):
-        if self.cursor != params[0]:
-            raise(BaseException("add_close: got cursor {}, have: {}".format(params[0], self.cursor)))
+    def add_close(self, ops):
+        if ops.op_type != 'CLOSE':
+            raise(BaseException("add_close: wrong op_type = {}".format(ops.op_type)))
+        if self.cursor != ops.cursor:
+            raise(BaseException("add_close: got cursor {}, have: {}".format(ops.cursor, self.cursor)))
         if self.close:
-            util.merge_lat_objects(self.close, params)
+            #FIXME: why is this needed?
+            self.close = self.close.merge(ops)
             #raise(BaseException("add_close: already set! "))
         else:
-            self.close = params
+            self.close = ops
     def merge(self):
-        ret = (self.cursor, 0, 0)
-        ret = util.merge_lat_objects(ret, self.parse)
-        ret = util.merge_lat_objects(ret, self.exec)
-        ret = util.merge_lat_objects(ret, self.waits)
-        ret = util.merge_lat_objects(ret, self.fetches)
-        ret = util.merge_lat_objects(ret, self.close)
+        ret = Ops('EXEC', self.cursor, '')
+        ret = ret.merge(self.parse)
+        ret = ret.merge(self.exec)
+        ret = ret.merge(self.waits)
+        ret = ret.merge(self.fetches)
+        ret = ret.merge(self.close)
         return ret
     def get_elapsed(self):
         start = None
         if self.parse:
-            start = self.parse[4]['tim']
+            start = self.parse.tim
         elif self.exec:
-            start = self.exec[4]['tim']
+            start = self.exec.tim
         if start and self.close:
-            return int(self.close[3]['tim']) - int(start)
+            return self.close.tim - start
         else:
             return None 
     def dump_to_db(self):
+        if not self.db:
+            raise BaseException("dump_to_db: database not set!")
         exec_id = self.db.get_exec_id()[0]
         st = []
         if self.parse:
-            st.append(util.ops2tuple(exec_id, self.cursor, 'PARSE', self.parse[4]))
+            st.append(self.parse.to_list())
         if self.exec:
-            st.append(util.ops2tuple(exec_id, self.cursor, 'EXEC', self.exec[4]))
+            st.append(self.exec.to_list())
         for f in self.fetches:
-            # FIXME: why is f[3] missing?
-            if len(f) > 3:
-                st.append(util.ops2tuple(exec_id, self.cursor, 'FETCH', f[3]))
-        #if self.close:
-        #    st.append(util.ops2tuple_close(exec_id, 'CLOSE', self.close))
+                st.append(f.to_list())
         if self.close:
-            cl = util.ops2tuple(exec_id, self.cursor, 'CLOSE', self.close[3])
-        else:
-            cl = None
-        self.db.insert_ops(st, cl)
+            st.append(self.close.to_list())
+        self.db.insert_ops(st)
 
