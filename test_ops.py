@@ -80,6 +80,12 @@ class TestOps(unittest.TestCase):
         self.assertEqual(l[13], o1.tim)
         self.assertEqual(l[14], 0) # type will be 0
 
+    def test_empty_wait(self):
+        o1 = Ops('WAIT', '#140641987987624', " nam='SQL*Net message to client' ela= 1 driver id=675562835 #bytes=1 p3=0 obj#=89440 tim=5793511831582")
+        o2 = Ops('WAIT', '#140641987987624', " nam='SQL*Net message to client' ela= 66 driver id=675562835 #bytes=1 p3=0 obj#=89440 tim=5793511831582")
+        o3 = o2.merge(o1)
+        self.assertEqual(o3.e, 67)
+        self.assertEqual(o3.c, 0)
 if __name__ == '__main__':
     unittest.main()
 
