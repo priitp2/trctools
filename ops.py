@@ -28,6 +28,8 @@ class Ops:
             else:
                 raise AttributeError("Wrong attribute: {}".format(name))
     def merge(self, ops1):
+        if not ops1:
+            return self
         if not isinstance(ops1, list):
             ops1 = [ops1]
         out = Ops(self.op_type, self.cursor, '')
