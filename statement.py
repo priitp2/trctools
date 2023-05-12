@@ -1,6 +1,7 @@
 from hdrh.histogram import HdrHistogram
 from oracle import DB
 import util
+from ops import Ops
 
 class Statement:
     def __init__(self, cursor, params, norm, db):
@@ -59,8 +60,8 @@ class Statement:
             self.exec_elapsed.append(elapsed)
     def add_current_statement(self, s):
         lat = s.merge()
-        self.record_exec_cpu(lat[1])
-        self.record_exec_elapsed(lat[2])
+        self.record_exec_cpu(lat.c)
+        self.record_exec_elapsed(lat.e)
         self.increase_exec_count()
         self.fetches += s.fetch_count
 
@@ -70,12 +71,12 @@ class Statement:
 
         elapsed_nowait = 0
         if s.parse:
-            elapsed_nowait += s.parse[2] 
+            elapsed_nowait += s.parse.e 
         if s.close:
-            elapsed_nowait += s.close[2]
+            elapsed_nowait += s.close.e
         if s.exec:
-            elapsed_nowait += s.exec[2]
-        fetches = util.merge_lat_objects((s.cursor, 0, 0), s.fetches)[2]
+            elapsed_nowait += s.exec.e
+        fetches = Ops('FETCH', s.cursor, '').merge(s.fetches).e
         if fetches:
             elapsed_nowait += fetches
         self.resp_without_waits_hist.record_value(elapsed_nowait)
