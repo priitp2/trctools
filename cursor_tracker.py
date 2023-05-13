@@ -58,6 +58,8 @@ class CursorTracker:
                 if cs.exec:
                     old_cs = cs
                     cs = self.add_latest_cursor(cursor)
+                    if not cs:
+                        return None
                 cs.add_exec(params)
         else:
             #cs = self.add_latest_cursor(cursor)
