@@ -90,15 +90,15 @@ class CurrentStatement:
     def dump_to_db(self):
         if not self.db:
             raise BaseException("dump_to_db: database not set!")
-        exec_id = self.db.get_exec_id()[0]
+        exec_id = self.db.get_exec_id()
         st = []
         if self.parse:
-            st.append(self.parse.to_list())
+            st.append(self.parse.to_list(exec_id))
         if self.exec:
-            st.append(self.exec.to_list())
+            st.append(self.exec.to_list(exec_id))
         for f in self.fetches:
-                st.append(f.to_list())
+                st.append(f.to_list(exec_id))
         if self.close:
-            st.append(self.close.to_list())
+            st.append(self.close.to_list(exec_id))
         self.db.insert_ops(st)
 
