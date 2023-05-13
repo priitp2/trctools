@@ -44,5 +44,8 @@ class Ops:
         return out
     def to_list(self, exec_id):
         # FIXME: does not handle WAIT
-        return [exec_id, self.cursor, self.op_type, self.c, self.e, self.p, self.cr, self.cu, self.mis, self.r, self.dep, self.og, self.plh, self.tim, self.type]
+        if self.op_type == 'WAIT':
+            return [exec_id, self.cursor, self.op_type, 0, self.e, 0, 0, 0, 0, 0, 0, 0, 0, self.tim, 0, self.name, self.raw]
+        else:
+            return [exec_id, self.cursor, self.op_type, self.c, self.e, self.p, self.cr, self.cu, self.mis, self.r, self.dep, self.og, self.plh, self.tim, self.type, '', '']
 
