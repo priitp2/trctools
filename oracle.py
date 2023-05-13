@@ -35,7 +35,7 @@ class DB:
     def get_exec_id(self):
         cursor = self.connection.cursor()
         out = cursor.execute('select cursor_exec_id.nextval from dual')
-        return out.fetchone()
+        return out.fetchone()[0]
     def insert_ops(self, ops, op_close):
         if len(ops) == 0:
             return
