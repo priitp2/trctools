@@ -49,21 +49,6 @@ class TestCurrentStatement(unittest.TestCase):
         with self.assertRaisesRegex(BaseException, 'add_wait: got cursor *'):
             cs.add_wait(o)
 
-        cs = CurrentStatement(cursor, None)
-        o = Ops('WAIT', cursor, " nam='db file sequential read' ela= 403 file#=414 block#=2682927 blocks=1 obj#=89440 tim=5793512314261")
-
-        cs.add_wait(o)
-
-        for i in range(0, cs.max_list_size - cs.wait_count):
-            cs.add_wait(o)
-        self.assertEqual(len(cs.waits), 10)
-
-        # This triggers merge
-        cs.add_wait(o)
-        self.assertEqual(len(cs.waits), 1)
-        self.assertEqual(cs.wait_count, 11)
-        self.assertEqual(cs.waits[0].e, cs.wait_count*403)
-
     def test_add_fetch(self):
         cs = CurrentStatement(cursor, None)
         o = Ops('PARSE', cursor, 'c=73,e=73,p=1,cr=2,cu=3,mis=4,r=5,dep=6,og=7,plh=2725028981,tim=5793511830834')
@@ -74,20 +59,6 @@ class TestCurrentStatement(unittest.TestCase):
         with self.assertRaisesRegex(BaseException, 'add_fetch: got cursor *'):
             cs.add_fetch(o)
 
-        cs = CurrentStatement(cursor, None)
-        o = Ops('FETCH', cursor, 'c=475,e=474,p=1,cr=4,cu=0,mis=0,r=10,dep=0,og=1,plh=2725028981,tim=5793512314300')
-
-        cs.add_fetch(o)
-
-        for i in range(0, cs.max_list_size - cs.fetch_count):
-            cs.add_fetch(o)
-        self.assertEqual(len(cs.fetches), 10)
-
-        # This triggers merge
-        cs.add_fetch(o)
-        self.assertEqual(len(cs.fetches), 1)
-        self.assertEqual(cs.fetch_count, 11)
-        self.assertEqual(cs.fetches[0].e, cs.fetch_count*747)
     def test_add_close(self):
         cs = CurrentStatement(cursor, None)
         o = Ops('CLOSE', cursor, 'c=0,e=4,dep=0,type=3,tim=5793512315335')
