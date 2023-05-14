@@ -68,7 +68,7 @@ class TestOps(unittest.TestCase):
     def test_to_list(self):
         o1 = Ops('EXEC', cursor, 'c=73,e=73,p=1,cr=2,cu=3,mis=4,r=5,dep=6,og=7,plh=2725028981,tim=5793511830834')
         l = o1.to_list(0)
-        self.assertEqual(len(l), len(o1.__slots__) + 1)
+        self.assertEqual(len(l), len(o1.__slots__) + 3)
         self.assertEqual(l[0], 0)
         self.assertEqual(l[1], cursor)
         self.assertEqual(l[2], 'EXEC')
