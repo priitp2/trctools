@@ -5,7 +5,6 @@ class CurrentStatement:
     def __init__(self, cursor, db):
         if len(cursor) < 2 and cursor != '#0':
             raise(BaseException("init: got empty cursor"))
-        self.max_list_size = 10
         self.cursor = cursor
         self.parsing_in = None
         self.parse = None
@@ -45,9 +44,6 @@ class CurrentStatement:
             raise(BaseException("add_wait: got cursor {}, have: {}".format(ops.cursor, self.cursor)))
         self.wait_count += 1
         self.waits.append(ops)
-        if len(self.waits) > self.max_list_size:
-            ret = ops.merge(self.waits)
-            self.waits = [ret]
     def add_fetch(self, ops):
         if ops.op_type != 'FETCH':
             raise(BaseException("add_fetch: wrong op_type = {}".format(ops.op_type)))
@@ -55,9 +51,6 @@ class CurrentStatement:
             raise(BaseException("add_fetch: got cursor {}, have: {}".format(ops.cursor, self.cursor)))
         self.fetch_count += 1
         self.fetches.append(ops)
-        if len(self.fetches) > self.max_list_size:
-            ret = ops.merge(self.fetches)
-            self.fetches = [ret]
     def add_close(self, ops):
         if ops.op_type != 'CLOSE':
             raise(BaseException("add_close: wrong op_type = {}".format(ops.op_type)))
@@ -97,9 +90,9 @@ class CurrentStatement:
         if self.exec:
             st.append(self.exec.to_list(exec_id))
         for f in self.fetches:
-                st.append(f.to_list(exec_id))
+            st.append(f.to_list(exec_id))
         for w in self.waits:
-                st.append(w.to_list(exec_id))
+            st.append(w.to_list(exec_id))
         if self.close:
             st.append(self.close.to_list(exec_id))
         self.db.insert_ops(st)
