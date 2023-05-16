@@ -142,6 +142,23 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(s.resp_hist.max_value, ela_diff)
         self.assertEqual(s.resp_without_waits_hist.max_value, ela_nowait)
 
+    def test_process_file_3_statements_1_cursor(self):
+        tracker = CursorTracker(None)
+        util.process_file(tracker, 'tests/two_statements_one_cursor.trc')
 
+        s = tracker.statements['cdgn9f8spbxnt']
+        self.assertEqual(s.fetches, 1)
+        self.assertEqual(s.exec_hist_elapsed.total_count, 1)
+
+        s = tracker.statements['atxg62s17nkj4']
+        self.assertEqual(s.fetches, 2)
+        self.assertEqual(s.exec_hist_elapsed.total_count, 1)
+
+        s = tracker.statements['6ssxu7vjxb51a']
+        self.assertEqual(s.fetches, 11)
+        self.assertEqual(s.exec_hist_elapsed.total_count, 1)
+
+        self.assertEqual(len(tracker.statements), 4)
+        self.assertEqual(len(tracker.cursors), 4)
 if __name__ == '__main__':
     unittest.main()
