@@ -57,7 +57,7 @@ class DB:
         #with local.open_output_stream(fname +'.gz') as file:
         #    with pa.RecordBatchFileWriter(file, table.schema) as writer:
         #        writer.write_table(table)
-        pq.write_table(table, 'arrow/' + fname + '.parquet', compression='gzip')
+        pq.write_table(table, 'arrow/trace/' + fname + '.parquet', compression='gzip')
         self.batches = []
 
         table = pa.Table.from_batches(self.cursor_statement_batches)
