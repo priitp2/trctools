@@ -78,18 +78,10 @@ def print_naughty_exec(tracker, cs):
         print("sql_id = {}, cursor = {}, elapsed = {}, fetches = {}".format(statement.sql_id, lat.cursor, lat.e, cs.fetch_count))
         if cs.exec:
             print("    exec: cpu = {}, elapsed = {}, timestamp = {}".format(cs.exec.c, cs.exec.e, cs.exec.tim))
-        if cs.fetch_count < cs.max_list_size:
-            for f in cs.fetches:
-                print("     {}".format(f))
-        else:
-            elapsed = Ops('FETCH', cs.cursor, '').merge(cs.fetches)
-            print("    fetches = {}, elapsed = {}".format(cs.fetch_count, elapsed.e))
-        if cs.wait_count < cs.max_list_size:
-            for w in cs.waits:
-                print("     {}".format(w.raw))
-        else:
-            elapsed = Ops('WAIT', cs.cursor, '').merge(cs.waits)
-            print("    waits = {}, elapsed = {}".format(cs.wait_count, elapsed.e))
+        for f in cs.fetches:
+            print("     {}".format(f))
+        for w in cs.waits:
+            print("     {}".format(w.raw))
         elapsed = cs.get_elapsed()
         if elapsed != None:
             print("    estimated elapsed time = {}".format(elapsed))
