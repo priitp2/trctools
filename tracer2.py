@@ -6,10 +6,10 @@ import re
 import sys
 from scipy.stats import shapiro,kstest
 from statement import Statement
-from oracle import DB
 from current_statement import CurrentStatement
 import util
 from cursor_tracker import CursorTracker
+from pathlib import PurePath
 
 max_fetch_elapsed = 500000
 max_exec_elapsed = 500000
@@ -50,13 +50,16 @@ parser.add_argument('--sql_id', type=str, dest='sqlid',
                             help="Comma separated list of sql_id's for which histograms are produced")
 parser.add_argument('--norm', type=bool, default = False, dest='norm',
                             help="Perform Shapiro-Wilk normality test on values")
-parser.add_argument('--db', type=bool, default = False, dest='db',
-                            help="persists raw data in the db")
+parser.add_argument('--db', type=str, default = None, dest='db', help="Persists raw data in the db, supported implementations: oracle, parquet")
 parser.add_argument('--merge_all', type=bool, default = False, dest='merge_all',
                             help="Merges all sql statements into one histogram. Helpful without the bind variables")
 args = parser.parse_args()
 
-if args.db:
+if args.db == 'oracle':
+    from oracle import DB
+    database = DB()
+elif args.db == 'parquet':
+    from arrow import DB
     database = DB()
 else:
     database = None
@@ -65,6 +68,8 @@ tracker = CursorTracker(database)
 
 for fname in args.trace_files:
     util.process_file(tracker, fname)
+    p = PurePath(fname)
+    tracker.flush(p.stem)
 #    print("Processing {}".format(fname))
 #    with open(fname, 'r') as f:
 #        for line in f:
@@ -98,7 +103,6 @@ for fname in args.trace_files:
 #
 #                if match.group(1) == 'BINDS':
 #                    pass
-tracker.flush()
 
 #for c in cursors.keys():
 #    print("cursor: {}, sql_id: {}".format(c, cursors[c]))
