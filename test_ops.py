@@ -91,6 +91,16 @@ class TestOps(unittest.TestCase):
         o3 = o2.merge(o1)
         self.assertEqual(o3.e, 67)
         self.assertEqual(o3.c, 0)
+
+    def test_str(self):
+        o1 = Ops('WAIT', '#140641987987624', " nam='SQL*Net message to client' ela= 1 driver id=675562835 #bytes=1 p3=0 obj#=89440 tim=5793511831582")
+        self.assertRegex(str(o1), '^#140641987987624: WAIT*')
+
+        o1 = Ops('EXEC', cursor, 'c=73,e=73,p=1,cr=2,cu=3,mis=4,r=5,dep=6,og=7,plh=2725028981,tim=5793511830834')
+        self.assertRegex(str(o1), '^#140641987987624: EXEC*')
+
+        o1 = Ops('CLOSE', '#140641987987624', 'c=3,e=3,dep=0,type=1,tim=5793511831927')
+        self.assertRegex(str(o1), '^#140641987987624: CLOSE*')
 if __name__ == '__main__':
     unittest.main()
 

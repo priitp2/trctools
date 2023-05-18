@@ -48,4 +48,11 @@ class Ops:
             return [exec_id, self.cursor, self.op_type, 0, self.e, 0, 0, 0, 0, 0, 0, 0, 0, self.tim, 0, self.name, self.raw]
         else:
             return [exec_id, self.cursor, self.op_type, self.c, self.e, self.p, self.cr, self.cu, self.mis, self.r, self.dep, self.og, self.plh, self.tim, self.type, '', '']
-
+    def __str__(self):
+        str0 = "{}: {} ".format(self.cursor, self.op_type)
+        if self.op_type == 'WAIT':
+            return str0 + "{}".format(self.raw)
+        elif self.op_type == 'CLOSE':
+            return str0 + "c={},e={},type={},tim={}".format(self.c, self.e, self.type, self.tim)
+        else:
+            return str0 + "c={},e={},p={},cr={},cu={},mis={},r={},dep={},og={},plh={},tim={}".format(self.c, self.e, self.p, self.cr, self.cu, self.mis, self.r, self.dep, self.og, self.plh, self.tim)
