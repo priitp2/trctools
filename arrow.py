@@ -3,7 +3,8 @@ from pyarrow import fs
 import pyarrow.parquet as pq
 
 class DB:
-    def __init__(self):
+    def __init__(self, dbdir):
+        self.dbdir = dbdir
         self.cursor_exec_schema = pa.schema([
             ('exec_id', pa.int64()),
             ('cursor_id', pa.string()),
@@ -57,10 +58,10 @@ class DB:
         #with local.open_output_stream(fname +'.gz') as file:
         #    with pa.RecordBatchFileWriter(file, table.schema) as writer:
         #        writer.write_table(table)
-        pq.write_table(table, 'arrow/trace/' + fname + '.parquet', compression='gzip')
+        pq.write_table(table, '{}/trace/{}.parquet'.format(self.dbdir, fname), compression='gzip')
         self.batches = []
 
         table = pa.Table.from_batches(self.cursor_statement_batches)
-        pq.write_table(table, 'arrow/cursors/' + fname + '.parquet', compression='gzip')
+        pq.write_table(table, '{}/cursors/{}.parquet'.format(self.dbdir, fname), compression='gzip')
         self.cursor_statement_batches = []
 
