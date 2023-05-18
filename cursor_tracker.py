@@ -17,18 +17,23 @@ class CursorTracker:
         self.statements[s.sql_id] = s
         self.cursors['#0'] = s.sql_id
         self.add_latest_cursor('#0')
+    def _get_cursor(self, cursor):
+        if cursor in self.latest_cursors.keys():
+            return self.latest_cursors[cursor]
+        else:
+            return None
     def add_latest_cursor(self, cursor):
         ''' If cursor is present then this is new execution, so merge the cursor with the statement and
             overwrite the latest_cursor.
         '''
-        if cursor in self.latest_cursors.keys():
+        cs = self._get_cursor(cursor)
+        if cs:
             # FIXME: Trace can contain cursor without matching statement
             if cursor in self.cursors.keys():
                 statement = self.statements[self.cursors[cursor]]
             else:
                 print("add_latest_cursor: unknown cursor {}, probably missing PARSE* operation".format(cursor))
                 return None
-            cs = self.latest_cursors[cursor]
             statement.add_current_statement(cs)
         self.latest_cursors[cursor] = CurrentStatement(cursor, self.db)
         return self.latest_cursors[cursor]
@@ -37,11 +42,11 @@ class CursorTracker:
         if s.sql_id not in self.statements.keys():
             self.statements[s.sql_id] = s
         self.cursors[cursor] = s.sql_id
-        self.latest_cursors[cursor] = CurrentStatement(cursor, self.db)
+        self.latest_cursors[cursor] = CurrentStatement(cursor, self.db, s.sql_id)
     def add_parse(self, cursor, params):
         cs_old = None
-        if cursor in self.latest_cursors.keys():
-            cs = self.latest_cursors[cursor]
+        cs = self._get_cursor(cursor)
+        if cs:
             cs_old = cs
             if cs.parse:
                 cs = self.add_latest_cursor(cursor)
@@ -51,16 +56,14 @@ class CursorTracker:
         return cs_old
     def add_exec(self, cursor, params):
         old_cs = None
-        cs = None
-        if cursor in self.latest_cursors.keys():
-            cs = self.latest_cursors[cursor]
-            if cs:
-                if cs.exec:
-                    old_cs = cs
-                    cs = self.add_latest_cursor(cursor)
-                    if not cs:
-                        return None
-                cs.add_exec(params)
+        cs = self._get_cursor(cursor)
+        if cs:
+            if cs.exec:
+                old_cs = cs
+                cs = self.add_latest_cursor(cursor)
+                if not cs:
+                    return None
+            cs.add_exec(params)
         else:
             #cs = self.add_latest_cursor(cursor)
             #old_cs = cs
@@ -69,19 +72,20 @@ class CursorTracker:
         return old_cs
     def add_fetch(self, cursor, params):
         # FIXME: stray cursors, PARSING is probably not in the trace file
-        if cursor not in self.latest_cursors.keys():
-            self.latest_cursors[cursor] = CurrentStatement(cursor, self.db)
-        cs = self.latest_cursors[cursor]
+        cs = self._get_cursor(cursor)
+        if not cs:
+            cs = CurrentStatement(cursor, self.db)
+            self.latest_cursors[cursor] = cs
         cs.add_fetch(params)
     def add_wait(self, cursor, params):
-        if cursor not in self.latest_cursors.keys():
-            self.latest_cursors[cursor] = CurrentStatement(cursor, self.db)
-        cs = self.latest_cursors[cursor]
+        cs = self._get_cursor(cursor)
+        if not cs:
+            cs = CurrentStatement(cursor, self.db)
+            self.latest_cursors[cursor] = cs
         cs.add_wait(params)
     def add_close(self, cursor, params):
-        try:
-            cs = self.latest_cursors[cursor]
-        except KeyError:
+        cs = self._get_cursor(cursor)
+        if not cs:
             print("add_close: stray cursor {}".format(cursor))
             return None
         cs.add_close(params)
