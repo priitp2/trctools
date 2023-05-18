@@ -2,7 +2,7 @@ import util
 from ops import Ops
 
 class CurrentStatement:
-    def __init__(self, cursor, db):
+    def __init__(self, cursor, db, sql_id=None):
         if len(cursor) < 2 and cursor != '#0':
             raise(BaseException("init: got empty cursor"))
         self.cursor = cursor
@@ -14,6 +14,7 @@ class CurrentStatement:
         self.fetches = []
         self.fetch_count = 0
         self.close = None
+        self.sql_id = sql_id
         self.__slots__ = ('max_list_size', 'cursor', 'parsing_in', 'parse', 'exec', 'waits', 'wait_count', 'fetches', 'fetch_count', 'close')
         self.db = db
     def add_parsing_in(self, params):
