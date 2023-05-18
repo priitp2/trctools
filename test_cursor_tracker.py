@@ -102,10 +102,25 @@ class TestCursorTracker(unittest.TestCase):
         self.assertEqual(st.exec_hist_cpu.get_total_count(), 1)
         self.assertEqual(st.exec_hist_elapsed.get_total_count(), 1)
     def test_stray_cursors(self):
-        # When PARSING is missing in the trace file
+        # When PARSING IN CURSOR is missing in the trace file
+        tr = CursorTracker(None)
+        o = Ops('EXEC', '#1234', '')
+        tr.add_exec('#1234', o)
+        self.assertEqual(len(tr.cursors), 2)
+        self.assertEqual(len(tr.statements), 2)
+
         tr = CursorTracker(None)
         o = Ops('FETCH', '#1234', '')
         tr.add_fetch('#1234', o)
+        self.assertEqual(len(tr.cursors), 2)
+        self.assertEqual(len(tr.statements), 2)
+
+        tr = CursorTracker(None)
+        o = Ops('WAIT', '#1234', '')
+        tr.add_wait('#1234', o)
+        self.assertEqual(len(tr.cursors), 2)
+        self.assertEqual(len(tr.statements), 2)
+
         tr.add_parsing_in('#1234', params)
         # FIXME: what to do with those? What if there's another parse call later?
     def test__get_cursor(self):
@@ -114,6 +129,16 @@ class TestCursorTracker(unittest.TestCase):
         tr.add_parsing_in(cursor, params)
         self.assertEqual(tr._get_cursor(cursor).cursor, cursor)
         self.assertEqual(tr._get_cursor('#123'), None)
+    def test__add_dummy_statement(self):
+        tr = CursorTracker(None)
+        tr._add_dummy_statement('#1234')
+        self.assertNotEqual(tr._get_cursor('#1234'), None)
+        self.assertEqual(len(tr.cursors), 2)
+        self.assertEqual(len(tr.statements), 2)
+        self.assertTrue('dummy1' in tr.statements.keys())
+        with self.assertRaisesRegex(BaseException, '_add_dummy_statement: *'):
+            tr._add_dummy_statement('#1234')
+
 
 
 if __name__ == '__main__':
