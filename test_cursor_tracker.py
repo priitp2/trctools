@@ -108,6 +108,11 @@ class TestCursorTracker(unittest.TestCase):
         tr.add_fetch('#1234', o)
         tr.add_parsing_in('#1234', params)
         # FIXME: what to do with those? What if there's another parse call later?
+    def test__get_cursor(self):
+        tr = CursorTracker(None)
+        self.assertEqual(tr._get_cursor('#123'), None)
+        tr.add_parsing_in(cursor, params)
+        self.assertEqual(tr._get_cursor(cursor).cursor, cursor)
 
 
 if __name__ == '__main__':
