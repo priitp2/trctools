@@ -20,6 +20,7 @@ parser.add_argument('--sql_id', type=str, dest='sqlid',
 parser.add_argument('--norm', type=bool, default = False, dest='norm',
                             help="Perform Shapiro-Wilk normality test on values")
 parser.add_argument('--db', type=str, default = None, dest='db', help="Persists raw data in the db, supported implementations: oracle, parquet")
+parser.add_argument('--dbdir', type=str, default = 'arrow', dest='dbdir', help="Directory for the parquet files")
 parser.add_argument('--merge_all', type=bool, default = False, dest='merge_all',
                             help="Merges all sql statements into one histogram. Helpful without the bind variables")
 parser.add_argument('--logfile', type=str, default = None, dest='logfile', help="Sends output to the file")
@@ -32,7 +33,7 @@ if args.db == 'oracle':
     database = DB()
 elif args.db == 'parquet':
     from arrow import DB
-    database = DB()
+    database = DB(args.dbdir)
 else:
     database = None
 
