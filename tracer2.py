@@ -70,44 +70,6 @@ for fname in args.trace_files:
     util.process_file(tracker, fname)
     p = PurePath(fname)
     tracker.flush(p.stem)
-#    print("Processing {}".format(fname))
-#    with open(fname, 'r') as f:
-#        for line in f:
-#            match = re.match(r'''^(PARSE|PARSING IN CURSOR|EXEC|FETCH|WAIT|CLOSE|BINDS) (#\d+)(:| )(.*)''', line)
-#            if match:
-#                #print(match.groups())
-#                if match.group(1) == 'PARSING IN CURSOR':
-#                    p = handle_parsing(match.group(2), match.group(4))
-#                if match.group(1) == 'PARSE':
-#                    last_parse = handle_parse(match.group(2), match.group(4))
-#                    cs = tracker.add_parse(match.group(2), last_parse)
-#                    if cs:
-#                        print_naughty_exec(cs)
-#                if match.group(1) == 'EXEC':
-#                    last_exec = handle_exec(match.group(2), match.group(4))
-#                    cs = tracker.add_exec(match.group(2), last_exec)
-#                    if cs:
-#                        print_naughty_exec(cs)
-#                if match.group(1) == 'FETCH':
-#                    # FIXME: fetches should be added to execs, not other way around
-#                    f = handle_fetch(match.group(2), match.group(4))
-#                    tracker.add_fetch(match.group(2), f)
-#                if match.group(1) == 'WAIT':
-#                    w = handle_wait(match.group(2), match.group(4))
-#                    tracker.add_wait(match.group(2), w)
-#                if match.group(1) == 'CLOSE':
-#                    c = handle_close(match.group(2), match.group(4))
-#                    cs = tracker.add_close(match.group(2), c)
-#                    if cs:
-#                        print_naughty_exec(cs)
-#
-#                if match.group(1) == 'BINDS':
-#                    pass
-
-#for c in cursors.keys():
-#    print("cursor: {}, sql_id: {}".format(c, cursors[c]))
-#for s in statements.values():
-#    print(s)
 
 # Silly bandaid in case sqlids argument isn't specified
 if args.sqlid:
