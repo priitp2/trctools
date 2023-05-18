@@ -88,6 +88,8 @@ class CursorTracker:
         self.add_latest_cursor(cursor)
         return cs
     def flush(self, fname):
+        if not self.db:
+            return
         for c in self.latest_cursors:
             self.add_latest_cursor(c)
         self.db.insert_cursors([(c, self.cursors[c]) for c in self.cursors.keys()])
