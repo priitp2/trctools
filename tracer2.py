@@ -7,38 +7,39 @@ from scipy.stats import shapiro,kstest
 import util
 from cursor_tracker import CursorTracker
 from pathlib import PurePath
+import logging
 
 max_fetch_elapsed = 500000
 max_exec_elapsed = 500000
 
-def print_naughty_exec(cs):
-    lat = cs.merge()
-    if lat[2] > max_exec_elapsed:
-        print('----------------------------------------------')
-        if lat[0] not in tracker.cursors.keys():
-            print("print_naughty_exec: missing cursor {}".format(lat[0]))
-            return
-        statement = tracker.statements[tracker.cursors[lat[0]]]
-        print("sql_id = {}, cursor = {}, elapsed = {}, fetches = {}".format(statement.sql_id, lat[0], lat[2], cs.fetch_count))
-        if cs.exec:
-            print("    exec: cpu = {}, elapsed = {}, timestamp = {}".format(cs.exec[1], cs.exec[2], cs.exec[4]['tim']))
-        if cs.fetch_count < cs.max_list_size:
-            for f in cs.fetches:
-                print("     {}".format(f))
-        else:
-            elapsed = util.merge_lat_objects((cs.cursor, 0, 0), cs.fetches)
-            print("    fetches = {}, elapsed = {}".format(cs.fetch_count, elapsed[2]))
-        if cs.wait_count < cs.max_list_size:
-            for w in cs.waits:
-                print("     {}".format(w[3]))
-        else:
-            elapsed = util.merge_lat_objects((cs.cursor, 0, 0), cs.waits)
-            print("    waits = {}, elapsed = {}".format(cs.wait_count, elapsed[2]))
-        elapsed = cs.get_elapsed()
-        if elapsed != None:
-            print("    estimated elapsed time = {}".format(elapsed))
-
-        print('----------------------------------------------')
+#def print_naughty_exec(cs):
+#    lat = cs.merge()
+#    if lat[2] > max_exec_elapsed:
+#        print('----------------------------------------------')
+#        if lat[0] not in tracker.cursors.keys():
+#            print("print_naughty_exec: missing cursor {}".format(lat[0]))
+#            return
+#        statement = tracker.statements[tracker.cursors[lat[0]]]
+#        print("sql_id = {}, cursor = {}, elapsed = {}, fetches = {}".format(statement.sql_id, lat[0], lat[2], cs.fetch_count))
+#        if cs.exec:
+#            print("    exec: cpu = {}, elapsed = {}, timestamp = {}".format(cs.exec[1], cs.exec[2], cs.exec[4]['tim']))
+#        if cs.fetch_count < cs.max_list_size:
+#            for f in cs.fetches:
+#                print("     {}".format(f))
+#        else:
+#            elapsed = util.merge_lat_objects((cs.cursor, 0, 0), cs.fetches)
+#            print("    fetches = {}, elapsed = {}".format(cs.fetch_count, elapsed[2]))
+#        if cs.wait_count < cs.max_list_size:
+#            for w in cs.waits:
+#                print("     {}".format(w[3]))
+#        else:
+#            elapsed = util.merge_lat_objects((cs.cursor, 0, 0), cs.waits)
+#            print("    waits = {}, elapsed = {}".format(cs.wait_count, elapsed[2]))
+#        elapsed = cs.get_elapsed()
+#        if elapsed != None:
+#            print("    estimated elapsed time = {}".format(elapsed))
+#
+#        print('----------------------------------------------')
 
 parser = argparse.ArgumentParser(description='Do stuff with Oracle 19c trace files')
 parser.add_argument('trace_files', metavar='files', type=str, nargs='+',
@@ -50,6 +51,9 @@ parser.add_argument('--norm', type=bool, default = False, dest='norm',
 parser.add_argument('--db', type=str, default = None, dest='db', help="Persists raw data in the db, supported implementations: oracle, parquet")
 parser.add_argument('--merge_all', type=bool, default = False, dest='merge_all',
                             help="Merges all sql statements into one histogram. Helpful without the bind variables")
+parser.add_argument('--logfile', type=str, default = None, dest='logfile', help="Sends output to the file")
+parser.add_argument('--log-level', type=str, default = None, dest='loglevel', help="Sets logging level: from DEBUG to CRITICAL")
+
 args = parser.parse_args()
 
 if args.db == 'oracle':
@@ -61,10 +65,25 @@ elif args.db == 'parquet':
 else:
     database = None
 
+log_level = logging.INFO
+
+if args.loglevel:
+    log_level = getattr(logging, args.loglevel.upper(), None)
+    if not isinstance(level, int):
+        raise ValueError('Invalid log level: %s' % loglevel)
+logging.basicConfig(level = log_level)
+
+if args.logfile:
+    logging.basicConfig(args.logfile)
+
 tracker = CursorTracker(database)
 
+no_files = len(args.trace_files)
+fcount = 1
 for fname in args.trace_files:
+    print("[{}/{}] processing file {}".format(fcount, no_files, fname))
     util.process_file(tracker, fname)
+    fcount += 1
     p = PurePath(fname)
     tracker.flush(p.stem)
 
