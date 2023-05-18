@@ -113,6 +113,7 @@ class TestCursorTracker(unittest.TestCase):
         self.assertEqual(tr._get_cursor('#123'), None)
         tr.add_parsing_in(cursor, params)
         self.assertEqual(tr._get_cursor(cursor).cursor, cursor)
+        self.assertEqual(tr._get_cursor('#123'), None)
 
 
 if __name__ == '__main__':
