@@ -1,12 +1,9 @@
 #!/usr/bin/env python3.9
 
 import argparse
-from hdrh.histogram import HdrHistogram
 import re
 import sys
 from scipy.stats import shapiro,kstest
-from statement import Statement
-from current_statement import CurrentStatement
 import util
 from cursor_tracker import CursorTracker
 from pathlib import PurePath
