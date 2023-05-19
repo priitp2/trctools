@@ -1,7 +1,7 @@
 import re
 from ops import Ops
 
-def print_naughty_exec(tracker, cs):
+def print_naughty_exec(tracker, cs, fname, line, trigger):
     lat = cs.merge()
     if lat.e > 1000000:
         print('----------------------------------------------')
@@ -9,7 +9,7 @@ def print_naughty_exec(tracker, cs):
             print("print_naughty_exec: missing cursor {}".format(lat.cursor))
             return
         statement = tracker.statements[tracker.cursors[lat.cursor]]
-        print("sql_id = {}, cursor = {}, elapsed = {}, fetches = {}".format(statement.sql_id, lat.cursor, lat.e, cs.fetch_count))
+        print("sql_id = {}, cursor = {}, elapsed = {}, fetches = {}, file = {}, line = {}, triggered by {}".format(statement.sql_id, lat.cursor, lat.e, cs.fetch_count, fname, line, trigger))
         if cs.parse:
             print("    {}".format(cs.parse))
         if cs.exec:
@@ -33,8 +33,10 @@ def print_naughty_exec(tracker, cs):
 
 def process_file(tr, fname):
 
+    line_count = 0
     with open(fname, 'r') as f:
         for line in f:
+            line_count += 1
             match = re.match(r'''^(PARSE|PARSING IN CURSOR|EXEC|FETCH|WAIT|CLOSE|BINDS) (#\d+)(:| )(.*)''', line)
             if match:
                 #print(match.groups())
@@ -44,12 +46,12 @@ def process_file(tr, fname):
                     last_parse = Ops('PARSE', match.group(2), match.group(4))
                     cs = tr.add_parse(match.group(2), last_parse)
                     if cs:
-                        print_naughty_exec(tr, cs)
+                        print_naughty_exec(tr, cs, fname, line_count, 'PARSE')
                 if match.group(1) == 'EXEC':
                     last_exec = Ops('EXEC', match.group(2), match.group(4))
                     cs = tr.add_exec(match.group(2), last_exec)
                     if cs:
-                        print_naughty_exec(tr, cs)
+                        print_naughty_exec(tr, cs, fname, line_count, 'EXEC')
                 if match.group(1) == 'FETCH':
                     # FIXME: fetches should be added to execs, not other way around
                     f = Ops('FETCH', match.group(2), match.group(4))
@@ -61,7 +63,7 @@ def process_file(tr, fname):
                     c = Ops('CLOSE', match.group(2), match.group(4))
                     cs = tr.add_close(match.group(2), c)
                     if cs:
-                        print_naughty_exec(tr, cs)
+                        print_naughty_exec(tr, cs, fname, line_count, 'CLOSE')
 
                 if match.group(1) == 'BINDS':
                     pass
