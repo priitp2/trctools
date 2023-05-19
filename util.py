@@ -10,8 +10,10 @@ def print_naughty_exec(tracker, cs):
             return
         statement = tracker.statements[tracker.cursors[lat.cursor]]
         print("sql_id = {}, cursor = {}, elapsed = {}, fetches = {}".format(statement.sql_id, lat.cursor, lat.e, cs.fetch_count))
+        if cs.parse:
+            print("    {}".format(cs.parse))
         if cs.exec:
-            print("    exec: cpu = {}, elapsed = {}, timestamp = {}".format(cs.exec.c, cs.exec.e, cs.exec.tim))
+            print("    {}".format(cs.exec))
         for i in range(0, min(10, len(cs.fetches))):
             print("     {}".format(cs.fetches[i]))
         if len(cs.fetches) > 10:
@@ -20,6 +22,8 @@ def print_naughty_exec(tracker, cs):
             print("     {}".format(cs.waits[i]))
         if len(cs.waits) > 10:
             print("     <Rest of the {} waits>".format(len(cs.waits)))
+        if cs.close:
+            print("    {}".format(cs.close))
         elapsed = cs.get_elapsed()
         if elapsed != None:
             print("    estimated elapsed time = {}".format(elapsed))
@@ -29,7 +33,6 @@ def print_naughty_exec(tracker, cs):
 
 def process_file(tr, fname):
 
-    print("Processing {}".format(fname))
     with open(fname, 'r') as f:
         for line in f:
             match = re.match(r'''^(PARSE|PARSING IN CURSOR|EXEC|FETCH|WAIT|CLOSE|BINDS) (#\d+)(:| )(.*)''', line)
