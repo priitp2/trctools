@@ -41,17 +41,14 @@ class DB:
     def insert_ops(self, ops):
         if len(ops) == 0:
             return
-        #print("ops = {}, ops0 = {}, schema = {}".format(len(ops), len(ops[0]), len(self.cursor_exec_schema)))
-        #print([i for i in zip(*ops)])
-        #arr = pa.array([i for i in zip(*ops)])
         batch = pa.record_batch([i for i in zip(*ops)], self.cursor_exec_schema)
         self.batches.append(batch)
     def insert_cursors(self, cs):
-        print(cs)
-        print([i for i in zip(*cs)])
         batch = pa.record_batch([i for i in zip(*cs)], self.cursor_statement_schema)
         self.cursor_statement_batches.append(batch)
     def flush(self, fname):
+        if len(self.batches) == 0:
+            return
         table = pa.Table.from_batches(self.batches)
         #local = fs.LocalFileSystem()
 
