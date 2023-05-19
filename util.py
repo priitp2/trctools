@@ -31,7 +31,7 @@ def print_naughty_exec(tracker, cs, fname, line, trigger):
         print('----------------------------------------------')
 
 
-def process_file(tr, fname):
+def process_file(tr, fname, sql_ids):
 
     line_count = 0
     with open(fname, 'r') as f:
@@ -46,12 +46,14 @@ def process_file(tr, fname):
                     last_parse = Ops('PARSE', match.group(2), match.group(4))
                     cs = tr.add_parse(match.group(2), last_parse)
                     if cs:
-                        print_naughty_exec(tr, cs, fname, line_count, 'PARSE')
+                        if tr.cursors[cs.cursor] in sql_ids or len(sql_ids) == 0:
+                            print_naughty_exec(tr, cs, fname, line_count, 'PARSE')
                 if match.group(1) == 'EXEC':
                     last_exec = Ops('EXEC', match.group(2), match.group(4))
                     cs = tr.add_exec(match.group(2), last_exec)
                     if cs:
-                        print_naughty_exec(tr, cs, fname, line_count, 'EXEC')
+                        if tr.cursors[cs.cursor] in sql_ids or len(sql_ids) == 0:
+                            print_naughty_exec(tr, cs, fname, line_count, 'EXEC')
                 if match.group(1) == 'FETCH':
                     # FIXME: fetches should be added to execs, not other way around
                     f = Ops('FETCH', match.group(2), match.group(4))
@@ -63,7 +65,8 @@ def process_file(tr, fname):
                     c = Ops('CLOSE', match.group(2), match.group(4))
                     cs = tr.add_close(match.group(2), c)
                     if cs:
-                        print_naughty_exec(tr, cs, fname, line_count, 'CLOSE')
+                        if tr.cursors[cs.cursor] in sql_ids or len(sql_ids) == 0:
+                            print_naughty_exec(tr, cs, fname, line_count, 'CLOSE')
 
                 if match.group(1) == 'BINDS':
                     pass
