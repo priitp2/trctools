@@ -50,19 +50,22 @@ if args.logfile:
 
 tracker = CursorTracker(database)
 
-no_files = len(args.trace_files)
-fcount = 1
-for fname in args.trace_files:
-    print("[{}/{}] processing file {}".format(fcount, no_files, fname))
-    util.process_file(tracker, fname)
-    fcount += 1
-    p = PurePath(fname)
-    tracker.flush(p.stem)
-
 # Silly bandaid in case sqlids argument isn't specified
 if args.sqlid:
     ids = args.sqlid.split(',')
 else:
+    ids = []
+
+no_files = len(args.trace_files)
+fcount = 1
+for fname in args.trace_files:
+    print("[{}/{}] processing file {}".format(fcount, no_files, fname))
+    util.process_file(tracker, fname, ids)
+    fcount += 1
+    p = PurePath(fname)
+    tracker.flush(p.stem)
+
+if len(ids) == 0:
     ids = [tracker.statements[s].sql_id for s in tracker.statements.keys()]
 
 if args.merge_all:
