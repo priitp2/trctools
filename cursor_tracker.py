@@ -96,6 +96,11 @@ class CursorTracker:
         cs.add_close(params)
         self.add_latest_cursor(cursor)
         return cs
+    def add_stat(self, cursor, params):
+        cs = self._get_cursor(cursor)
+        if not cs:
+            cs = self.add_latest_cursor(cursor)
+        cs.add_stat(params)
     def flush(self, fname):
         if not self.db:
             return

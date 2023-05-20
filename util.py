@@ -37,7 +37,7 @@ def process_file(tr, fname, sql_ids):
     with open(fname, 'r') as f:
         for line in f:
             line_count += 1
-            match = re.match(r'''^(PARSE|PARSING IN CURSOR|EXEC|FETCH|WAIT|CLOSE|BINDS) (#\d+)(:| )(.*)''', line)
+            match = re.match(r'''^(PARSE|PARSING IN CURSOR|EXEC|FETCH|WAIT|CLOSE|BINDS|STAT) (#\d+)(:| )(.*)''', line)
             if match:
                 #print(match.groups())
                 if match.group(1) == 'PARSING IN CURSOR':
@@ -68,6 +68,9 @@ def process_file(tr, fname, sql_ids):
                         if tr.cursors[cs.cursor] in sql_ids or len(sql_ids) == 0:
                             print_naughty_exec(tr, cs, fname, line_count, 'CLOSE')
 
+                if match.group(1) == 'STAT':
+                    s = Ops('STAT', match.group(2), match.group(4), fname, line_count)
+                    tr.add_stat(match.group(2), s)
                 if match.group(1) == 'BINDS':
                     pass
 
