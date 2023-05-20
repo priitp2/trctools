@@ -17,6 +17,9 @@ class Ops:
                 self.__dict__['tim'] = int(match.group(4))
             # WAIT does not have cpu component, but merging the Ops needs c
             self.__slots__ = (op_type, cursor, 'raw', 'name', 'e', 'tim', 'c', fname, line)
+        elif op_type == 'STAT':
+            self.__dict__['raw'] = params
+            self.__slots__ = (op_type, cursor, 'raw', fname, line)
         else:
             for item in params.split(','):
                 if len(item):
@@ -48,13 +51,15 @@ class Ops:
         # FIXME: does not handle WAIT
         if self.op_type == 'WAIT':
             return [exec_id, sql_id, self.cursor, self.op_type, 0, self.e, 0, 0, 0, 0, 0, 0, 0, 0, self.tim, 0, self.name, self.raw, self.fname, self.line]
+        elif self.op_type == 'STAT':
+            return [exec_id, sql_id, self.cursor, self.op_type, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, self.raw, self.fname, self.line]
         else:
             return [exec_id, sql_id, self.cursor, self.op_type, self.c, self.e, self.p, self.cr, self.cu, self.mis, self.r, self.dep, self.og, self.plh, self.tim, self.type, '', '', self.fname, self.line]
     def __str__(self):
         str0 = "{}: {} ".format(self.cursor, self.op_type)
-        if self.op_type == 'WAIT':
+        if self.op_type in ['WAIT', 'STAT']:
             return str0 + "{}".format(self.raw)
         elif self.op_type == 'CLOSE':
-            return str0 + "c={},e={},type={},tim={}".format(self.c, self.e, self.type, self.tim)
+            return str0 + "c={},e={},type={},tim={}, fname={},line={}".format(self.c, self.e, self.type, self.tim, self.fname, self.line)
         else:
-            return str0 + "c={},e={},p={},cr={},cu={},mis={},r={},dep={},og={},plh={},tim={}".format(self.c, self.e, self.p, self.cr, self.cu, self.mis, self.r, self.dep, self.og, self.plh, self.tim)
+            return str0 + "c={},e={},p={},cr={},cu={},mis={},r={},dep={},og={},plh={},tim={}, fname={},line={}".format(self.c, self.e, self.p, self.cr, self.cu, self.mis, self.r, self.dep, self.og, self.plh, self.tim, self.fname, self.line)
