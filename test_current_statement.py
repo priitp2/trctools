@@ -84,7 +84,7 @@ class TestCurrentStatement(unittest.TestCase):
         o = Ops('PARSE', cursor, 'c=73,e=73,p=1,cr=2,cu=3,mis=4,r=5,dep=6,og=7,plh=2725028981,tim=5793511830834', fname, 9)
         cs.add_parse(o)
 
-        o = Ops('EXEC', cursor, 'c=73,e=73,p=1,cr=2,cu=3,mis=4,r=5,dep=6,og=7,plh=2725028981,tim=5793511830834', fneme, 1)
+        o = Ops('EXEC', cursor, 'c=73,e=73,p=1,cr=2,cu=3,mis=4,r=5,dep=6,og=7,plh=2725028981,tim=5793511830834', fname, 1)
         cs.add_exec(o)
 
         o = Ops('WAIT', cursor, " nam='db file sequential read' ela= 403 file#=414 block#=2682927 blocks=1 obj#=89440 tim=5793512314261", fname, 9)
@@ -109,7 +109,7 @@ class TestCurrentStatement(unittest.TestCase):
         m = cs.merge()
         self.assertEqual(m.c, 548)
         self.assertEqual(m.e, 950)
-    def test_merge(self):
+    def test_get_elapsed(self):
         cs = CurrentStatement(cursor, None)
         o = Ops('PARSE', cursor, 'c=73,e=73,p=1,cr=2,cu=3,mis=4,r=5,dep=6,og=7,plh=2725028981,tim=5793511830834', fname, 9)
         cs.add_parse(o)
