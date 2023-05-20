@@ -42,12 +42,12 @@ class Ops:
             out.e += o.e
 
         return out
-    def to_list(self, exec_id):
+    def to_list(self, exec_id, sql_id):
         # FIXME: does not handle WAIT
         if self.op_type == 'WAIT':
-            return [exec_id, self.cursor, self.op_type, 0, self.e, 0, 0, 0, 0, 0, 0, 0, 0, self.tim, 0, self.name, self.raw]
+            return [exec_id, sql_id, self.cursor, self.op_type, 0, self.e, 0, 0, 0, 0, 0, 0, 0, 0, self.tim, 0, self.name, self.raw]
         else:
-            return [exec_id, self.cursor, self.op_type, self.c, self.e, self.p, self.cr, self.cu, self.mis, self.r, self.dep, self.og, self.plh, self.tim, self.type, '', '']
+            return [exec_id, sql_id, self.cursor, self.op_type, self.c, self.e, self.p, self.cr, self.cu, self.mis, self.r, self.dep, self.og, self.plh, self.tim, self.type, '', '']
     def __str__(self):
         str0 = "{}: {} ".format(self.cursor, self.op_type)
         if self.op_type == 'WAIT':
