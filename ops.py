@@ -52,7 +52,7 @@ class Ops:
         if self.op_type == 'WAIT':
             return [exec_id, sql_id, self.cursor, self.op_type, 0, self.e, 0, 0, 0, 0, 0, 0, 0, 0, self.tim, 0, self.name, self.raw, self.fname, self.line]
         elif self.op_type == 'STAT':
-            return [exec_id, sql_id, self.cursor, self.op_type, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, self.raw, self.fname, self.line]
+            return [exec_id, sql_id, self.cursor, self.op_type, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, None, self.raw, self.fname, self.line]
         else:
             return [exec_id, sql_id, self.cursor, self.op_type, self.c, self.e, self.p, self.cr, self.cu, self.mis, self.r, self.dep, self.og, self.plh, self.tim, self.type, '', '', self.fname, self.line]
     def __str__(self):
