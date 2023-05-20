@@ -79,6 +79,19 @@ class TestCurrentStatement(unittest.TestCase):
         o = Ops('CLOSE', wrong_cursor, 'c=0,e=4,dep=0,type=3,tim=5793512315335', fname, 9)
         with self.assertRaisesRegex(BaseException, 'add_close: got cursor *'):
             cs.add_close(o)
+    def test_add_stat(self):
+        cs = CurrentStatement(cursor, None)
+        o = Ops('STAT', cursor, "id=1 cnt=1 pid=0 pos=1 obj=89434 op='TABLE ACCESS BY INDEX ROWID CUSTOMER_SEGMENT (cr=5 pr=0 pw=0 str=1 time=173 us cost=4 size=103 card=1)'", fname, 8)
+        cs.add_stat(o)
+        self.assertEqual(len(cs.stat), 1)
+
+        o = Ops('PARSE', cursor, 'c=73,e=73,p=1,cr=2,cu=3,mis=4,r=5,dep=6,og=7,plh=2725028981,tim=5793511830834', fname, 7)
+        with self.assertRaisesRegex(BaseException, 'add_stat: wrong op_type *'):
+            cs.add_stat(o)
+
+        o = Ops('STAT', wrong_cursor, "id=1 cnt=1 pid=0 pos=1 obj=89434 op='TABLE ACCESS BY INDEX ROWID CUSTOMER_SEGMENT (cr=5 pr=0 pw=0 str=1 time=173 us cost=4 size=103 card=1)'", fname, 8)
+        with self.assertRaisesRegex(BaseException, 'add_stat: got cursor *'):
+            cs.add_stat(o)
     def test_merge(self):
         cs = CurrentStatement(cursor, None)
         o = Ops('PARSE', cursor, 'c=73,e=73,p=1,cr=2,cu=3,mis=4,r=5,dep=6,og=7,plh=2725028981,tim=5793511830834', fname, 9)
