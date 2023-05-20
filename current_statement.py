@@ -17,6 +17,7 @@ class CurrentStatement:
         self.sql_id = sql_id
         self.__slots__ = ('max_list_size', 'cursor', 'parsing_in', 'parse', 'exec', 'waits', 'wait_count', 'fetches', 'fetch_count', 'close')
         self.db = db
+        self.stat = []
     def add_parsing_in(self, params):
         if self.parsing_in:
             raise(BaseException("add_parsing_in: already set!"))
@@ -63,6 +64,12 @@ class CurrentStatement:
             #raise(BaseException("add_close: already set! "))
         else:
             self.close = ops
+    def add_stat(self, ops):
+        if ops.op_type != 'STAT':
+            raise(BaseException("add_stat: wrong op_type = {}".format(ops.op_type)))
+        if self.cursor != ops.cursor:
+            raise(BaseException("add_stat: got cursor {}, have: {}".format(ops.cursor, self.cursor)))
+        self.stat.append(ops)
     def merge(self):
         ret = Ops('EXEC', self.cursor, '', '', 0)
         ret = ret.merge(self.parse)
@@ -96,5 +103,7 @@ class CurrentStatement:
             st.append(w.to_list(exec_id, self.sql_id))
         if self.close:
             st.append(self.close.to_list(exec_id, self.sql_id))
+        for s in self.stat:
+            st.append(s.to_list(exec_id, self.sql_id))
         self.db.insert_ops(st)
 
