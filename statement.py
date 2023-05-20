@@ -76,7 +76,7 @@ class Statement:
             elapsed_nowait += s.close.e
         if s.exec:
             elapsed_nowait += s.exec.e
-        fetches = Ops('FETCH', s.cursor, '').merge(s.fetches).e
+        fetches = Ops('FETCH', s.cursor, '', '', 0).merge(s.fetches).e
         if fetches:
             elapsed_nowait += fetches
         self.resp_without_waits_hist.record_value(elapsed_nowait)

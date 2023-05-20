@@ -64,7 +64,7 @@ class CurrentStatement:
         else:
             self.close = ops
     def merge(self):
-        ret = Ops('EXEC', self.cursor, '')
+        ret = Ops('EXEC', self.cursor, '', '', 0)
         ret = ret.merge(self.parse)
         ret = ret.merge(self.exec)
         ret = ret.merge(self.waits)
