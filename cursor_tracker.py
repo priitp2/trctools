@@ -10,6 +10,7 @@ class CursorTracker:
     def __init__(self, db):
         self.db = db
         self.latest_cursors = {}
+        # {cursor: sql_id}
         self.cursors = {}
         self.statements = {}
 
@@ -34,15 +35,15 @@ class CursorTracker:
         '''
         cs = self._get_cursor(cursor)
         if not cs:
-            self.latest_cursors[cursor] = CurrentStatement(cursor, self.db)
-            # Trace can contain cursor without matching PARSING IN CURSOR
             if cursor not in self.cursors.keys():
                 #print("add_latest_cursor: unknown cursor or statement {}, probably missing PARSE* operation".format(cursor))
                 self._add_dummy_statement(cursor)
+            self.latest_cursors[cursor] = CurrentStatement(cursor, self.db, self.cursors[cursor])
+            # Trace can contain cursor without matching PARSING IN CURSOR
             return self.latest_cursors[cursor]
         statement = self.statements[self.cursors[cursor]]
         statement.add_current_statement(cs)
-        self.latest_cursors[cursor] = CurrentStatement(cursor, self.db)
+        self.latest_cursors[cursor] = CurrentStatement(cursor, self.db, self.cursors[cursor])
         return self.latest_cursors[cursor]
     def add_parsing_in(self, cursor, params):
         # FIXME: check if statement already exists whrh sql_id "dummy*" and try to fix this 

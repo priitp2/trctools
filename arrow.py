@@ -7,6 +7,7 @@ class DB:
         self.dbdir = dbdir
         self.cursor_exec_schema = pa.schema([
             ('exec_id', pa.int64()),
+            ('sql_id', pa.string()),
             ('cursor_id', pa.string()),
             ('ops', pa.string()),
             ('cpu_time', pa.int64()),

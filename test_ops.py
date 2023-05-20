@@ -66,24 +66,26 @@ class TestOps(unittest.TestCase):
 
         o5 = o3.merge(None)
     def test_to_list(self):
+        sql_id = 'abc123'
         o1 = Ops('EXEC', cursor, 'c=73,e=73,p=1,cr=2,cu=3,mis=4,r=5,dep=6,og=7,plh=2725028981,tim=5793511830834')
-        l = o1.to_list(0)
-        self.assertEqual(len(l), len(o1.__slots__) + 3)
+        l = o1.to_list(0, sql_id)
+        self.assertEqual(len(l), len(o1.__slots__) + 4)
         self.assertEqual(l[0], 0)
-        self.assertEqual(l[1], cursor)
-        self.assertEqual(l[2], 'EXEC')
-        self.assertEqual(l[3], o1.c)
-        self.assertEqual(l[4], o1.e)
-        self.assertEqual(l[5], o1.p)
-        self.assertEqual(l[6], o1.cr)
-        self.assertEqual(l[7], o1.cu)
-        self.assertEqual(l[8], o1.mis)
-        self.assertEqual(l[9], o1.r)
-        self.assertEqual(l[10], o1.dep)
-        self.assertEqual(l[11], o1.og)
-        self.assertEqual(l[12], o1.plh)
-        self.assertEqual(l[13], o1.tim)
-        self.assertEqual(l[14], 0) # type will be 0
+        self.assertEqual(l[1], sql_id)
+        self.assertEqual(l[2], cursor)
+        self.assertEqual(l[3], 'EXEC')
+        self.assertEqual(l[4], o1.c)
+        self.assertEqual(l[5], o1.e)
+        self.assertEqual(l[6], o1.p)
+        self.assertEqual(l[7], o1.cr)
+        self.assertEqual(l[8], o1.cu)
+        self.assertEqual(l[9], o1.mis)
+        self.assertEqual(l[10], o1.r)
+        self.assertEqual(l[11], o1.dep)
+        self.assertEqual(l[12], o1.og)
+        self.assertEqual(l[13], o1.plh)
+        self.assertEqual(l[14], o1.tim)
+        self.assertEqual(l[15], 0) # type will be 0
 
     def test_empty_wait(self):
         o1 = Ops('WAIT', '#140641987987624', " nam='SQL*Net message to client' ela= 1 driver id=675562835 #bytes=1 p3=0 obj#=89440 tim=5793511831582")

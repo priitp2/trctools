@@ -87,14 +87,14 @@ class CurrentStatement:
         exec_id = self.db.get_exec_id()
         st = []
         if self.parse:
-            st.append(self.parse.to_list(exec_id))
+            st.append(self.parse.to_list(exec_id, self.sql_id))
         if self.exec:
-            st.append(self.exec.to_list(exec_id))
+            st.append(self.exec.to_list(exec_id, self.sql_id))
         for f in self.fetches:
-            st.append(f.to_list(exec_id))
+            st.append(f.to_list(exec_id, self.sql_id))
         for w in self.waits:
-            st.append(w.to_list(exec_id))
+            st.append(w.to_list(exec_id, self.sql_id))
         if self.close:
-            st.append(self.close.to_list(exec_id))
+            st.append(self.close.to_list(exec_id, self.sql_id))
         self.db.insert_ops(st)
 
