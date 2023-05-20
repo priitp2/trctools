@@ -2,9 +2,10 @@ import unittest
 from ops import Ops
 
 cursor = '#140641987987624'
+fname = 'file.trc'
 class TestOps(unittest.TestCase):
     def test_init(self):
-        o = Ops('EXEC', cursor, 'c=73,e=73,p=0,cr=0,cu=0,mis=0,r=0,dep=0,og=1,plh=2725028981,tim=5793511830834')
+        o = Ops('EXEC', cursor, 'c=73,e=73,p=0,cr=0,cu=0,mis=0,r=0,dep=0,og=1,plh=2725028981,tim=5793511830834', fname, 3)
         self.assertEqual(o.op_type, 'EXEC')
         self.assertEqual(o.cursor, cursor)
         self.assertEqual(o.c, 73)
@@ -20,7 +21,7 @@ class TestOps(unittest.TestCase):
         self.assertEqual(o.tim, 5793511830834)
 
     def test_init_close(self):
-        o = Ops('CLOSE', '#140641987987624', 'c=3,e=3,dep=0,type=1,tim=5793511831927')
+        o = Ops('CLOSE', '#140641987987624', 'c=3,e=3,dep=0,type=1,tim=5793511831927', fname, 2)
         self.assertEqual(o.op_type, 'CLOSE')
         self.assertEqual(o.cursor, cursor)
         self.assertEqual(o.c, 3)
@@ -34,7 +35,7 @@ class TestOps(unittest.TestCase):
 
     def test_init_wait(self):
         # FIXME: space in the beginning of the param string
-        o = Ops('WAIT', '#140641987987624', " nam='SQL*Net message to client' ela= 1 driver id=675562835 #bytes=1 p3=0 obj#=89440 tim=5793511831582")
+        o = Ops('WAIT', '#140641987987624', " nam='SQL*Net message to client' ela= 1 driver id=675562835 #bytes=1 p3=0 obj#=89440 tim=5793511831582", fname, 2)
         self.assertEqual(o.op_type, 'WAIT')
         self.assertEqual(o.cursor, cursor)
         self.assertEqual(o.e, 1)
@@ -46,20 +47,20 @@ class TestOps(unittest.TestCase):
             self.assertEqual(o.og, 1)
 
     def test_merge(self):
-        o1 = Ops('EXEC', cursor, 'c=73,e=73,p=0,cr=0,cu=0,mis=0,r=0,dep=0,og=1,plh=2725028981,tim=5793511830834')
+        o1 = Ops('EXEC', cursor, 'c=73,e=73,p=0,cr=0,cu=0,mis=0,r=0,dep=0,og=1,plh=2725028981,tim=5793511830834', fname, 2)
 
-        o2 = Ops('EXEC', '#0', 'c=123,e=223,p=0,cr=0,cu=0,mis=0,r=0,dep=0,og=1,plh=2725028981,tim=5793511830834')
+        o2 = Ops('EXEC', '#0', 'c=123,e=223,p=0,cr=0,cu=0,mis=0,r=0,dep=0,og=1,plh=2725028981,tim=5793511830834', fname, 1)
         with self.assertRaises(ValueError):
             o3 = o2.merge(o1)
 
-        o2 = Ops('EXEC', cursor, 'c=123,e=223,p=0,cr=0,cu=0,mis=0,r=0,dep=0,og=1,plh=2725028981,tim=5793511830834')
+        o2 = Ops('EXEC', cursor, 'c=123,e=223,p=0,cr=0,cu=0,mis=0,r=0,dep=0,og=1,plh=2725028981,tim=5793511830834', fname, 1)
         o3 = o2.merge(o1)
         self.assertEqual(o2.op_type, o3.op_type)
         self.assertEqual(o3.c, 196)
         self.assertEqual(o3.e, 296)
         self.assertEqual(o3.tim, 0)
 
-        o3 = Ops('EXEC', cursor, 'c=123,e=223,p=0,cr=0,cu=0,mis=0,r=0,dep=0,og=1,plh=2725028981,tim=5793511830834')
+        o3 = Ops('EXEC', cursor, 'c=123,e=223,p=0,cr=0,cu=0,mis=0,r=0,dep=0,og=1,plh=2725028981,tim=5793511830834', fname, 1)
         o4 = o3.merge([o1, o2])
         self.assertEqual(o4.c, o1.c + o2.c + o3.c)
         self.assertEqual(o4.e, o1.e + o2.e + o3.e)
@@ -67,7 +68,7 @@ class TestOps(unittest.TestCase):
         o5 = o3.merge(None)
     def test_to_list(self):
         sql_id = 'abc123'
-        o1 = Ops('EXEC', cursor, 'c=73,e=73,p=1,cr=2,cu=3,mis=4,r=5,dep=6,og=7,plh=2725028981,tim=5793511830834')
+        o1 = Ops('EXEC', cursor, 'c=73,e=73,p=1,cr=2,cu=3,mis=4,r=5,dep=6,og=7,plh=2725028981,tim=5793511830834', fname, 1)
         l = o1.to_list(0, sql_id)
         self.assertEqual(len(l), len(o1.__slots__) + 4)
         self.assertEqual(l[0], 0)
@@ -86,22 +87,26 @@ class TestOps(unittest.TestCase):
         self.assertEqual(l[13], o1.plh)
         self.assertEqual(l[14], o1.tim)
         self.assertEqual(l[15], 0) # type will be 0
+        self.assertEqual(l[16], '') 
+        self.assertEqual(l[17], '')
+        self.assertEqual(l[18], fname)
+        self.assertEqual(l[19], 1)
 
     def test_empty_wait(self):
-        o1 = Ops('WAIT', '#140641987987624', " nam='SQL*Net message to client' ela= 1 driver id=675562835 #bytes=1 p3=0 obj#=89440 tim=5793511831582")
-        o2 = Ops('WAIT', '#140641987987624', " nam='SQL*Net message to client' ela= 66 driver id=675562835 #bytes=1 p3=0 obj#=89440 tim=5793511831582")
+        o1 = Ops('WAIT', '#140641987987624', " nam='SQL*Net message to client' ela= 1 driver id=675562835 #bytes=1 p3=0 obj#=89440 tim=5793511831582", fname, 3)
+        o2 = Ops('WAIT', '#140641987987624', " nam='SQL*Net message to client' ela= 66 driver id=675562835 #bytes=1 p3=0 obj#=89440 tim=5793511831582", fname, 4)
         o3 = o2.merge(o1)
         self.assertEqual(o3.e, 67)
         self.assertEqual(o3.c, 0)
 
     def test_str(self):
-        o1 = Ops('WAIT', '#140641987987624', " nam='SQL*Net message to client' ela= 1 driver id=675562835 #bytes=1 p3=0 obj#=89440 tim=5793511831582")
+        o1 = Ops('WAIT', '#140641987987624', " nam='SQL*Net message to client' ela= 1 driver id=675562835 #bytes=1 p3=0 obj#=89440 tim=5793511831582", fname, 2)
         self.assertRegex(str(o1), '^#140641987987624: WAIT*')
 
-        o1 = Ops('EXEC', cursor, 'c=73,e=73,p=1,cr=2,cu=3,mis=4,r=5,dep=6,og=7,plh=2725028981,tim=5793511830834')
+        o1 = Ops('EXEC', cursor, 'c=73,e=73,p=1,cr=2,cu=3,mis=4,r=5,dep=6,og=7,plh=2725028981,tim=5793511830834', fname, 4)
         self.assertRegex(str(o1), '^#140641987987624: EXEC*')
 
-        o1 = Ops('CLOSE', '#140641987987624', 'c=3,e=3,dep=0,type=1,tim=5793511831927')
+        o1 = Ops('CLOSE', '#140641987987624', 'c=3,e=3,dep=0,type=1,tim=5793511831927', fname, 4)
         self.assertRegex(str(o1), '^#140641987987624: CLOSE*')
 if __name__ == '__main__':
     unittest.main()

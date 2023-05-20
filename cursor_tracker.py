@@ -12,6 +12,7 @@ class CursorTracker:
         self.latest_cursors = {}
         # {cursor: sql_id}
         self.cursors = {}
+        # {statement: sql_id}
         self.statements = {}
 
         self.dummy_counter = 0
@@ -100,5 +101,5 @@ class CursorTracker:
             return
         for c in self.latest_cursors:
             self.add_latest_cursor(c)
-        self.db.insert_cursors([(c, self.cursors[c]) for c in self.cursors.keys()])
+        self.db.insert_cursors([(self.statements[s].cursor, s) for s in self.statements.keys()])
         self.db.flush(fname)
