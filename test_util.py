@@ -3,6 +3,7 @@ import util
 from cursor_tracker import CursorTracker
 
 cursor1 = '#123223'
+sql_ids = []
 class TestUtil(unittest.TestCase):
     def test_process_file_simple(self):
         # Calculated from the trace file
@@ -12,7 +13,7 @@ class TestUtil(unittest.TestCase):
         ela_nowait = 598
 
         tracker = CursorTracker(None)
-        util.process_file(tracker, 'tests/simple_trace.trc')
+        util.process_file(tracker, 'tests/simple_trace.trc', sql_ids)
 
         # There is special statement for cursor #0, so len == 2
         self.assertEqual(len(tracker.statements), 2)
@@ -37,7 +38,7 @@ class TestUtil(unittest.TestCase):
         ela_nowait = 1146
 
         tracker = CursorTracker(None)
-        util.process_file(tracker, 'tests/simple_trace_2x.trc')
+        util.process_file(tracker, 'tests/simple_trace_2x.trc', sql_ids)
 
         # There is special statement for cursor #0, so len == 2
         self.assertEqual(len(tracker.statements), 2)
@@ -62,7 +63,7 @@ class TestUtil(unittest.TestCase):
         ela_nowait = 1146
 
         tracker = CursorTracker(None)
-        util.process_file(tracker, 'tests/simple_trace_missing_parse.trc')
+        util.process_file(tracker, 'tests/simple_trace_missing_parse.trc', sql_ids)
 
         # There is special statement for cursor #0, so len == 2
         self.assertEqual(len(tracker.statements), 2)
@@ -79,7 +80,7 @@ class TestUtil(unittest.TestCase):
 
     def test_process_file_3_statements_1_cursor(self):
         tracker = CursorTracker(None)
-        util.process_file(tracker, 'tests/two_statements_one_cursor.trc')
+        util.process_file(tracker, 'tests/two_statements_one_cursor.trc', sql_ids)
 
         s = tracker.statements['cdgn9f8spbxnt']
         self.assertEqual(s.fetches, 1)
