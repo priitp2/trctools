@@ -9,7 +9,7 @@ def print_naughty_exec(tracker, cs, fname, line, trigger):
             print("print_naughty_exec: missing cursor {}".format(lat.cursor))
             return
         statement = tracker.statements[tracker.cursors[lat.cursor]]
-        print("sql_id = {}, cursor = {}, elapsed = {}, fetches = {}, file = {}, line = {}, triggered by {}".format(statement.sql_id, lat.cursor, lat.e, cs.fetch_count, fname, line, trigger))
+        print("sql_id = {}, cursor = {}, elapsed = {}, fetches = {}, file = {}, triggered by {}".format(statement.sql_id, lat.cursor, lat.e, cs.fetch_count, fname, trigger))
         if cs.parse:
             print("    {}".format(cs.parse))
         if cs.exec:
