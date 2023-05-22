@@ -1,0 +1,149 @@
+=====================
+PARSING IN CURSOR #140386304541280 len=80 dep=0 uid=331 oct=3 lid=331 tim=7097999862785 hv=1167462720 ad='9d4125228' sqlid='6v48b7j2tc4a0'
+select * from authentication_profile where lower(username) = :1  and brand = :2
+END OF STMT
+BINDS #140386304541280:
+
+ Bind#0
+  oacdty=01 mxl=128(80) mxlc=00 mal=00 scl=00 pre=00
+  oacflg=03 fl2=1000010 frm=01 csi=873 siz=160 off=0
+  kxsbbbfp=7fae3bd02fd8  bln=128  avl=20  flg=05
+  value="jari.werner.12707208"
+ Bind#1
+  oacdty=01 mxl=32(24) mxlc=00 mal=00 scl=00 pre=00
+  oacflg=03 fl2=1000010 frm=01 csi=873 siz=0 off=128
+  kxsbbbfp=7fae3bd03058  bln=32  avl=06  flg=01
+  value="unibet"
+EXEC #140386304541280:c=0,e=493,p=0,cr=0,cu=0,mis=0,r=0,dep=0,og=1,plh=2910648220,tim=7097999863264
+WAIT #140386304541280: nam='SQL*Net message to client' ela= 2 driver id=675562835 #bytes=1 p3=0 obj#=102981 tim=7097999863279
+WAIT #140386304541280: nam='db file sequential read' ela= 907 file#=258 block#=1877424 blocks=1 obj#=1408852 tim=7097999864278
+WAIT #140386304541280: nam='gc cr grant busy' ela= 151 p1=258 p2=274858 p3=1 obj#=70049 tim=7097999864504
+WAIT #140386304541280: nam='db file sequential read' ela= 897 file#=258 block#=274858 blocks=1 obj#=70049 tim=7097999865416
+WAIT #140386304541280: nam='gc cr grant 2-way' ela= 122 p1=258 p2=892602 p3=1 obj#=70049 tim=7097999865580
+WAIT #140386304541280: nam='db file sequential read' ela= 947 file#=258 block#=892602 blocks=1 obj#=70049 tim=7097999866542
+FETCH #140386304541280:c=1483,e=3269,p=3,cr=6,cu=0,mis=0,r=1,dep=0,og=1,plh=2910648220,tim=7097999866563
+STAT #140386304541280 id=1 cnt=1 pid=0 pos=1 obj=70033 op='TABLE ACCESS BY GLOBAL INDEX ROWID AUTHENTICATION_PROFILE PARTITION: ROW LOCATION ROW LOCATION (cr=6 pr=3 pw=0 str=1 time=3269 us cost=3 size=78 card=1)'
+STAT #140386304541280 id=2 cnt=1 pid=1 pos=1 obj=1408852 op='INDEX UNIQUE SCAN AP_USERNAME_BRAND_IX (cr=4 pr=1 pw=0 str=1 time=1025 us cost=2 size=0 card=1)'
+=====================
+
+*** 2022-10-25T15:07:26.941104+02:00 (OPRD21(11))
+BINDS #140386304541280:
+
+ Bind#0
+  oacdty=01 mxl=128(112) mxlc=00 mal=00 scl=00 pre=00
+  oacflg=03 fl2=1000010 frm=01 csi=873 siz=160 off=0
+  kxsbbbfp=7fae3bd01678  bln=128  avl=23  flg=05
+  value=""
+ Bind#1
+  oacdty=01 mxl=32(24) mxlc=00 mal=00 scl=00 pre=00
+  oacflg=03 fl2=1000010 frm=01 csi=873 siz=0 off=128
+  kxsbbbfp=7fae3bd016f8  bln=32  avl=06  flg=01
+  value=""
+EXEC #140386304541280:c=0,e=176,p=0,cr=0,cu=0,mis=0,r=0,dep=0,og=1,plh=2910648220,tim=7098530750135
+WAIT #140386304541280: nam='gc cr grant 2-way' ela= 233 p1=258 p2=1733572 p3=1 obj#=1408852 tim=7098530750437
+WAIT #140386304541280: nam='db file sequential read' ela= 1400 file#=258 block#=1733572 blocks=1 obj#=1408852 tim=7098530751867
+WAIT #140386304541280: nam='gc cr grant 2-way' ela= 142 p1=258 p2=304513 p3=1 obj#=70066 tim=7098530752095
+WAIT #140386304541280: nam='db file sequential read' ela= 913 file#=258 block#=304513 blocks=1 obj#=70066 tim=7098530753031
+WAIT #140386304541280: nam='SQL*Net message to client' ela= 3 driver id=675562835 #bytes=1 p3=0 obj#=70066 tim=7098530753071
+FETCH #140386304541280:c=0,e=2937,p=2,cr=5,cu=0,mis=0,r=1,dep=0,og=1,plh=2910648220,tim=7098530753082
+BINDS #140386304535392:
+
+ Bind#0
+  oacdty=02 mxl=22(22) mxlc=00 mal=00 scl=00 pre=00
+  oacflg=03 fl2=1000000 frm=01 csi=873 siz=88 off=0
+  kxsbbbfp=7fae3bd016c0  bln=22  avl=06  flg=05
+  value=103630668
+ Bind#1
+  oacdty=01 mxl=32(32) mxlc=00 mal=00 scl=00 pre=00
+  oacflg=03 fl2=1000010 frm=01 csi=873 siz=0 off=24
+  kxsbbbfp=7fae3bd016d8  bln=32  avl=08  flg=01
+  value=""
+ Bind#2
+  oacdty=01 mxl=32(20) mxlc=00 mal=00 scl=00 pre=00
+  oacflg=03 fl2=1000010 frm=01 csi=873 siz=0 off=56
+  kxsbbbfp=7fae3bd016f8  bln=32  avl=05  flg=01
+  value=""
+EXEC #140386304535392:c=84,e=84,p=0,cr=0,cu=0,mis=0,r=0,dep=0,og=1,plh=1900869063,tim=7098530754506
+WAIT #140386304535392: nam='gc current block 3-way' ela= 273 p1=258 p2=34981 p3=1 obj#=69455 tim=7098530754830
+WAIT #140386304535392: nam='SQL*Net message to client' ela= 1 driver id=675562835 #bytes=1 p3=0 obj#=69455 tim=7098530754869
+FETCH #140386304535392:c=361,e=361,p=0,cr=4,cu=0,mis=0,r=1,dep=0,og=1,plh=1900869063,tim=7098530754878
+
+*** 2022-10-25T15:07:42.436214+02:00 (OPRD21(11))
+WAIT #140386304541280: nam='library cache lock' ela= 208 handle address=41822074104 lock address=41833868080 100*mode+namespace=-4288151550 obj#=69455 tim=7098546245092
+=====================
+PARSING IN CURSOR #140386304528736 len=137 dep=1 uid=0 oct=3 lid=0 tim=7098546245577 hv=2423459000 ad='9dc4ff430' sqlid='23s96rf87635s'
+select count(*) from sys.col_group_usage$  where obj# = :1 and cols = :2 and trunc(sysdate) = trunc(timestamp) and bitand(flags, :3) = :3
+END OF STMT
+PARSE #140386304528736:c=37,e=37,p=0,cr=0,cu=0,mis=0,r=0,dep=1,og=4,plh=1347681019,tim=7098546245576
+BINDS #140386304528736:
+
+ Bind#0
+  oacdty=02 mxl=22(22) mxlc=00 mal=00 scl=00 pre=00
+  oacflg=00 fl2=1000001 frm=00 csi=00 siz=80 off=0
+  kxsbbbfp=7fae3baae780  bln=22  avl=04  flg=05
+  value=70033
+ Bind#1
+  oacdty=01 mxl=32(03) mxlc=00 mal=00 scl=00 pre=00
+  oacflg=10 fl2=0001 frm=01 csi=873 siz=0 off=24
+  kxsbbbfp=7fae3baae798  bln=32  avl=03  flg=01
+  value="3,7"
+ Bind#2
+  oacdty=02 mxl=22(22) mxlc=00 mal=00 scl=00 pre=00
+  oacflg=00 fl2=1000001 frm=00 csi=00 siz=0 off=56
+  kxsbbbfp=7fae3baae7b8  bln=22  avl=03  flg=01
+  value=131
+ Bind#3
+  No oacdef for this bind.
+EXEC #140386304528736:c=89,e=89,p=0,cr=0,cu=0,mis=0,r=0,dep=1,og=4,plh=1347681019,tim=7098546245706
+FETCH #140386304528736:c=22,e=23,p=0,cr=3,cu=0,mis=0,r=1,dep=1,og=4,plh=1347681019,tim=7098546245736
+STAT #140386304528736 id=1 cnt=1 pid=0 pos=1 obj=0 op='SORT AGGREGATE (cr=3 pr=0 pw=0 str=1 time=29 us)'
+STAT #140386304528736 id=2 cnt=1 pid=1 pos=1 obj=671 op='TABLE ACCESS BY INDEX ROWID COL_GROUP_USAGE$ (cr=3 pr=0 pw=0 str=1 time=22 us cost=2 size=23 card=1)'
+STAT #140386304528736 id=3 cnt=1 pid=2 pos=1 obj=672 op='INDEX UNIQUE SCAN PK_COL_GROUP_USAGE$ (cr=2 pr=0 pw=0 str=1 time=10 us cost=1 size=0 card=1)'
+CLOSE #140386304528736:c=0,e=0,dep=1,type=3,tim=7098546245806
+WAIT #140386304541280: nam='library cache lock' ela= 218 handle address=41646900672 lock address=41833868080 100*mode+namespace=8978434 obj#=69455 tim=7098546246209
+WAIT #140386304541280: nam='library cache pin' ela= 205 handle address=41646900672 pin address=41833867440 100*mode+namespace=8978434 obj#=69455 tim=7098546246460
+WAIT #140386304541280: nam='library cache lock' ela= 170 handle address=37472169280 lock address=41833868080 100*mode+namespace=8978434 obj#=69455 tim=7098546246686
+WAIT #140386304541280: nam='library cache pin' ela= 146 handle address=37472169280 pin address=41833867440 100*mode+namespace=8978434 obj#=69455 tim=7098546246876
+BINDS #140386304541280:
+
+ Bind#0
+  oacdty=01 mxl=2000(140) mxlc=00 mal=00 scl=00 pre=00
+  oacflg=03 fl2=1000010 frm=01 csi=873 siz=2032 off=0
+  kxsbbbfp=7fae3bd01f40  bln=2000  avl=35  flg=05
+  value=""
+ Bind#1
+  oacdty=01 mxl=32(24) mxlc=00 mal=00 scl=00 pre=00
+  oacflg=03 fl2=1000010 frm=01 csi=873 siz=0 off=2000
+  kxsbbbfp=7fae3bd02710  bln=32  avl=06  flg=01
+  value=""
+EXEC #140386304541280:c=2431,e=3192,p=0,cr=3,cu=0,mis=1,r=0,dep=0,og=1,plh=2910648220,tim=7098546247170
+WAIT #140386304541280: nam='SQL*Net message to client' ela= 2 driver id=675562835 #bytes=1 p3=0 obj#=69455 tim=7098546247184
+WAIT #140386304541280: nam='gc cr grant 2-way' ela= 137 p1=258 p2=1479518 p3=1 obj#=1408852 tim=7098546247388
+WAIT #140386304541280: nam='db file sequential read' ela= 1172 file#=258 block#=1479518 blocks=1 obj#=1408852 tim=7098546248588
+WAIT #140386304541280: nam='gc cr grant 2-way' ela= 122 p1=258 p2=319012 p3=1 obj#=70080 tim=7098546248770
+WAIT #140386304541280: nam='db file sequential read' ela= 1605 file#=258 block#=319012 blocks=1 obj#=70080 tim=7098546250395
+FETCH #140386304541280:c=253,e=3227,p=2,cr=5,cu=0,mis=0,r=1,dep=0,og=1,plh=2910648220,tim=7098546250429
+BINDS #140386304535392:
+
+ Bind#0
+  oacdty=02 mxl=22(22) mxlc=00 mal=00 scl=00 pre=00
+  oacflg=03 fl2=1000000 frm=01 csi=873 siz=88 off=0
+  kxsbbbfp=7fae3baae778  bln=22  avl=06  flg=05
+  value=111665953
+ Bind#1
+  oacdty=01 mxl=32(32) mxlc=00 mal=00 scl=00 pre=00
+  oacflg=03 fl2=1000010 frm=01 csi=873 siz=0 off=24
+  kxsbbbfp=7fae3baae790  bln=32  avl=08  flg=01
+  value=""
+ Bind#2
+  oacdty=01 mxl=32(20) mxlc=00 mal=00 scl=00 pre=00
+  oacflg=03 fl2=1000010 frm=01 csi=873 siz=0 off=56
+  kxsbbbfp=7fae3baae7b0  bln=32  avl=05  flg=01
+  value=""
+EXEC #140386304535392:c=84,e=84,p=0,cr=0,cu=0,mis=0,r=0,dep=0,og=1,plh=1900869063,tim=7098546251370
+WAIT #140386304535392: nam='gc current block 3-way' ela= 211 p1=258 p2=635130 p3=1 obj#=69490 tim=7098546251628
+WAIT #140386304535392: nam='SQL*Net message to client' ela= 2 driver id=675562835 #bytes=1 p3=0 obj#=69490 tim=7098546251657
+FETCH #140386304535392:c=41,e=289,p=0,cr=4,cu=0,mis=0,r=1,dep=0,og=1,plh=1900869063,tim=7098546251666
+
+*** 2022-10-25T15:07:43.941836+02:00 (OPRD21(11))
+
