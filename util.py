@@ -37,6 +37,10 @@ def process_file(tr, fname, sql_ids):
     with open(fname, 'r') as f:
         for line in f:
             line_count += 1
+            #match = re.match(r'''^(={21}|\*\*\* )''', line)
+            match = re.match(r'''^(={21})''', line)
+            if match:
+                tr.reset()
             match = re.match(r'''^(PARSE|PARSING IN CURSOR|EXEC|FETCH|WAIT|CLOSE|BINDS|STAT) (#\d+)(:| )(.*)''', line)
             if match:
                 #print(match.groups())

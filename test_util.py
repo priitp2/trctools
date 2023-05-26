@@ -1,6 +1,7 @@
 import unittest
 import util
 from cursor_tracker import CursorTracker
+from arrow import DB
 
 cursor1 = '#123223'
 sql_ids = []
@@ -101,7 +102,8 @@ class TestUtil(unittest.TestCase):
            Suspicion is that these are stray events and shouldn't be experienced by the db client.
            Add them as a different exec_id.
            """
-        tracker = CursorTracker(None)
+        db = DB('tmp/')
+        tracker = CursorTracker(db)
         util.process_file(tracker, 'tests/mixed_execs.trc', sql_ids)
         # 3 EXEC calls + 1 dummy for the stray WAITs
         self.assertEqual(tracker.statements['6v48b7j2tc4a0'].execs, 4)
