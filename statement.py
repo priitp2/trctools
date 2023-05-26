@@ -60,9 +60,10 @@ class Statement:
             self.exec_elapsed.append(elapsed)
     def add_current_statement(self, s):
         lat = s.merge()
-        self.record_exec_cpu(lat.c)
-        self.record_exec_elapsed(lat.e)
-        self.increase_exec_count()
+        if s.exec:
+            self.record_exec_cpu(lat.c)
+            self.record_exec_elapsed(lat.e)
+            self.increase_exec_count()
         self.fetches += s.fetch_count
 
         elapsed = s.get_elapsed()
