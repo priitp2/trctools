@@ -59,7 +59,8 @@ class SummaryDuckdb:
                             count(*) count,
                             sum(elapsed_time) sum,
                             median(elapsed_time) median,
-                            percentile_disc(0.99) within group(order by elapsed_time) "99th percentile"
+                            percentile_disc(0.99) within group(order by elapsed_time) "99th percentile",
+                            max(elapsed_time) max
                         from read_parquet('{}')
                         where sql_id = '{}'
                             and wait_name <> ''
@@ -92,9 +93,9 @@ parser.add_argument('--thresold', type=str, dest='thresold',
 parser.add_argument('--dbdir', metavar='dbdir', type=str,
                                     help='Directory for Parquet files')
 parser.add_argument('--wait_name', dest='wait_name', type=str,
-                                    help='Directory for Parquet files')
+                                    help='Name for the wait_histogram command')
 parser.add_argument('--output', dest='fname', type=str,
-                                    help='Directory for Parquet files')
+                                    help='Output for the wait_histogram command')
 args = parser.parse_args()
 
 s = SummaryDuckdb(args.dbdir + '/trace/*')
