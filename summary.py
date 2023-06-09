@@ -27,8 +27,13 @@ class SummaryDuckdb:
         print(res)
 #        for r in res:
 #            print(r)
-    def wait_histogram(self, wait_name):
-        pass
+    def wait_histogram(self, wait_name, fname):
+        res = d.sql("""select elapsed_time from read_parquet('{}') where ops = 'WAIT' and wait_name = '{}'""".format(self.dbdir, wait_name)).fetchall()
+        resp_hist = HdrHistogram(1, 1000000000, 1)
+        for w in res:
+            resp_hist.record_value(w[0])
+        with open(fname, 'wb') as f:
+            resp_hist.output_percentile_distribution(f, 1.0)
 
 parser = argparse.ArgumentParser(description='Generate summary from processed traces')
 parser.add_argument('action', type=str, choices=['summary', 'histogram', 'outliers', 'waits', 'wait_histogram'],
@@ -39,6 +44,10 @@ parser.add_argument('--thresold', type=str, dest='thresold',
                                     help="Thresold in microsecond for which the outliers are displayed")
 parser.add_argument('--dbdir', metavar='dbdir', type=str,
                                     help='Directory for Parquet files')
+parser.add_argument('--wait_name', dest='wait_name', type=str,
+                                    help='Directory for Parquet files')
+parser.add_argument('--output', dest='fname', type=str,
+                                    help='Directory for Parquet files')
 args = parser.parse_args()
 
 s = SummaryDuckdb(args.dbdir + '/trace/*')
@@ -47,10 +56,10 @@ if args.action == 'summary':
     s.summary()
 elif args.action == 'histogram':
     for sqlid in args.sql_id.split(','):
-        s.create_hdrh(sqlid)
+        s.create_hdrh(args.sql_id)
 elif args.action == 'outliers':
         s.outliers(args.sql_id, args.thresold)
 elif args.action == 'waits':
         s.waits(args.sql_id)
 elif args.action == 'wait_histogram':
-        s.wait_histogram(args.sql_id)
+        s.wait_histogram(args.wait_name, args.fname)
