@@ -19,15 +19,16 @@ class SummaryDuckdb:
     def summary(self):
         res = d.sql("""select sql_id,
                             count(*) execs,
-                            median(ela),
-                            percentile_disc(0.99) within group(order by ela)
+                            median(ela) median,
+                            percentile_disc(0.99) within group(order by ela) p99
                         from
                             elapsed_time
                         group by sql_id
                         order by execs
-                    """).fetchall()
-        for r in res:
-            print("sq_id = {}, execs = {}, median = {}, 99th percentile = {}".format(r[0], r[1], r[2], r[3]))
+                    """)
+        print(res)
+        #for r in res:
+        #    print("sq_id = {}, execs = {}, median = {}, 99th percentile = {}".format(r[0], r[1], r[2], r[3]))
 
     def create_hdrh(self, sql_id):
         r = d.sql("select ela from elapsed_time where sql_id = '{}'".format(sql_id)).fetchall()
