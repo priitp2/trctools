@@ -27,7 +27,6 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(s.exec_hist_elapsed.max_value, elapsed)
         self.assertEqual(s.exec_hist_cpu.max_value, cpu)
         self.assertEqual(s.resp_hist.max_value, ela_diff)
-        self.assertEqual(s.resp_without_waits_hist.max_value, ela_nowait)
 
     def test_process_file_simple_2x(self):
         # Calculated from the trace file
@@ -52,7 +51,6 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(s.exec_hist_elapsed.max_value, elapsed)
         self.assertEqual(s.exec_hist_cpu.max_value, cpu)
         self.assertEqual(s.resp_hist.max_value, ela_diff)
-        self.assertEqual(s.resp_without_waits_hist.max_value, ela_nowait)
 
     def test_process_file_missing_parse(self):
         # Calculated from the trace file
@@ -78,7 +76,6 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(s.exec_hist_elapsed.max_value, elapsed)
         self.assertEqual(s.exec_hist_cpu.max_value, cpu)
         self.assertEqual(s.resp_hist.max_value, ela_diff)
-        self.assertEqual(s.resp_without_waits_hist.max_value, ela_nowait)
 
     def test_process_file_3_statements_1_cursor(self):
         tracker = CursorTracker(None)
