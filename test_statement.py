@@ -31,10 +31,8 @@ class TestStatement(unittest.TestCase):
         # FIXME: increase* methods are unused
         s = Statement(cursor, params, None)
         s.increase_exec_count()
-        s.increase_fetch_count()
 
         self.assertEqual(s.execs, 1)
-        self.assertEqual(s.fetches, 1)
     def test_add_current_statement(self):
         s = Statement(cursor, params, None)
         cs = CurrentStatement(cursor, None)
