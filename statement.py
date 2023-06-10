@@ -4,7 +4,7 @@ import util
 from ops import Ops
 
 class Statement:
-    def __init__(self, cursor, params, norm, db):
+    def __init__(self, cursor, params, db):
         self.cursor = cursor
         self.db = db
 
@@ -31,7 +31,6 @@ class Statement:
 
         self.execs = 0
         self.fetches = 0
-        self.norm = False
 
         self.exec_hist_elapsed = HdrHistogram(1, 1000000000, 1)
         self.exec_hist_cpu = HdrHistogram(1, 1000000000, 1)
@@ -39,12 +38,6 @@ class Statement:
         self.resp_hist = HdrHistogram(1, 1000000000, 1)
 
         self.resp_without_waits_hist = HdrHistogram(1, 1000000000, 1)
-        if norm:
-            self.exec_elapsed = []
-            self.exec_cpu = []
-            self.norm = True
-            db = DB()
-            db.add_cursor(self)
 
     def increase_exec_count(self):
         self.execs = self.execs + 1
@@ -52,12 +45,8 @@ class Statement:
         self.fetches = self.fetches + 1
     def record_exec_cpu(self, cpu):
         self.exec_hist_cpu.record_value(cpu)
-        if self.norm:
-            self.exec_cpu.append(cpu)
     def record_exec_elapsed(self, elapsed):
         self.exec_hist_elapsed.record_value(elapsed)
-        if self.norm:
-            self.exec_elapsed.append(elapsed)
     def add_current_statement(self, s):
         lat = s.merge()
         if s.exec:

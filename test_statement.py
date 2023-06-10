@@ -10,7 +10,7 @@ fname = 'trace.trc'
 
 class TestStatement(unittest.TestCase):
     def test_init(self):
-        s = Statement(cursor, params, False, None)
+        s = Statement(cursor, params, None)
 
         self.assertEqual(s.cursor, cursor)
 
@@ -24,43 +24,19 @@ class TestStatement(unittest.TestCase):
         self.assertEqual(s.address, '8ff705c50')
         self.assertEqual(s.sql_id, '6v48b7j2tc4a0')
 
-        s = Statement(cursor, '', False, None)
+        s = Statement(cursor, '', None)
         with self.assertRaises(AttributeError):
             self.assertEqual(s.statement_length, '80')
-    def test_normality(self):
-        # FIXME: this needs proper test case
-        s = Statement(cursor, params, False, None)
-        s.record_exec_cpu(1)
-        s.record_exec_elapsed(1)
-
-        with self.assertRaises(AttributeError):
-            self.assertEqual(len(s.exec_cpu), 0)
-        with self.assertRaises(AttributeError):
-            self.assertEqual(len(s.exec_elapsed), 0)
-        with self.assertRaises(AttributeError):
-            self.assertEqual(len(s.fetch_cpu), 0)
-        with self.assertRaises(AttributeError):
-            self.assertEqual(len(s.fetch_elapsed), 0)
-
-        s = Statement(cursor, params, True, None)
-        s.record_exec_cpu(1)
-        s.record_exec_elapsed(1)
-
-        self.assertEqual(len(s.exec_cpu), 1)
-        self.assertEqual(len(s.exec_elapsed), 1)
-
-        self.assertEqual(s.exec_hist_elapsed.total_count, 1)
-        self.assertEqual(s.exec_hist_cpu.total_count, 1)
     def test_increment(self):
         # FIXME: increase* methods are unused
-        s = Statement(cursor, params, False, None)
+        s = Statement(cursor, params, None)
         s.increase_exec_count()
         s.increase_fetch_count()
 
         self.assertEqual(s.execs, 1)
         self.assertEqual(s.fetches, 1)
     def test_add_current_statement(self):
-        s = Statement(cursor, params, False, None)
+        s = Statement(cursor, params, None)
         cs = CurrentStatement(cursor, None)
 
         cs.add_parse(Ops('PARSE', cursor, 'c=33,e=33,p=0,cr=0,cu=0,mis=0,r=0,dep=0,og=1,plh=2725028981,tim=5793511830706', fname, 0))
