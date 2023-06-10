@@ -26,8 +26,9 @@ class TestCursorTracker(unittest.TestCase):
         tr.add_parsing_in(cursor, params)
 
         parse_lat = Ops('PARSE', cursor, '', fname, 0)
-        cs = tr.add_parse(cursor, parse_lat)
+        tr.add_parse(cursor, parse_lat)
         # add_parsing_in adds item to latest_cursors
+        cs = tr._get_cursor(cursor)
         self.assertNotEqual(cs, None)
         self.assertNotEqual(cs.parse, None)
         self.assertEqual(len(tr.latest_cursors), 2)
@@ -38,8 +39,9 @@ class TestCursorTracker(unittest.TestCase):
         self.assertEqual(st.exec_hist_cpu.get_total_count(), 0)
         self.assertEqual(st.exec_hist_elapsed.get_total_count(), 0)
 
-        # This merges the item in tr.latest_cursors with statements, overwrites the item, and returns the old (overwritten) item
-        cs = tr.add_parse(cursor, parse_lat)
+        # This merges the item in tr.latest_cursors with statements and overwrites the item
+        tr.add_parse(cursor, parse_lat)
+        cs = tr._get_cursor(cursor)
         self.assertNotEqual(cs, None)
         self.assertNotEqual(cs.parse, None)
         self.assertEqual(len(tr.latest_cursors), 2)
@@ -53,11 +55,11 @@ class TestCursorTracker(unittest.TestCase):
         tr = CursorTracker(None)
         tr.add_parsing_in(cursor, params)
         exec_lat = Ops('EXEC', cursor, '', fname, 0)
-        cs = tr.add_exec(cursor, exec_lat)
-        self.assertEqual(cs, None)
+        tr.add_exec(cursor, exec_lat)
 
-        cs = tr.add_exec(cursor, exec_lat)
-        # Got back the old object
+        tr.add_exec(cursor, exec_lat)
+
+        cs = tr._get_cursor(cursor)
         self.assertNotEqual(cs, None)
         self.assertNotEqual(cs.exec, None)
 
@@ -89,16 +91,20 @@ class TestCursorTracker(unittest.TestCase):
     def test_add_close(self):
         tr = CursorTracker(None)
         tr.add_parsing_in(cursor, params)
+
+        exec_lat = Ops('EXEC', cursor, '', fname, 0)
+        tr.add_exec(cursor, exec_lat)
+
         close_lat = Ops('CLOSE', cursor, '', fname, 0)
-        current_st = tr.add_close(cursor, close_lat)
-        cs = tr.latest_cursors[cursor]
+        tr.add_close(cursor, close_lat)
 
-        # Got back the old object
-        self.assertNotEqual(current_st.close, None)
-
-        # New one hasn't been touched
+        # Cursor got cleaned up
+        cs = tr._get_cursor(cursor)
+        self.assertNotEqual(cs, None)
         self.assertEqual(cs.close, None)
         self.assertEqual(cs.exec, None)
+
+        # Check if cursor got added to the statement
         st = tr.statements[tr.cursors[cursor]]
         self.assertEqual(st.exec_hist_cpu.get_total_count(), 1)
         self.assertEqual(st.exec_hist_elapsed.get_total_count(), 1)
