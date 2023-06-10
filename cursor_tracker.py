@@ -25,7 +25,7 @@ class CursorTracker:
     def _add_dummy_statement(self, cursor):
         if cursor in self.cursors.keys():
             raise(BaseException("_add_dummy_statement: cursor {} already present with sql_id = {}".format(cursor, self.cursors[cursor])))
-        s = Statement(cursor, "sqlid='dummy{}'".format(self.dummy_counter), False, self.db)
+        s = Statement(cursor, "sqlid='dummy{}'".format(self.dummy_counter), self.db)
         self.statements[s.sql_id] = s
         self.cursors[cursor] = s.sql_id
         self.add_latest_cursor(cursor)
@@ -48,7 +48,7 @@ class CursorTracker:
         return self.latest_cursors[cursor]
     def add_parsing_in(self, cursor, params):
         # FIXME: check if statement already exists whrh sql_id "dummy*" and try to fix this 
-        s = Statement(cursor, params, False, self.db)
+        s = Statement(cursor, params, self.db)
         if s.sql_id not in self.statements.keys():
             self.statements[s.sql_id] = s
         self.cursors[cursor] = s.sql_id
