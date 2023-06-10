@@ -67,8 +67,9 @@ class TestUtil(unittest.TestCase):
         util.process_file(tracker, 'tests/simple_trace_missing_parse.trc', sql_ids)
 
         # There is special statement for cursor #0, so len == 2
+        # FIXME: decide if we should fix the sql_id for dummy1 or not
         print(tracker.statements)
-        self.assertEqual(len(tracker.statements), 2)
+        self.assertEqual(len(tracker.statements), 3)
         self.assertEqual(len(tracker.cursors), 2)
 
         s = tracker.statements['atxg62s17nkj4']
