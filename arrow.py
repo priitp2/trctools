@@ -44,7 +44,7 @@ class DB:
     def insert_ops(self, ops):
         if len(ops) == 0:
             return
-        batch = pa.record_batch([i for i in zip(*ops)], self.cursor_exec_schema)
+        batch = pa.record_batch([i for i in zip(ops)], self.cursor_exec_schema)
         self.batches.append(batch)
     def insert_cursors(self, cs):
         batch = pa.record_batch([i for i in zip(*cs)], self.cursor_statement_schema)
