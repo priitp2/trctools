@@ -1,5 +1,4 @@
 from hdrh.histogram import HdrHistogram
-from oracle import DB
 import util
 from ops import Ops
 
