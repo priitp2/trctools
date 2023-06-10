@@ -36,8 +36,6 @@ class Statement:
 
         self.resp_hist = HdrHistogram(1, 1000000000, 1)
 
-        self.resp_without_waits_hist = HdrHistogram(1, 1000000000, 1)
-
     def increase_exec_count(self):
         self.execs = self.execs + 1
     def record_exec_cpu(self, cpu):
@@ -56,17 +54,6 @@ class Statement:
         if elapsed:
             self.resp_hist.record_value(elapsed)
 
-        elapsed_nowait = 0
-        if s.parse:
-            elapsed_nowait += s.parse.e 
-        if s.close:
-            elapsed_nowait += s.close.e
-        if s.exec:
-            elapsed_nowait += s.exec.e
-        fetches = Ops('FETCH', s.cursor, '', '', 0).merge(s.fetches).e
-        if fetches:
-            elapsed_nowait += fetches
-        self.resp_without_waits_hist.record_value(elapsed_nowait)
         if self.db:
             s.dump_to_db()
 
