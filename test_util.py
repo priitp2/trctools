@@ -67,6 +67,7 @@ class TestUtil(unittest.TestCase):
         util.process_file(tracker, 'tests/simple_trace_missing_parse.trc', sql_ids)
 
         # There is special statement for cursor #0, so len == 2
+        print(tracker.statements)
         self.assertEqual(len(tracker.statements), 2)
         self.assertEqual(len(tracker.cursors), 2)
 
