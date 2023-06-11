@@ -66,14 +66,6 @@ class CurrentStatement:
         if self.cursor != ops.cursor:
             raise(BaseException("add_stat: got cursor {}, have: {}".format(ops.cursor, self.cursor)))
         self.stat.append(ops)
-    def merge(self):
-        ret = Ops('EXEC', self.cursor, '', '', 0)
-        ret = ret.merge(self.parse)
-        ret = ret.merge(self.exec)
-        ret = ret.merge(self.waits)
-        ret = ret.merge(self.fetches)
-        ret = ret.merge(self.close)
-        return ret
     def dump_to_db(self):
         if not self.db:
             raise BaseException("dump_to_db: database not set!")
