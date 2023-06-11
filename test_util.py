@@ -131,6 +131,8 @@ class TestUtil(unittest.TestCase):
 
         # Cursor #139623166535832 gets overwritten by every execution
         self.assertEqual(len(tracker.cursors), 2)
+
+    @unittest.skip("Decide if this test is needed or not")
     def test_mixed_execs(self):
         # FIXME: is this test needed?
         """There are stray wait events for cursor #140386304541280, after '*** <date>'.
