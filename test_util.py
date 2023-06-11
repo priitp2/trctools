@@ -107,23 +107,30 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(ela_nowait, db_nowait)
 
     def test_process_file_3_statements_1_cursor(self):
-        tracker = CursorTracker(None)
+        db = DB()
+        tracker = CursorTracker(db)
         util.process_file(tracker, 'tests/two_statements_one_cursor.trc', sql_ids)
 
         s = tracker.statements['cdgn9f8spbxnt']
         self.assertEqual(s.fetches, 1)
-        self.assertEqual(s.exec_hist_elapsed.total_count, 1)
+        self.assertEqual(self.get_count(db.batches, 1, 'cdgn9f8spbxnt'), 12)
+        # Counts by sql_id and exec_id should match
+        self.assertEqual(self.get_count(db.batches, 0, 1), self.get_count(db.batches, 1, 'cdgn9f8spbxnt'))
 
         s = tracker.statements['atxg62s17nkj4']
         self.assertEqual(s.fetches, 2)
-        self.assertEqual(s.exec_hist_elapsed.total_count, 1)
+        self.assertEqual(self.get_count(db.batches, 1, 'atxg62s17nkj4'), 11)
+        self.assertEqual(self.get_count(db.batches, 0, 2), self.get_count(db.batches, 1, 'atxg62s17nkj4'))
 
         s = tracker.statements['6ssxu7vjxb51a']
         self.assertEqual(s.fetches, 11)
-        self.assertEqual(s.exec_hist_elapsed.total_count, 1)
+        self.assertEqual(self.get_count(db.batches, 1, '6ssxu7vjxb51a'), 40)
+        self.assertEqual(self.get_count(db.batches, 0, 3), self.get_count(db.batches, 1, '6ssxu7vjxb51a'))
 
         self.assertEqual(len(tracker.statements), 4)
-        self.assertEqual(len(tracker.cursors), 4)
+
+        # Cursor #139623166535832 gets overwritten by every execution
+        self.assertEqual(len(tracker.cursors), 2)
     def test_mixed_execs(self):
         """There are stray wait events for cursor #140386304541280, after '*** <date>'.
            Suspicion is that these are stray events and shouldn't be experienced by the db client.
