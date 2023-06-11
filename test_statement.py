@@ -54,12 +54,8 @@ class TestStatement(unittest.TestCase):
 
         s.add_current_statement(cs)
 
-        self.assertEqual(s.exec_hist_cpu.total_count, 1)
-        self.assertEqual(s.exec_hist_elapsed.total_count, 1)
-        self.assertEqual(s.exec_hist_elapsed.max_value, elapsed)
-        self.assertEqual(s.exec_hist_cpu.max_value, cpu)
-        self.assertEqual(s.resp_hist.max_value, ela_diff)
-        #self.assertEqual(s.resp_without_waits_hist.max_value, ela_nowait)
+        self.assertEqual(s.execs, 1)
+        self.assertEqual(s.fetches, 2)
 if __name__ == '__main__':
     unittest.main()
 
