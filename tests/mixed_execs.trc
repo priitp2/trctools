@@ -1,6 +1,6 @@
 =====================
 PARSING IN CURSOR #140386304541280 len=80 dep=0 uid=331 oct=3 lid=331 tim=7097999862785 hv=1167462720 ad='9d4125228' sqlid='6v48b7j2tc4a0'
-select * from authentication_profile where lower(username) = :1  and brand = :2
+select ...
 END OF STMT
 BINDS #140386304541280:
 
@@ -46,27 +46,6 @@ WAIT #140386304541280: nam='gc cr grant 2-way' ela= 142 p1=258 p2=304513 p3=1 ob
 WAIT #140386304541280: nam='db file sequential read' ela= 913 file#=258 block#=304513 blocks=1 obj#=70066 tim=7098530753031
 WAIT #140386304541280: nam='SQL*Net message to client' ela= 3 driver id=675562835 #bytes=1 p3=0 obj#=70066 tim=7098530753071
 FETCH #140386304541280:c=0,e=2937,p=2,cr=5,cu=0,mis=0,r=1,dep=0,og=1,plh=2910648220,tim=7098530753082
-BINDS #140386304535392:
-
- Bind#0
-  oacdty=02 mxl=22(22) mxlc=00 mal=00 scl=00 pre=00
-  oacflg=03 fl2=1000000 frm=01 csi=873 siz=88 off=0
-  kxsbbbfp=7fae3bd016c0  bln=22  avl=06  flg=05
-  value=103630668
- Bind#1
-  oacdty=01 mxl=32(32) mxlc=00 mal=00 scl=00 pre=00
-  oacflg=03 fl2=1000010 frm=01 csi=873 siz=0 off=24
-  kxsbbbfp=7fae3bd016d8  bln=32  avl=08  flg=01
-  value=""
- Bind#2
-  oacdty=01 mxl=32(20) mxlc=00 mal=00 scl=00 pre=00
-  oacflg=03 fl2=1000010 frm=01 csi=873 siz=0 off=56
-  kxsbbbfp=7fae3bd016f8  bln=32  avl=05  flg=01
-  value=""
-EXEC #140386304535392:c=84,e=84,p=0,cr=0,cu=0,mis=0,r=0,dep=0,og=1,plh=1900869063,tim=7098530754506
-WAIT #140386304535392: nam='gc current block 3-way' ela= 273 p1=258 p2=34981 p3=1 obj#=69455 tim=7098530754830
-WAIT #140386304535392: nam='SQL*Net message to client' ela= 1 driver id=675562835 #bytes=1 p3=0 obj#=69455 tim=7098530754869
-FETCH #140386304535392:c=361,e=361,p=0,cr=4,cu=0,mis=0,r=1,dep=0,og=1,plh=1900869063,tim=7098530754878
 
 *** 2022-10-25T15:07:42.436214+02:00 (OPRD21(11))
 WAIT #140386304541280: nam='library cache lock' ela= 208 handle address=41822074104 lock address=41833868080 100*mode+namespace=-4288151550 obj#=69455 tim=7098546245092
@@ -123,27 +102,6 @@ WAIT #140386304541280: nam='db file sequential read' ela= 1172 file#=258 block#=
 WAIT #140386304541280: nam='gc cr grant 2-way' ela= 122 p1=258 p2=319012 p3=1 obj#=70080 tim=7098546248770
 WAIT #140386304541280: nam='db file sequential read' ela= 1605 file#=258 block#=319012 blocks=1 obj#=70080 tim=7098546250395
 FETCH #140386304541280:c=253,e=3227,p=2,cr=5,cu=0,mis=0,r=1,dep=0,og=1,plh=2910648220,tim=7098546250429
-BINDS #140386304535392:
-
- Bind#0
-  oacdty=02 mxl=22(22) mxlc=00 mal=00 scl=00 pre=00
-  oacflg=03 fl2=1000000 frm=01 csi=873 siz=88 off=0
-  kxsbbbfp=7fae3baae778  bln=22  avl=06  flg=05
-  value=111665953
- Bind#1
-  oacdty=01 mxl=32(32) mxlc=00 mal=00 scl=00 pre=00
-  oacflg=03 fl2=1000010 frm=01 csi=873 siz=0 off=24
-  kxsbbbfp=7fae3baae790  bln=32  avl=08  flg=01
-  value=""
- Bind#2
-  oacdty=01 mxl=32(20) mxlc=00 mal=00 scl=00 pre=00
-  oacflg=03 fl2=1000010 frm=01 csi=873 siz=0 off=56
-  kxsbbbfp=7fae3baae7b0  bln=32  avl=05  flg=01
-  value=""
-EXEC #140386304535392:c=84,e=84,p=0,cr=0,cu=0,mis=0,r=0,dep=0,og=1,plh=1900869063,tim=7098546251370
-WAIT #140386304535392: nam='gc current block 3-way' ela= 211 p1=258 p2=635130 p3=1 obj#=69490 tim=7098546251628
-WAIT #140386304535392: nam='SQL*Net message to client' ela= 2 driver id=675562835 #bytes=1 p3=0 obj#=69490 tim=7098546251657
-FETCH #140386304535392:c=41,e=289,p=0,cr=4,cu=0,mis=0,r=1,dep=0,og=1,plh=1900869063,tim=7098546251666
 
 *** 2022-10-25T15:07:43.941836+02:00 (OPRD21(11))
 
