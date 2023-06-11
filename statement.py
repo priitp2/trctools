@@ -24,13 +24,3 @@ class Statement:
                 self.address = key[1].strip("'")
             if key[0] == 'sqlid':
                 self.sql_id = key[1].strip("'")
-
-#        self.execs = 0
-#        self.fetches = 0
-#
-#    def increase_exec_count(self):
-#        self.execs = self.execs + 1
-#    def add_current_statement(self, s):
-#        if s.exec:
-#            self.increase_exec_count()
-#        self.fetches += s.fetch_count
