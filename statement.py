@@ -3,9 +3,8 @@ import util
 from ops import Ops
 
 class Statement:
-    def __init__(self, cursor, params, db):
+    def __init__(self, cursor, params):
         self.cursor = cursor
-        self.db = db
 
         for item in params.split():
             key = item.split('=')
@@ -53,7 +52,4 @@ class Statement:
         elapsed = s.get_elapsed()
         if elapsed:
             self.resp_hist.record_value(elapsed)
-
-        if self.db:
-            s.dump_to_db()
 
