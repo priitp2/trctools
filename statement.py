@@ -30,10 +30,6 @@ class Statement:
 
     def increase_exec_count(self):
         self.execs = self.execs + 1
-    def record_exec_cpu(self, cpu):
-        self.exec_hist_cpu.record_value(cpu)
-    def record_exec_elapsed(self, elapsed):
-        self.exec_hist_elapsed.record_value(elapsed)
     def add_current_statement(self, s):
         if s.exec:
             self.increase_exec_count()
