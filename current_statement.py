@@ -74,16 +74,6 @@ class CurrentStatement:
         ret = ret.merge(self.fetches)
         ret = ret.merge(self.close)
         return ret
-    def get_elapsed(self):
-        start = None
-        if self.parse:
-            start = self.parse.tim
-        elif self.exec:
-            start = self.exec.tim
-        if start and self.close:
-            return self.close.tim - start
-        else:
-            return None 
     def dump_to_db(self):
         if not self.db:
             raise BaseException("dump_to_db: database not set!")
