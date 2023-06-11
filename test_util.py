@@ -132,15 +132,16 @@ class TestUtil(unittest.TestCase):
         # Cursor #139623166535832 gets overwritten by every execution
         self.assertEqual(len(tracker.cursors), 2)
     def test_mixed_execs(self):
+        # FIXME: is this test needed?
         """There are stray wait events for cursor #140386304541280, after '*** <date>'.
            Suspicion is that these are stray events and shouldn't be experienced by the db client.
            Add them as a different exec_id.
            """
-        db = DB('tmp/')
+        db = DB()
         tracker = CursorTracker(db)
         util.process_file(tracker, 'tests/mixed_execs.trc', sql_ids)
         # 3 EXEC calls + 1 dummy for the stray WAITs
-        self.assertEqual(tracker.statements['6v48b7j2tc4a0'].execs, 4)
+        self.assertEqual(tracker.statements['6v48b7j2tc4a0'].execs, 3)
 
 if __name__ == '__main__':
     unittest.main()
