@@ -1,6 +1,7 @@
 import unittest
 from cursor_tracker import CursorTracker
 from ops import Ops
+from test_db import DB
 
 cursor = '#140131077570528'
 params = "len=80 dep=0 uid=331 oct=3 lid=331 tim=1648763822995 hv=1167462720 ad='8ff705c50' sqlid='6v48b7j2tc4a0'"
@@ -22,7 +23,8 @@ class TestCursorTracker(unittest.TestCase):
         tr.add_latest_cursor(cursor)
         self.assertEqual(len(tr.latest_cursors), 2)
     def test_add_parse(self):
-        tr = CursorTracker(None)
+        db = DB()
+        tr = CursorTracker(db)
         tr.add_parsing_in(cursor, params)
 
         parse_lat = Ops('PARSE', cursor, '', fname, 0)
@@ -34,10 +36,8 @@ class TestCursorTracker(unittest.TestCase):
         self.assertEqual(len(tr.latest_cursors), 2)
         self.assertEqual(len(tr.statements), 2)
         self.assertEqual(len(tr.cursors), 2)
-        st = tr.statements[tr.cursors[cursor]]
-        # Histograms should be empty
-        self.assertEqual(st.exec_hist_cpu.get_total_count(), 0)
-        self.assertEqual(st.exec_hist_elapsed.get_total_count(), 0)
+
+        self.assertEqual(len(db.batches), 0)
 
         # This merges the item in tr.latest_cursors with statements and overwrites the item
         tr.add_parse(cursor, parse_lat)
@@ -47,15 +47,15 @@ class TestCursorTracker(unittest.TestCase):
         self.assertEqual(len(tr.latest_cursors), 2)
         self.assertEqual(len(tr.statements), 2)
         self.assertEqual(len(tr.cursors), 2)
+        self.assertEqual(len(db.batches), 1)
 
-        # Since we merged the current cursor with the statement, there should be 1 item in 'fetch' histograms
-        self.assertEqual(st.exec_hist_cpu.get_total_count(), 1)
-        self.assertEqual(st.exec_hist_elapsed.get_total_count(), 1)
     def test_add_exec(self):
-        tr = CursorTracker(None)
+        db = DB()
+        tr = CursorTracker(db)
         tr.add_parsing_in(cursor, params)
         exec_lat = Ops('EXEC', cursor, '', fname, 0)
         tr.add_exec(cursor, exec_lat)
+        self.assertEqual(len(db.batches), 0)
 
         tr.add_exec(cursor, exec_lat)
 
@@ -67,9 +67,7 @@ class TestCursorTracker(unittest.TestCase):
         self.assertEqual(len(tr.statements), 2)
         self.assertEqual(len(tr.cursors), 2)
 
-        st = tr.statements[tr.cursors[cursor]]
-        self.assertEqual(st.exec_hist_cpu.get_total_count(), 1)
-        self.assertEqual(st.exec_hist_elapsed.get_total_count(), 1)
+        self.assertEqual(len(db.batches), 1)
     def test_add_fetch(self):
         tr = CursorTracker(None)
         tr.add_parsing_in(cursor, params)
@@ -89,7 +87,8 @@ class TestCursorTracker(unittest.TestCase):
         cs = tr.latest_cursors[cursor]
         self.assertEqual(len(cs.waits), 3)
     def test_add_close(self):
-        tr = CursorTracker(None)
+        db = DB()
+        tr = CursorTracker(db)
         tr.add_parsing_in(cursor, params)
 
         exec_lat = Ops('EXEC', cursor, '', fname, 0)
@@ -104,10 +103,7 @@ class TestCursorTracker(unittest.TestCase):
         self.assertEqual(cs.close, None)
         self.assertEqual(cs.exec, None)
 
-        # Check if cursor got added to the statement
-        st = tr.statements[tr.cursors[cursor]]
-        self.assertEqual(st.exec_hist_cpu.get_total_count(), 1)
-        self.assertEqual(st.exec_hist_elapsed.get_total_count(), 1)
+        self.assertEqual(len(db.batches), 2)
     def test_stray_cursors(self):
         # When PARSING IN CURSOR is missing in the trace file
         tr = CursorTracker(None)
