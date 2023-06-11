@@ -24,7 +24,7 @@ class SummaryDuckdb:
                         from
                             elapsed_time
                         group by sql_id
-                        order by execs
+                        order by execs, median
                     """)
         print(res)
         #for r in res:
