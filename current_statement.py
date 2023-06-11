@@ -11,10 +11,9 @@ class CurrentStatement:
         self.exec = None
         self.waits = []
         self.fetches = []
-        self.fetch_count = 0
         self.close = None
         self.sql_id = sql_id
-        self.__slots__ = ('max_list_size', 'cursor', 'parsing_in', 'parse', 'exec', 'waits', 'fetches', 'fetch_count', 'close')
+        self.__slots__ = ('max_list_size', 'cursor', 'parsing_in', 'parse', 'exec', 'waits', 'fetches', 'close')
         self.db = db
         self.stat = []
     def add_parsing_in(self, params):
@@ -49,7 +48,6 @@ class CurrentStatement:
             raise(BaseException("add_fetch: wrong op_type = {}".format(ops.op_type)))
         if self.cursor != ops.cursor:
             raise(BaseException("add_fetch: got cursor {}, have: {}".format(ops.cursor, self.cursor)))
-        self.fetch_count += 1
         self.fetches.append(ops)
     def add_close(self, ops):
         if ops.op_type != 'CLOSE':
