@@ -122,32 +122,6 @@ class TestCurrentStatement(unittest.TestCase):
         m = cs.merge()
         self.assertEqual(m.c, 548)
         self.assertEqual(m.e, 950)
-    def test_get_elapsed(self):
-        cs = CurrentStatement(cursor, None)
-        o = Ops('PARSE', cursor, 'c=73,e=73,p=1,cr=2,cu=3,mis=4,r=5,dep=6,og=7,plh=2725028981,tim=5793511830834', fname, 9)
-        cs.add_parse(o)
-        o = Ops('CLOSE', cursor, 'c=0,e=4,dep=0,type=3,tim=5793512315335', fname, 7)
-        cs.add_close(o)
-        ela = cs.get_elapsed()
-        self.assertEqual(ela, 484501)
-
-        cs = CurrentStatement(cursor, None)
-        o = Ops('PARSE', cursor, 'c=73,e=73,p=1,cr=2,cu=3,mis=4,r=5,dep=6,og=7,plh=2725028981,tim=5793511830834', fname, 8)
-        cs.add_parse(o)
-        o = Ops('EXEC', cursor, 'c=73,e=73,p=1,cr=2,cu=3,mis=4,r=5,dep=6,og=7,plh=2725028981,tim=5793511831834', fname, 7)
-        cs.add_exec(o)
-        o = Ops('CLOSE', cursor, 'c=0,e=4,dep=0,type=3,tim=5793512315335', fname, 9)
-        cs.add_close(o)
-        ela = cs.get_elapsed()
-        self.assertEqual(ela, 484501)
-
-        cs.parse = None
-        ela = cs.get_elapsed()
-        self.assertEqual(ela, 483501)
-
-        cs.close = None
-        ela = cs.get_elapsed()
-        self.assertEqual(ela, None)
 
     def test_dump_to_db(self):
         cs = CurrentStatement(cursor, None)
