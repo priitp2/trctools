@@ -1,57 +1,83 @@
 import unittest
 import util
 from cursor_tracker import CursorTracker
-from arrow import DB
+from test_db import DB
 
 cursor1 = '#123223'
 sql_ids = []
 class TestUtil(unittest.TestCase):
+    def get_aggregates(self, batches, pos=None, op=None):
+        cpu = 0
+        elapsed = 0
+        nowait = 0
+        for s in batches:
+            if pos and s[pos] != op:
+                continue
+            if s[4]:
+                cpu += s[4]
+            if s[5]:
+                elapsed += s[5]
+            if s[5] and s[3] != 'WAIT':
+                nowait += s[5]
+        return (cpu, elapsed, nowait)
+    def get_count(self, batches, pos, op):
+        c = 0
+        for s in batches:
+            if s[pos] == op:
+                c += 1
+        return c
     def test_process_file_simple(self):
         # Calculated from the trace file
         cpu = 553
         elapsed = 1353
         ela_diff = 1221
         ela_nowait = 598
+        waits = 5
+        fetches = 2
 
-        tracker = CursorTracker(None)
+        db = DB()
+        tracker = CursorTracker(db)
         util.process_file(tracker, 'tests/simple_trace.trc', sql_ids)
 
         # There is special statement for cursor #0, so len == 2
         self.assertEqual(len(tracker.statements), 2)
         self.assertEqual(len(tracker.cursors), 2)
 
-        s = tracker.statements['atxg62s17nkj4']
-        self.assertEqual(s.fetches, 2)
-        self.assertEqual(s.exec_hist_elapsed.total_count, 1)
-        self.assertEqual(s.exec_hist_cpu.total_count, 1)
-        self.assertEqual(s.exec_hist_elapsed.max_value, elapsed)
-        self.assertEqual(s.exec_hist_cpu.max_value, cpu)
-        self.assertEqual(s.resp_hist.max_value, ela_diff)
+        self.assertEqual(len(db.batches), 11)
+        (db_cpu, db_elapsed, db_nowait) = self.get_aggregates(db.batches)
 
+        self.assertEqual(cpu, db_cpu)
+        self.assertEqual(elapsed, db_elapsed)
+        self.assertEqual(ela_nowait, db_nowait)
+
+        self.assertEqual(self.get_count(db.batches, 3, 'WAIT'), waits)
+        self.assertEqual(self.get_count(db.batches, 3, 'FETCH'), fetches)
     def test_process_file_simple_2x(self):
         # Calculated from the trace file
         # From 1st exec
-        cpu = 553
+        cpu = 1105
         # From 2nd exec
-        elapsed = 2357
-        ela_diff = 1637
-        ela_nowait = 1146
+        elapsed = 3710
+        ela_nowait = 1744
+        waits = 12
+        fetches = 4
 
-        tracker = CursorTracker(None)
+        db = DB()
+        tracker = CursorTracker(db)
         util.process_file(tracker, 'tests/simple_trace_2x.trc', sql_ids)
 
         # There is special statement for cursor #0, so len == 2
         self.assertEqual(len(tracker.statements), 2)
         self.assertEqual(len(tracker.cursors), 2)
 
-        s = tracker.statements['atxg62s17nkj4']
-        self.assertEqual(s.fetches, 4)
-        self.assertEqual(s.exec_hist_elapsed.total_count, 2)
-        self.assertEqual(s.exec_hist_cpu.total_count, 2)
-        self.assertEqual(s.exec_hist_elapsed.max_value, elapsed)
-        self.assertEqual(s.exec_hist_cpu.max_value, cpu)
-        self.assertEqual(s.resp_hist.max_value, ela_diff)
+        self.assertEqual(len(db.batches), 23)
+        (db_cpu, db_elapsed, db_nowait) = self.get_aggregates(db.batches)
+        self.assertEqual(cpu, db_cpu)
+        self.assertEqual(elapsed, db_elapsed)
+        self.assertEqual(ela_nowait, db_nowait)
 
+        self.assertEqual(self.get_count(db.batches, 3, 'WAIT'), waits)
+        self.assertEqual(self.get_count(db.batches, 3, 'FETCH'), fetches)
     def test_process_file_missing_parse(self):
         # Calculated from the trace file
         # From 1st exec
@@ -61,7 +87,8 @@ class TestUtil(unittest.TestCase):
         ela_diff = 1637
         ela_nowait = 1146
 
-        tracker = CursorTracker(None)
+        db = DB()
+        tracker = CursorTracker(db)
         util.process_file(tracker, 'tests/simple_trace_missing_parse.trc', sql_ids)
 
         # There is special statement for cursor #0, so len == 2
@@ -69,13 +96,15 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(len(tracker.statements), 3)
         self.assertEqual(len(tracker.cursors), 2)
 
-        s = tracker.statements['atxg62s17nkj4']
-        self.assertEqual(s.fetches, 4)
-        self.assertEqual(s.exec_hist_elapsed.total_count, 2)
-        self.assertEqual(s.exec_hist_cpu.total_count, 2)
-        self.assertEqual(s.exec_hist_elapsed.max_value, elapsed)
-        self.assertEqual(s.exec_hist_cpu.max_value, cpu)
-        self.assertEqual(s.resp_hist.max_value, ela_diff)
+        self.assertEqual(len(db.batches), 23)
+
+        # First execution of #140641987987624 gets sql_id dummy1, b/c of missing PIC
+        (db_cpu, db_elapsed, db_nowait) = self.get_aggregates(db.batches, 1, 'dummy1')
+        self.assertEqual(cpu, db_cpu)
+
+        (db_cpu, db_elapsed, db_nowait) = self.get_aggregates(db.batches, 1, 'atxg62s17nkj4')
+        self.assertEqual(elapsed, db_elapsed)
+        self.assertEqual(ela_nowait, db_nowait)
 
     def test_process_file_3_statements_1_cursor(self):
         tracker = CursorTracker(None)
