@@ -10,7 +10,7 @@ fname = 'trace.trc'
 
 class TestStatement(unittest.TestCase):
     def test_init(self):
-        s = Statement(cursor, params, None)
+        s = Statement(cursor, params)
 
         self.assertEqual(s.cursor, cursor)
 
@@ -24,17 +24,17 @@ class TestStatement(unittest.TestCase):
         self.assertEqual(s.address, '8ff705c50')
         self.assertEqual(s.sql_id, '6v48b7j2tc4a0')
 
-        s = Statement(cursor, '', None)
+        s = Statement(cursor, '')
         with self.assertRaises(AttributeError):
             self.assertEqual(s.statement_length, '80')
     def test_increment(self):
         # FIXME: increase* methods are unused
-        s = Statement(cursor, params, None)
+        s = Statement(cursor, params)
         s.increase_exec_count()
 
         self.assertEqual(s.execs, 1)
     def test_add_current_statement(self):
-        s = Statement(cursor, params, None)
+        s = Statement(cursor, params)
         cs = CurrentStatement(cursor, None)
 
         cs.add_parse(Ops('PARSE', cursor, 'c=33,e=33,p=0,cr=0,cu=0,mis=0,r=0,dep=0,og=1,plh=2725028981,tim=5793511830706', fname, 0))
