@@ -1,5 +1,5 @@
 PARSING IN CURSOR #139623166535832 len=383 dep=0 uid=127 oct=3 lid=127 tim=5793959272875 hv=827717273 ad='79aaa1000' sqlid='cdgn9f8spbxnt'
-select exclusionl0_.ID as id1_3_, exclusionl0_.CREATED_TS as created_ts2_3_, exclusionl0_.CUSTOMER_ID as customer_id3_3_, exclusionl0_.EXCLUSION_LIST_ID as exclusion_list_id4_3_ from EXCLUSION_LIST_ENTRY exclusionl0_ inner join EXCLUSION_LIST exclusionl1_ on exclusionl0_.EXCLUSION_LIST_ID=exclusionl1_.ID where exclusionl1_.CAMPAIGN_ID=2808662 and exclusionl0_.CUSTOMER_ID=120913723
+select ...
 END OF STMT
 PARSE #139623166535832:c=3987,e=4111,p=0,cr=2,cu=0,mis=1,r=0,dep=0,og=1,plh=2001593300,tim=5793959272875
 EXEC #139623166535832:c=14,e=14,p=0,cr=0,cu=0,mis=0,r=0,dep=0,og=1,plh=2001593300,tim=5793959272961
@@ -15,7 +15,7 @@ WAIT #139623166535832: nam='SQL*Net message from client' ela= 214 driver id=6755
 CLOSE #139623166535832:c=4,e=4,dep=0,type=0,tim=5793959273465
 
 PARSING IN CURSOR #139623166535832 len=123 dep=0 uid=127 oct=3 lid=127 tim=5793964642959 hv=41568804 ad='a8e16c360' sqlid='atxg62s17nkj4'
-select distinct customerse0_.SEGMENT_NAME as col_0_0_ from CUSTOMER_SEGMENT customerse0_ where customerse0_.CUSTOMER_ID=:1
+select ...
 END OF STMT
 PARSE #139623166535832:c=27,e=27,p=0,cr=0,cu=0,mis=0,r=0,dep=0,og=1,plh=2725028981,tim=5793964642958
 BINDS #139623166535832:
@@ -37,7 +37,7 @@ WAIT #139623166535832: nam='SQL*Net message from client' ela= 301 driver id=6755
 CLOSE #139623166535832:c=0,e=4,dep=0,type=1,tim=5793964644275
 
 PARSING IN CURSOR #139623166535832 len=574 dep=0 uid=127 oct=3 lid=127 tim=5799081608205 hv=3822425130 ad='6bb48fff8' sqlid='6ssxu7vjxb51a'
-select exclusionl0_.ID as id1_2_0_, exclusionl0_.CAMPAIGN_ID as campaign_id2_2_0_, exclusionl0_.CREATED_TS as created_ts3_2_0_, exclusionl0_.UPDATED_TS as updated_ts4_2_0_, entries1_.EXCLUSION_LIST_ID as exclusion_list_id4_3_1_, entries1_.ID as id1_3_1_, entries1_.ID as id1_3_2_, entries1_.CREATED_TS as created_ts2_3_2_, entries1_.CUSTOMER_ID as customer_id3_3_2_, entries1_.EXCLUSION_LIST_ID as exclusion_list_id4_3_2_ from EXCLUSION_LIST exclusionl0_ left outer join EXCLUSION_LIST_ENTRY entries1_ on exclusionl0_.ID=entries1_.EXCLUSION_LIST_ID where exclusionl0_.ID=:1
+select ...
 END OF STMT
 PARSE #139623166535832:c=26,e=26,p=0,cr=0,cu=0,mis=0,r=0,dep=0,og=1,plh=3448963908,tim=5799081608204
 BINDS #139623166535832:
@@ -80,14 +80,10 @@ FETCH #139623166535832:c=38,e=37,p=0,cr=1,cu=0,mis=0,r=10,dep=0,og=1,plh=3448963
 WAIT #139623166535832: nam='SQL*Net message from client' ela= 149 driver id=675562835 #bytes=1 p3=0 obj#=174336 tim=5799082614516
 WAIT #139623166535832: nam='SQL*Net message to client' ela= 1 driver id=675562835 #bytes=1 p3=0 obj#=174336 tim=5799082614545
 FETCH #139623166535832:c=6795,e=8031,p=0,cr=2539,cu=0,mis=0,r=3,dep=0,og=1,plh=3448963908,tim=5799082622569
-STAT #139623166535832 id=1 cnt=37233 pid=0 pos=1 obj=0 op='NESTED LOOPS OUTER (cr=21628 pr=0 pw=0 str=1 time=89065 us cost=4419 size=60
-68979 card=37233)'
-STAT #139623166535832 id=2 cnt=1 pid=1 pos=1 obj=76155 op='TABLE ACCESS BY INDEX ROWID EXCLUSION_LIST (cr=2 pr=0 pw=0 str=1 time=11 us
-cost=1 size=69 card=1)'
-STAT #139623166535832 id=3 cnt=1 pid=2 pos=1 obj=76156 op='INDEX UNIQUE SCAN PK_EXCLUSION_LIST (cr=1 pr=0 pw=0 str=1 time=7 us cost=0 s
-ize=0 card=1)'
-STAT #139623166535832 id=4 cnt=37233 pid=1 pos=2 obj=76158 op='TABLE ACCESS FULL EXCLUSION_LIST_ENTRY (cr=21626 pr=0 pw=0 str=1 time=82
-010 us cost=4418 size=3499902 card=37233)'
+STAT #139623166535832 id=1 cnt=37233 pid=0 pos=1 obj=0 op='NESTED LOOPS OUTER (cr=21628 pr=0 pw=0 str=1 time=89065 us cost=4419 size=60 68979 card=37233)'
+STAT #139623166535832 id=2 cnt=1 pid=1 pos=1 obj=76155 op='TABLE ACCESS BY INDEX ROWID EXCLUSION_LIST (cr=2 pr=0 pw=0 str=1 time=11 us cost=1 size=69 card=1)'
+STAT #139623166535832 id=3 cnt=1 pid=2 pos=1 obj=76156 op='INDEX UNIQUE SCAN PK_EXCLUSION_LIST (cr=1 pr=0 pw=0 str=1 time=7 us cost=0 size=0 card=1)'
+STAT #139623166535832 id=4 cnt=37233 pid=1 pos=2 obj=76158 op='TABLE ACCESS FULL EXCLUSION_LIST_ENTRY (cr=21626 pr=0 pw=0 str=1 time=82010 us cost=4418 size=3499902 card=37233)'
 WAIT #139623166535832: nam='SQL*Net message from client' ela= 59501 driver id=675562835 #bytes=1 p3=0 obj#=174336 tim=5799082682378
 CLOSE #139623166535832:c=9,e=10,dep=0,type=1,tim=5799082682468
 
