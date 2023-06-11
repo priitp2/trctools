@@ -1,5 +1,3 @@
-from hdrh.histogram import HdrHistogram
-import util
 from ops import Ops
 
 class Statement:
@@ -30,11 +28,6 @@ class Statement:
         self.execs = 0
         self.fetches = 0
 
-        self.exec_hist_elapsed = HdrHistogram(1, 1000000000, 1)
-        self.exec_hist_cpu = HdrHistogram(1, 1000000000, 1)
-
-        self.resp_hist = HdrHistogram(1, 1000000000, 1)
-
     def increase_exec_count(self):
         self.execs = self.execs + 1
     def record_exec_cpu(self, cpu):
@@ -42,14 +35,6 @@ class Statement:
     def record_exec_elapsed(self, elapsed):
         self.exec_hist_elapsed.record_value(elapsed)
     def add_current_statement(self, s):
-        lat = s.merge()
         if s.exec:
-            self.record_exec_cpu(lat.c)
-            self.record_exec_elapsed(lat.e)
             self.increase_exec_count()
         self.fetches += s.fetch_count
-
-        elapsed = s.get_elapsed()
-        if elapsed:
-            self.resp_hist.record_value(elapsed)
-
