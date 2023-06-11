@@ -27,35 +27,6 @@ class TestStatement(unittest.TestCase):
         s = Statement(cursor, '')
         with self.assertRaises(AttributeError):
             self.assertEqual(s.statement_length, '80')
-    def test_increment(self):
-        # FIXME: increase* methods are unused
-        s = Statement(cursor, params)
-        s.increase_exec_count()
 
-        self.assertEqual(s.execs, 1)
-    def test_add_current_statement(self):
-        s = Statement(cursor, params)
-        cs = CurrentStatement(cursor, None)
-
-        cs.add_parse(Ops('PARSE', cursor, 'c=33,e=33,p=0,cr=0,cu=0,mis=0,r=0,dep=0,og=1,plh=2725028981,tim=5793511830706', fname, 0))
-        cs.add_exec(Ops('EXEC', cursor, 'c=73,e=73,p=0,cr=0,cu=0,mis=0,r=0,dep=0,og=1,plh=2725028981,tim=5793511830834', fname, 0))
-        cs.add_fetch(Ops('FETCH', cursor, 'c=444,e=444,p=1,cr=4,cu=0,mis=0,r=10,dep=0,og=1,plh=2725028981,tim=5793511831311', fname, 0))
-        cs.add_fetch(Ops('FETCH', cursor, 'c=0,e=45,p=0,cr=1,cu=0,mis=0,r=4,dep=0,og=1,plh=2725028981,tim=5793511831594', fname, 0))
-        cs.add_wait(Ops('WAIT', cursor, " nam='db file sequential read' ela= 343 file#=414 block#=2090520 blocks=1 obj#=89440 tim=5793511831255", fname, 0))
-        cs.add_wait(Ops('WAIT', cursor, " nam='SQL*Net message from client' ela= 186 driver id=675562835 #bytes=1 p3=0 obj#=89440 tim=5793511831524", fname, 0))
-        cs.add_close(Ops('CLOSE', cursor, 'c=3,e=3,dep=0,type=1,tim=5793511831927', fname, 0))
-
-        # Calculated manually from the operations
-        elapsed = 1127
-        cpu = 553
-        # close.ela - parse.ela
-        ela_diff = 1221
-        ela_nowait = 598
-
-        s.add_current_statement(cs)
-
-        self.assertEqual(s.execs, 1)
-        self.assertEqual(s.fetches, 2)
 if __name__ == '__main__':
     unittest.main()
-

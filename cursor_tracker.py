@@ -43,7 +43,6 @@ class CursorTracker:
             # Trace can contain cursor without matching PARSING IN CURSOR
             return self.latest_cursors[cursor]
         statement = self.statements[self.cursors[cursor]]
-        statement.add_current_statement(cs)
         if self.db:
             cs.dump_to_db()
         self.latest_cursors[cursor] = CurrentStatement(cursor, self.db, self.cursors[cursor])

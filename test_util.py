@@ -111,19 +111,14 @@ class TestUtil(unittest.TestCase):
         tracker = CursorTracker(db)
         util.process_file(tracker, 'tests/two_statements_one_cursor.trc', sql_ids)
 
-        s = tracker.statements['cdgn9f8spbxnt']
-        self.assertEqual(s.fetches, 1)
+        self.assertEqual(self.get_count(db.batches, 3, 'FETCH'), 14)
         self.assertEqual(self.get_count(db.batches, 1, 'cdgn9f8spbxnt'), 12)
         # Counts by sql_id and exec_id should match
         self.assertEqual(self.get_count(db.batches, 0, 1), self.get_count(db.batches, 1, 'cdgn9f8spbxnt'))
 
-        s = tracker.statements['atxg62s17nkj4']
-        self.assertEqual(s.fetches, 2)
         self.assertEqual(self.get_count(db.batches, 1, 'atxg62s17nkj4'), 11)
         self.assertEqual(self.get_count(db.batches, 0, 2), self.get_count(db.batches, 1, 'atxg62s17nkj4'))
 
-        s = tracker.statements['6ssxu7vjxb51a']
-        self.assertEqual(s.fetches, 11)
         self.assertEqual(self.get_count(db.batches, 1, '6ssxu7vjxb51a'), 40)
         self.assertEqual(self.get_count(db.batches, 0, 3), self.get_count(db.batches, 1, '6ssxu7vjxb51a'))
 
