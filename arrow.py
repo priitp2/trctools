@@ -47,8 +47,9 @@ class DB:
     def insert_ops(self, ops):
         if len(ops) == 0:
             return
-        batch = pa.record_batch([i for i in zip(ops)], self.cursor_exec_schema)
-        self.batches.append(batch)
+        self.batches.append(ops)
+        #batch = pa.record_batch([i for i in zip(ops)], self.cursor_exec_schema)
+        #self.batches.append(batch)
         if len(self.batches) > self.max_batch_size:
             self.flush_batches()
     def insert_cursors(self, cs):
@@ -58,14 +59,17 @@ class DB:
         self.fname = fname
         self.flush_count = 0
     def flush_batches(self):
-        table = pa.Table.from_batches(self.batches)
+        #batch = pa.record_batch([i for i in zip(*self.batches)], self.cursor_exec_schema)
+        arrays = [pa.array(i) for i in zip(*self.batches)]
+        #batch = pa.record_batch(arrays, self.cursor_exec_schema)
+        table = pa.Table.from_arrays(arrays, schema = self.cursor_exec_schema)
         pq.write_table(table, '{}/trace/{}.parquet.{}'.format(self.dbdir, self.fname, self.flush_count), compression='gzip')
         self.batches = []
         self.flush_count += 1
     def flush(self, fname):
         if len(self.batches) == 0:
             return
-        table = pa.Table.from_batches(self.batches)
+        #table = pa.Table.from_batches(self.batches)
         #local = fs.LocalFileSystem()
 
         #with local.open_output_stream(fname +'.gz') as file:

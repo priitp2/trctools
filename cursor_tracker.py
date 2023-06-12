@@ -88,8 +88,9 @@ class CursorTracker:
     def add_close(self, cursor, params):
         cs = self._get_cursor(cursor)
         if not cs:
-            print("add_close: stray cursor {}".format(cursor))
-            return None
+            # PARSE/PIC happened before start of the trace. Just add the call to the database w/o sql_id
+            self.db.insert_ops(params.to_list(self.db.get_exec_id(), ''))
+            return
         cs.add_close(params)
         self.add_latest_cursor(cursor)
         return
