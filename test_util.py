@@ -140,5 +140,13 @@ class TestUtil(unittest.TestCase):
         # 3 EXEC calls + 1 dummy for the stray WAITs
         self.assertEqual(tracker.statements['6v48b7j2tc4a0'].execs, 3)
 
+    def test_process_file_3_statements_1_cursor(self):
+        # PARSE/PIC happened before start of the trace. Just add the call to the database w/o sql_id
+        db = DB()
+        tracker = CursorTracker(db)
+        util.process_file(tracker, 'tests/stray_close.trc', sql_ids)
+        print(db.batches)
+        self.assertEqual(self.get_count(db.batches, 3, 'CLOSE'), 1)
+
 if __name__ == '__main__':
     unittest.main()
