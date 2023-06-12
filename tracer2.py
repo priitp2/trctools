@@ -57,9 +57,10 @@ else:
 no_files = len(args.trace_files)
 fcount = 1
 for fname in args.trace_files:
+    p = PurePath(fname)
+    tracker.db.set_filename(p.stem)
     print("[{}/{}] processing file {}".format(fcount, no_files, fname))
     util.process_file(tracker, fname, ids)
     fcount += 1
-    p = PurePath(fname)
     tracker.flush(p.stem)
 

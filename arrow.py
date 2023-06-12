@@ -4,6 +4,7 @@ import pyarrow.parquet as pq
 
 class DB:
     def __init__(self, dbdir):
+        self.max_batch_size = 400000
         self.dbdir = dbdir
         self.cursor_exec_schema = pa.schema([
             ('exec_id', pa.int64()),
@@ -34,6 +35,8 @@ class DB:
             ('sql_id', pa.string())
             ])
         self.cursor_statement_batches = []
+        self.fname = None
+        self.flush_count = 0
     def add_rows(self, sql_id, rt):
         pass
     def add_cursor(self, c):
@@ -46,9 +49,19 @@ class DB:
             return
         batch = pa.record_batch([i for i in zip(ops)], self.cursor_exec_schema)
         self.batches.append(batch)
+        if len(self.batches) > self.max_batch_size:
+            self.flush_batches()
     def insert_cursors(self, cs):
         batch = pa.record_batch([i for i in zip(*cs)], self.cursor_statement_schema)
         self.cursor_statement_batches.append(batch)
+    def set_filename(self, fname):
+        self.fname = fname
+        self.flush_count = 0
+    def flush_batches(self):
+        table = pa.Table.from_batches(self.batches)
+        pq.write_table(table, '{}/trace/{}.parquet.{}'.format(self.dbdir, self.fname, self.flush_count), compression='gzip')
+        self.batches = []
+        self.flush_count += 1
     def flush(self, fname):
         if len(self.batches) == 0:
             return
@@ -58,8 +71,12 @@ class DB:
         #with local.open_output_stream(fname +'.gz') as file:
         #    with pa.RecordBatchFileWriter(file, table.schema) as writer:
         #        writer.write_table(table)
-        pq.write_table(table, '{}/trace/{}.parquet'.format(self.dbdir, fname), compression='gzip')
-        self.batches = []
+
+        #pq.write_table(table, '{}/trace/{}.parquet'.format(self.dbdir, fname), compression='gzip')
+        #self.batches = []
+        if not fname:
+            self.fname = fname
+        self.flush_batches()
 
         table = pa.Table.from_batches(self.cursor_statement_batches)
         pq.write_table(table, '{}/cursors/{}.parquet'.format(self.dbdir, fname), compression='gzip')
