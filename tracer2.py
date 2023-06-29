@@ -68,6 +68,6 @@ for fname in args.trace_files:
     start = time.time_ns()
     lines = util.process_file(tracker, fname, ids)
     fcount += 1
-    tracker.flush(p.stem)
     print("   -> {} lines, {} seconds".format(lines, int((time.time_ns() - start)/1000000000)))
 
+tracker.flush(p.stem)
