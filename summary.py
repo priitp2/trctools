@@ -83,9 +83,20 @@ class SummaryDuckdb:
             resp_hist.record_value(w[0])
         with open(fname, 'wb') as f:
             resp_hist.output_percentile_distribution(f, 1.0)
+    def db(self):
+        res = d.sql("""select count(*), count(distinct file_name), count(distinct sql_id), count(distinct cursor_id)
+                        from read_parquet('{}')
+                    """.format(self.dbdir))
+        print(res)
+
+        res = d.sql("""select file_name, count(*)
+                        from read_parquet('{}')
+                        group by file_name order by count(*)
+                    """.format(self.dbdir))
+        print(res)
 
 parser = argparse.ArgumentParser(description='Generate summary from processed traces')
-parser.add_argument('action', type=str, choices=['summary', 'histogram', 'outliers', 'waits', 'wait_histogram'],
+parser.add_argument('action', type=str, choices=['summary', 'histogram', 'outliers', 'waits', 'wait_histogram', 'db'],
                                     help='Directory for Parquet files')
 parser.add_argument('--sql_id', type=str, dest='sql_id',
                                     help="Comma separated list of sql_id's for which summary is produced")
@@ -112,3 +123,5 @@ elif args.action == 'waits':
         s.waits(args.sql_id)
 elif args.action == 'wait_histogram':
         s.wait_histogram(args.wait_name, args.fname)
+elif args.action == 'db':
+        s.db()
