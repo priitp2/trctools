@@ -4,9 +4,14 @@ import sys
 class DB:
     def __init__(self):
         self.connection = oracledb.connect(
-            user="test0",
+            user="inmtest",
             password='test123',
-            dsn="localhost/xepdb1")
+            dsn="10.80.129.146/orclpdb1")
+        self.batches = []
+        self.exec_ids = []
+        # should match with sequence cursor_exec_id increment by
+        self.seq_batch_size = 100
+        self.max_batch_size = 1000
 
 #        cursor = self.connection.cursor()
 #        cursor.execute("create table if not exists rtime (id integer generated as identity primary key, sql_id varchar2(16), rt integer not null) organization index")
@@ -17,10 +22,11 @@ class DB:
             cursor.execute("insert into rtime (sql_id, rt) values(:1, :2)", [sql_id, r])
 
         self.connection.commit()
-    def add_cursor(self, c):
-        cursor = self.connection.cursor()
-        cursor.execute("insert into cursors(cursor_id, statement_length, rec_depth, schema_id, command_type, priv_user_id, ts, hash_id, sqltext_addr, sql_id) values(:1, :2, :3, :4, :5, :6, :7, :8, :9, :10)", [c.cursor, c.statement_length, c.rec_depth, c.schema_uid, c.command_type, c.priv_user_id, c.timestamp, c.hash_id, c.address, c.sql_id])
-        self.connection.commit()
+    def insert_cursors(self, c):
+        pass
+        #cursor = self.connection.cursor()
+        #cursor.execute("insert into cursors(cursor_id, statement_length, rec_depth, schema_id, command_type, priv_user_id, ts, hash_id, sqltext_addr, sql_id) values(:1, :2, :3, :4, :5, :6, :7, :8, :9, :10)", [c.cursor, c.statement_length, c.rec_depth, c.schema_uid, c.command_type, c.priv_user_id, c.timestamp, c.hash_id, c.address, c.sql_id])
+        #self.connection.commit()
     def add_event(self, ev):
         cursor = self.connection.cursor()
         out = cursor.var(int)
@@ -33,15 +39,31 @@ class DB:
         return out.getvalue()
 
     def get_exec_id(self):
-        cursor = self.connection.cursor()
-        out = cursor.execute('select cursor_exec_id.nextval from dual')
-        return out.fetchone()[0]
-    def insert_ops(self, ops, op_close):
+        if len(self.exec_ids) == 0:
+            cursor = self.connection.cursor()
+            out = cursor.execute('select cursor_exec_id.nextval from dual')
+            nextval = out.fetchone()[0]
+            self.exec_ids = [i for i in range(nextval - self.seq_batch_size + 1, nextval)]
+        return self.exec_ids.pop()
+    def insert_ops(self, ops):
         if len(ops) == 0:
             return
+        self.batches.append(ops)
+        if len(self.batches) > self.max_batch_size:
+            self.flush_batches()
+    def set_filename(self, fname):
+        pass
+    def flush_batches(self):
+        if len(self.batches) == 0:
+            return
         cursor = self.connection.cursor()
-        cursor.executemany('insert into cursor_exec(id, cursor_id, ops, cpu_time, elapsed_time, ph_reads, cr_reads, current_reads, cursor_missed, rows_processed, rec_call_dp, opt_goal, ts) values(:1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12, :13)', ops)
-        if op_close:
-            cursor.execute('insert into cursor_exec(id, cursor_id, ops, cpu_time, elapsed_time, rec_call_dp, c_type, ts) values(:1, :2, :3, :4, :5, :6, :7, :8)', op_close)
+        try:
+            cursor.executemany("insert into dbcall(exec_id, sql_id, cursor_id, ops, cpu_time, elapsed_time, ph_reads, cr_reads, current_reads, cursor_missed, rows_processed, rec_call_dp, opt_goal, plh, ts, c_type, wait_name, wait_raw, file_name, line) values(:1, nvl(:2, 'ECANTHAPPEN'), :3, :4, :5, :6, :7, :8, :9, :10, :11, :12, :13, :14, :15, :16, :17, :18, :19, :20)", self.batches)
+        except Exception as e:
+            print(self.batches)
+            print(e)
         self.connection.commit()
+        self.batches = []
+    def flush(self, fname):
+        self.flush_batches()
 
