@@ -1,8 +1,10 @@
 import re
 from ops import Ops
+import logging
 
 def process_file(tr, fname, sql_ids):
 
+    logger = logging.getLogger(__name__)
     line_count = 0
     with open(fname, 'r') as f:
         for line in f:
@@ -10,6 +12,7 @@ def process_file(tr, fname, sql_ids):
             #match = re.match(r'''^(={21}|\*\*\* )''', line)
             match = re.match(r'''^(={21})''', line)
             if match:
+                logger.debug('reset tracker')
                 tr.reset()
             match = re.match(r'''^(PARSE|PARSING IN CURSOR|EXEC|FETCH|WAIT|CLOSE|BINDS|STAT) (#\d+)(:| )(.*)''', line)
             if match:
@@ -36,4 +39,5 @@ def process_file(tr, fname, sql_ids):
                     tr.add_stat(match.group(2), s)
                 if match.group(1) == 'BINDS':
                     pass
+    return line_count
 
