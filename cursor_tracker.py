@@ -1,5 +1,6 @@
 from current_statement import CurrentStatement
 from statement import Statement
+import logging
 
 class CursorTracker:
     '''
@@ -8,6 +9,7 @@ class CursorTracker:
         in the old one are added to the statement.
     '''
     def __init__(self, db):
+        self.logger = logging.getLogger(__name__)
         self.db = db
         self.latest_cursors = {}
         # {cursor: sql_id}
@@ -34,6 +36,7 @@ class CursorTracker:
         ''' If cursor is present then this is new execution, so merge the cursor with the statement and
             overwrite the latest_cursor.
         '''
+        self.logger.debug('add_latest_cursor: start')
         cs = self._get_cursor(cursor)
         if not cs:
             if cursor not in self.cursors.keys():
@@ -41,11 +44,15 @@ class CursorTracker:
                 self._add_dummy_statement(cursor)
             self.latest_cursors[cursor] = CurrentStatement(cursor, self.db, self.cursors[cursor])
             # Trace can contain cursor without matching PARSING IN CURSOR
+            self.logger.debug('add_latest_cursor: done')
             return self.latest_cursors[cursor]
         statement = self.statements[self.cursors[cursor]]
         if self.db:
+            self.logger.debug('add_latest_cursor: dump to db')
             cs.dump_to_db()
+            self.logger.debug('add_latest_cursor: dump to db done')
         self.latest_cursors[cursor] = CurrentStatement(cursor, self.db, self.cursors[cursor])
+        self.logger.debug('add_latest_cursor: done')
         return self.latest_cursors[cursor]
     def add_parsing_in(self, cursor, params):
         # FIXME: check if statement already exists whrh sql_id "dummy*" and try to fix this 
@@ -103,9 +110,11 @@ class CursorTracker:
         for c in self.latest_cursors:
             self.add_latest_cursor(c)
     def flush(self, fname):
+        self.logger.debug('flush')
         if not self.db:
             return
         for c in self.latest_cursors:
             self.add_latest_cursor(c)
         self.db.insert_cursors([(self.statements[s].cursor, s) for s in self.statements.keys()])
         self.db.flush(fname)
+        self.logger.debug('flush: done')
