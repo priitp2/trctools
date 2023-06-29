@@ -1,13 +1,14 @@
-#!/usr/bin/env python3.9
+#!/usr/bin/env python3.11
 
 import argparse
 import re
 import sys
-from scipy.stats import shapiro,kstest
+#from scipy.stats import shapiro,kstest
 import util
 from cursor_tracker import CursorTracker
 from pathlib import PurePath
 import logging
+import time
 
 max_fetch_elapsed = 500000
 max_exec_elapsed = 500000
@@ -26,25 +27,29 @@ parser.add_argument('--log-level', type=str, default = None, dest='loglevel', he
 
 args = parser.parse_args()
 
-if args.db == 'oracle':
-    from oracle import DB
-    database = DB()
-elif args.db == 'parquet':
-    from arrow import DB
-    database = DB(args.dbdir)
-else:
-    database = None
-
 log_level = logging.INFO
 
 if args.loglevel:
     log_level = getattr(logging, args.loglevel.upper(), None)
-    if not isinstance(level, int):
+    if not isinstance(log_level, int):
         raise ValueError('Invalid log level: %s' % loglevel)
-logging.basicConfig(level = log_level)
+logging.basicConfig(filename = args.logfile, level = log_level, format = '%(asctime)s - %(name)s - %(levelname)s:%(message)s')
 
-if args.logfile:
-    logging.basicConfig(args.logfile)
+#if args.logfile:
+#    logging.basicConfig(args.logfile)
+
+if args.db == 'oracle':
+    logging.info('Using database: oracle')
+    from oracle import DB
+    database = DB()
+elif args.db == 'parquet':
+    logging.info('Using database: arrow/parquet')
+    from arrow import DB
+    database = DB(args.dbdir)
+else:
+    logging.info('Using database: None')
+    database = None
+
 
 tracker = CursorTracker(database)
 
@@ -60,7 +65,9 @@ for fname in args.trace_files:
     p = PurePath(fname)
     tracker.db.set_filename(p.stem)
     print("[{}/{}] processing file {}".format(fcount, no_files, fname))
-    util.process_file(tracker, fname, ids)
+    start = time.time_ns()
+    lines = util.process_file(tracker, fname, ids)
     fcount += 1
     tracker.flush(p.stem)
+    print("   -> {} lines, {} seconds".format(lines, int((time.time_ns() - start)/1000000000)))
 
