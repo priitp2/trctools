@@ -37,7 +37,8 @@ class TestUtil(unittest.TestCase):
 
         db = DB()
         tracker = CursorTracker(db)
-        util.process_file(tracker, 'tests/simple_trace.trc', sql_ids)
+        lines = util.process_file(tracker, 'tests/simple_trace.trc', sql_ids)
+        self.assertEqual(lines, 24)
 
         # There is special statement for cursor #0, so len == 2
         self.assertEqual(len(tracker.statements), 2)
@@ -64,7 +65,8 @@ class TestUtil(unittest.TestCase):
 
         db = DB()
         tracker = CursorTracker(db)
-        util.process_file(tracker, 'tests/simple_trace_2x.trc', sql_ids)
+        lines = util.process_file(tracker, 'tests/simple_trace_2x.trc', sql_ids)
+        self.assertEqual(lines, 44)
 
         # There is special statement for cursor #0, so len == 2
         self.assertEqual(len(tracker.statements), 2)
@@ -89,7 +91,8 @@ class TestUtil(unittest.TestCase):
 
         db = DB()
         tracker = CursorTracker(db)
-        util.process_file(tracker, 'tests/simple_trace_missing_parse.trc', sql_ids)
+        lines = util.process_file(tracker, 'tests/simple_trace_missing_parse.trc', sql_ids)
+        self.assertEqual(lines, 45)
 
         # There is special statement for cursor #0, so len == 2
         # FIXME: decide if we should fix the sql_id for dummy1 or not
@@ -109,7 +112,8 @@ class TestUtil(unittest.TestCase):
     def test_process_file_3_statements_1_cursor(self):
         db = DB()
         tracker = CursorTracker(db)
-        util.process_file(tracker, 'tests/two_statements_one_cursor.trc', sql_ids)
+        lines = util.process_file(tracker, 'tests/two_statements_one_cursor.trc', sql_ids)
+        self.assertEqual(lines, 90)
 
         self.assertEqual(self.get_count(db.batches, 3, 'FETCH'), 14)
         self.assertEqual(self.get_count(db.batches, 1, 'cdgn9f8spbxnt'), 12)
@@ -136,7 +140,8 @@ class TestUtil(unittest.TestCase):
            """
         db = DB()
         tracker = CursorTracker(db)
-        util.process_file(tracker, 'tests/mixed_execs.trc', sql_ids)
+        lines = util.process_file(tracker, 'tests/mixed_execs.trc', sql_ids)
+        self.assertEqual(lines, 107)
         # 3 EXEC calls + 1 dummy for the stray WAITs
         self.assertEqual(tracker.statements['6v48b7j2tc4a0'].execs, 3)
 
@@ -144,8 +149,8 @@ class TestUtil(unittest.TestCase):
         # PARSE/PIC happened before start of the trace. Just add the call to the database w/o sql_id
         db = DB()
         tracker = CursorTracker(db)
-        util.process_file(tracker, 'tests/stray_close.trc', sql_ids)
-        print(db.batches)
+        lines = util.process_file(tracker, 'tests/stray_close.trc', sql_ids)
+        self.assertEqual(lines, 1)
         self.assertEqual(self.get_count(db.batches, 3, 'CLOSE'), 1)
 
 if __name__ == '__main__':
