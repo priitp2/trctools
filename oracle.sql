@@ -12,14 +12,16 @@ CREATE TABLE cursors (
     sql_id           VARCHAR2(64) NOT NULL
 );
 
-create sequence cursor_exec_id;
+-- increment by should match DB.seq_batch_size
+create sequence cursor_exec_id increment by 100;
 
-CREATE TABLE cursor_exec (
-    id             INTEGER,
+CREATE TABLE dbcall (
+    exec_id        INTEGER NOT NULL,
+    sql_id         VARCHAR2(16) NOT NULL,
     cursor_id      VARCHAR2(64) NOT NULL,
     ops            VARCHAR2(12) NOT NULL,
-    cpu_time       INTEGER NOT NULL, -- c
-    elapsed_time   INTEGER NOT NULL, -- e
+    cpu_time       INTEGER, -- c
+    elapsed_time   INTEGER, -- e
     ph_reads       INTEGER, -- p
     cr_reads       INTEGER, -- cr
     current_reads  INTEGER, -- cu
@@ -27,7 +29,12 @@ CREATE TABLE cursor_exec (
     rows_processed INTEGER,          -- r
     rec_call_dp    INTEGER,          -- dep
     opt_goal       INTEGER,          -- og
-    ts             INTEGER NOT NULL, -- tim
-    c_type integer
-);
+    plh	           INTEGER, 
+    ts             INTEGER, -- tim
+    c_type 	   INTEGER,
+    wait_name	   VARCHAR2(256),
+    wait_raw	   VARCHAR2(4000),
+    file_name	   VARCHAR2(1000),
+    line	   INTEGER
+) PCTFREE 0 ROW STORE COMPRESS ADVANCED;
 
