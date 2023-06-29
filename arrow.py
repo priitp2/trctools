@@ -1,10 +1,12 @@
 import pyarrow as pa
 from pyarrow import fs
 import pyarrow.parquet as pq
+import logging
 
 class DB:
     def __init__(self, dbdir):
-        self.max_batch_size = 400000
+        self.logger = logging.getLogger(__name__)
+        self.max_batch_size = 4000000
         self.dbdir = dbdir
         self.cursor_exec_schema = pa.schema([
             ('exec_id', pa.int64()),
@@ -48,6 +50,7 @@ class DB:
         if len(ops) == 0:
             return
         self.batches.append(ops)
+        #self.batches.append(ops)
         #batch = pa.record_batch([i for i in zip(ops)], self.cursor_exec_schema)
         #self.batches.append(batch)
         if len(self.batches) > self.max_batch_size:
@@ -60,10 +63,18 @@ class DB:
         self.flush_count = 0
     def flush_batches(self):
         #batch = pa.record_batch([i for i in zip(*self.batches)], self.cursor_exec_schema)
+        self.logger.debug('flush_batches: flusing %d records', len(self.batches))
+
         arrays = [pa.array(i) for i in zip(*self.batches)]
         #batch = pa.record_batch(arrays, self.cursor_exec_schema)
+        self.logger.debug('flush_batches: arrays done')
+
         table = pa.Table.from_arrays(arrays, schema = self.cursor_exec_schema)
+        self.logger.debug('flush_batches: table done')
+
         pq.write_table(table, '{}/trace/{}.parquet.{}'.format(self.dbdir, self.fname, self.flush_count), compression='gzip')
+        self.logger.debug('flush_batches: table written')
+
         self.batches = []
         self.flush_count += 1
     def flush(self, fname):
@@ -78,7 +89,7 @@ class DB:
 
         #pq.write_table(table, '{}/trace/{}.parquet'.format(self.dbdir, fname), compression='gzip')
         #self.batches = []
-        if not fname:
+        if not self.fname:
             self.fname = fname
         self.flush_batches()
 
