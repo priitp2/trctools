@@ -61,13 +61,19 @@ else:
 
 no_files = len(args.trace_files)
 fcount = 1
+cumul_lines = 0
+cumul_time = 0
 for fname in args.trace_files:
     p = PurePath(fname)
     tracker.db.set_filename(p.stem)
     print("[{}/{}] processing file {}".format(fcount, no_files, fname))
     start = time.time_ns()
     lines = util.process_file(tracker, fname, ids)
+    cumul_lines += lines
+    delta = int((time.time_ns() - start)/1000000000)
+    cumul_time += delta
     fcount += 1
-    print("   -> {} lines, {} seconds".format(lines, int((time.time_ns() - start)/1000000000)))
+    print("   -> {} lines, {} seconds".format(lines, delta))
 
 tracker.flush(p.stem)
+print("Processed {} lines in {} seconds".format(cumul_lines, cumul_time))
