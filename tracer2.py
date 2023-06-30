@@ -4,7 +4,7 @@ import argparse
 import re
 import sys
 #from scipy.stats import shapiro,kstest
-import util
+from util import Filer
 from cursor_tracker import CursorTracker
 from pathlib import PurePath
 import logging
@@ -63,17 +63,19 @@ no_files = len(args.trace_files)
 fcount = 1
 cumul_lines = 0
 cumul_time = 0
+filer = Filer()
 for fname in args.trace_files:
     p = PurePath(fname)
     tracker.db.set_filename(p.stem)
     print("[{}/{}] processing file {}".format(fcount, no_files, fname))
     start = time.time_ns()
-    lines = util.process_file(tracker, fname, ids)
+    lines = filer.process_file(tracker, fname, ids)
     cumul_lines += lines
     delta = int((time.time_ns() - start)/1000000000)
     cumul_time += delta
     fcount += 1
     print("   -> {} lines, {} seconds".format(lines, delta))
 
+print("tracker.latest_cursors = {}".format(len(tracker.latest_cursors)))
 tracker.flush(p.stem)
 print("Processed {} lines in {} seconds".format(cumul_lines, cumul_time))
