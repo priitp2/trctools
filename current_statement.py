@@ -3,6 +3,7 @@ from ops import Ops
 
 class CurrentStatement:
     def __init__(self, cursor, db, sql_id=None):
+        self.__slots__ = ('cursor', 'parsing_in', 'parse', 'exec', 'waits', 'fetches', 'close', 'sql_id', 'db', 'stat')
         if len(cursor) < 2 and cursor != '#0':
             raise(BaseException("init: got empty cursor"))
         self.cursor = cursor
@@ -13,7 +14,6 @@ class CurrentStatement:
         self.fetches = []
         self.close = None
         self.sql_id = sql_id
-        self.__slots__ = ('max_list_size', 'cursor', 'parsing_in', 'parse', 'exec', 'waits', 'fetches', 'close')
         self.db = db
         self.stat = []
     def add_parsing_in(self, params):
