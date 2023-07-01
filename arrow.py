@@ -6,7 +6,7 @@ import logging
 class DB:
     def __init__(self, dbdir):
         self.logger = logging.getLogger(__name__)
-        self.max_batch_size = 4000000
+        self.max_batch_size = 8000000
         self.dbdir = dbdir
         self.cursor_exec_schema = pa.schema([
             ('exec_id', pa.int64()),
