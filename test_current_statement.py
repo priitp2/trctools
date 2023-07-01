@@ -97,5 +97,12 @@ class TestCurrentStatement(unittest.TestCase):
         cs = CurrentStatement(cursor, None)
         with self.assertRaisesRegex(BaseException, 'dump_to_db: database not set!'):
             cs.dump_to_db()
+    def test_is_not_empty(self):
+        cs = CurrentStatement(cursor, None)
+        self.assertFalse(cs.is_not_empty())
+        o = Ops('STAT', cursor, "id=1 cnt=1 pid=0 pos=1 obj=89434 op='TABLE ACCESS BY INDEX ROWID CUSTOMER_SEGMENT (cr=5 pr=0 pw=0 str=1 time=173 us cost=4 size=103 card=1)'", fname, 8)
+        cs.add_stat(o)
+        self.assertTrue(cs.is_not_empty())
+
 if __name__ == '__main__':
     unittest.main()

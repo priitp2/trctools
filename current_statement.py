@@ -16,6 +16,24 @@ class CurrentStatement:
         self.sql_id = sql_id
         self.db = db
         self.stat = []
+    def is_not_empty(self):
+        if self.parsing_in:
+            return True
+        elif self.parse:
+            return True
+        elif self.exec:
+            return True
+        elif len(self.waits) > 0:
+            return True
+        elif len(self.fetches) > 0:
+            return True
+        elif self.close:
+            return True
+        elif len(self.stat) > 0:
+            return True
+        else:
+            return False
+
     def add_parsing_in(self, params):
         if self.parsing_in:
             raise(BaseException("add_parsing_in: already set!"))
