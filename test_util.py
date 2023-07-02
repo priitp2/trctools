@@ -37,17 +37,18 @@ class TestUtil(unittest.TestCase):
         ela_nowait = 598
         waits = 5
         fetches = 2
+        stars = 9
 
         db = DB()
         tracker = CursorTracker(db)
         lines = self.filer.process_file(tracker, 'tests/simple_trace.trc', sql_ids)
-        self.assertEqual(lines, 24)
+        self.assertEqual(lines, 34)
 
         # There is special statement for cursor #0, so len == 2
         self.assertEqual(len(tracker.statements), 2)
         self.assertEqual(len(tracker.cursors), 2)
 
-        self.assertEqual(len(db.batches), 11)
+        self.assertEqual(len(db.batches), 20)
         (db_cpu, db_elapsed, db_nowait) = self.get_aggregates(db.batches)
 
         self.assertEqual(cpu, db_cpu)
@@ -56,6 +57,7 @@ class TestUtil(unittest.TestCase):
 
         self.assertEqual(self.get_count(db.batches, 3, 'WAIT'), waits)
         self.assertEqual(self.get_count(db.batches, 3, 'FETCH'), fetches)
+        self.assertEqual(self.get_count(db.batches, 3, 'STAR'), stars)
     def test_process_file_simple_2x(self):
         # Calculated from the trace file
         # From 1st exec

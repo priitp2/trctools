@@ -70,7 +70,7 @@ class TestOps(unittest.TestCase):
         sql_id = 'abc123'
         o1 = Ops('EXEC', cursor, 'c=73,e=73,p=1,cr=2,cu=3,mis=4,r=5,dep=6,og=7,plh=2725028981,tim=5793511830834', fname, 1)
         l = o1.to_list(0, sql_id)
-        self.assertEqual(len(l), len(o1.__slots__) + 4)
+        self.assertEqual(len(l), len(o1.__slots__) + 5)
         self.assertEqual(l[0], 0)
         self.assertEqual(l[1], sql_id)
         self.assertEqual(l[2], cursor)
@@ -91,6 +91,8 @@ class TestOps(unittest.TestCase):
         self.assertEqual(l[17], '')
         self.assertEqual(l[18], fname)
         self.assertEqual(l[19], 1)
+        # ts2
+        self.assertEqual(l[20], None)
 
     def test_empty_wait(self):
         o1 = Ops('WAIT', '#140641987987624', " nam='SQL*Net message to client' ela= 1 driver id=675562835 #bytes=1 p3=0 obj#=89440 tim=5793511831582", fname, 3)
@@ -108,6 +110,9 @@ class TestOps(unittest.TestCase):
 
         o1 = Ops('CLOSE', '#140641987987624', 'c=3,e=3,dep=0,type=1,tim=5793511831927', fname, 4)
         self.assertRegex(str(o1), '^#140641987987624: CLOSE*')
+
+        o1 = Ops('STAR', None, '123.223', fname, 4, name='SESSION ID')
+        self.assertRegex(str(o1), '^\*\*\* SESSION ID*')
 if __name__ == '__main__':
     unittest.main()
 
