@@ -29,6 +29,7 @@ class DB:
             ('wait_raw', pa.string()),
             ('file_name', pa.string()),
             ('line', pa.int64()),
+            ('ts2', pa.timestamp('us')),
             ])
         self.exec_id = 0
         self.batches = []

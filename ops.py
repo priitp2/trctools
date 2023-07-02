@@ -2,7 +2,7 @@ import re
 
 class Ops:
     # FIXME: add __str__ method
-    def __init__(self, op_type, cursor, params, fname, line):
+    def __init__(self, op_type, cursor, params, fname, line, name=None, ts2=None):
         self.op_type = op_type
         self.cursor = cursor
         self.fname = fname
@@ -20,6 +20,11 @@ class Ops:
         elif op_type == 'STAT':
             self.__dict__['raw'] = params
             self.__slots__ = (op_type, cursor, 'raw', fname, line)
+        elif op_type == 'STAR':
+            self.__dict__['name'] = name
+            self.__dict__['raw'] = params
+            self.__dict__['ts2'] = ts2
+            self.__slots__ = (op_type, cursor, 'raw', fname, line, 'name', 'ts2')
         else:
             for item in params.split(','):
                 if len(item):
@@ -50,15 +55,20 @@ class Ops:
     def to_list(self, exec_id, sql_id):
         # FIXME: does not handle WAIT
         if self.op_type == 'WAIT':
-            return [exec_id, sql_id, self.cursor, self.op_type, None, self.e, None, None, None, None, None, None, None, None, self.tim, None, self.name, self.raw, self.fname, self.line]
+            return [exec_id, sql_id, self.cursor, self.op_type, None, self.e, None, None, None, None, None, None, None, None, self.tim, None, self.name, self.raw, self.fname, self.line, None]
         elif self.op_type == 'STAT':
-            return [exec_id, sql_id, self.cursor, self.op_type, None, None, None, None, None, None, None, None, None, None, None, None, None, self.raw, self.fname, self.line]
+            return [exec_id, sql_id, self.cursor, self.op_type, None, None, None, None, None, None, None, None, None, None, None, None, None, self.raw, self.fname, self.line, None]
+        elif self.op_type == 'STAR':
+            return [exec_id, sql_id, self.cursor, self.op_type, None, None, None, None, None, None, None, None, None, None, None, None, self.name, self.raw, self.fname, self.line, self.ts2]
         else:
-            return [exec_id, sql_id, self.cursor, self.op_type, self.c, self.e, self.p, self.cr, self.cu, self.mis, self.r, self.dep, self.og, self.plh, self.tim, self.type, '', '', self.fname, self.line]
+            return [exec_id, sql_id, self.cursor, self.op_type, self.c, self.e, self.p, self.cr, self.cu, self.mis, self.r, self.dep, self.og, self.plh, self.tim, self.type, '', '', self.fname, self.line, None]
+
     def __str__(self):
         str0 = "{}: {} ".format(self.cursor, self.op_type)
         if self.op_type in ['WAIT', 'STAT']:
             return str0 + "{}".format(self.raw)
+        elif self.op_type == 'STAR':
+            return "*** {}: ({}) {}".format(self.name, self.raw, self.ts2)
         elif self.op_type == 'CLOSE':
             return str0 + "c={},e={},type={},tim={}, fname={},line={}".format(self.c, self.e, self.type, self.tim, self.fname, self.line)
         else:
