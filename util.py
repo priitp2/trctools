@@ -11,6 +11,7 @@ class Filer:
         self.timezone_matcher = re.compile(r'''(?:.*)\+(\d\d:\d\d)''')
         self.stars_matcher = re.compile(r'''^\*\*\* (SESSION ID:|CLIENT ID:|SERVICE NAME:|MODULE NAME:|ACTION NAME:|CLIENT DRIVER:|CONTAINER ID:)(\(.*\)) (.*)''')
         self.call_matcher = re.compile(r'''^(PARSE|PARSING IN CURSOR|EXEC|FETCH|WAIT|CLOSE|BINDS|STAT) (#\d+)(:| )(.*)''')
+        self.file_header_matcher = re.compile(r'''^(Build label|ORACLE_HOME|System name|Node name|Release|Version|Machine|Instance name|Redo thread mounted by this instance|Oracle process number|Unix process pid):\s+(.*)''')
         self.logger = logging.getLogger(__name__)
     def process_file(self, tr, fname, sql_ids):
 
@@ -19,6 +20,9 @@ class Filer:
         with open(fname, 'r') as f:
             for line in f:
                 line_count += 1
+
+                if len(line) == 0:
+                    continue
 
                 match = self.call_matcher.match(line)
                 if match:
@@ -66,6 +70,13 @@ class Filer:
                     ts2 = datetime.datetime.strptime(match.group(3), '%Y-%m-%dT%H:%M:%S.%f%z')
                     tr.db.insert_ops(Ops('STAR', None, match.group(2).strip('()'), fname, line_count, match.group(1).strip(':'), ts2).to_list(tr.db.get_exec_id(), None))
                     continue
+
+                match = self.file_header_matcher.match(line)
+                if match:
+                    tr.db.insert_ops(Ops('STAR', None, match.group(2), fname, line_count, match.group(1), None).to_list(tr.db.get_exec_id(), None))
+                    continue
+
+                #print("non-matching line: {}".format(line))
 
         self.logger.info('process_file: %s done', fname)
         return line_count
