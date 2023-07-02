@@ -36,23 +36,24 @@ class CursorTracker:
         ''' If cursor is present then this is new execution, so merge the cursor with the statement and
             overwrite the latest_cursor.
         '''
-        self.logger.debug('add_latest_cursor: start')
+        #self.logger.debug('add_latest_cursor: start')
         cs = self._get_cursor(cursor)
         if not cs:
+            # Cursors/statements come either throug add_parsing_in() with sql_id, or or from here with dummy sql_id
             if cursor not in self.cursors.keys():
                 #print("add_latest_cursor: unknown cursor or statement {}, probably missing PARSE* operation".format(cursor))
                 self._add_dummy_statement(cursor)
             self.latest_cursors[cursor] = CurrentStatement(cursor, self.db, self.cursors[cursor])
             # Trace can contain cursor without matching PARSING IN CURSOR
-            self.logger.debug('add_latest_cursor: done')
+            #self.logger.debug('add_latest_cursor: done')
             return self.latest_cursors[cursor]
-        statement = self.statements[self.cursors[cursor]]
+        #statement = self.statements[self.cursors[cursor]]
         if self.db:
-            self.logger.debug('add_latest_cursor: dump to db')
+            #self.logger.debug('add_latest_cursor: dump to db')
             cs.dump_to_db()
-            self.logger.debug('add_latest_cursor: dump to db done')
+            #self.logger.debug('add_latest_cursor: dump to db done')
         self.latest_cursors[cursor] = CurrentStatement(cursor, self.db, self.cursors[cursor])
-        self.logger.debug('add_latest_cursor: done')
+        #self.logger.debug('add_latest_cursor: done')
         return self.latest_cursors[cursor]
     def add_parsing_in(self, cursor, params):
         # FIXME: check if statement already exists whrh sql_id "dummy*" and try to fix this 
@@ -107,8 +108,14 @@ class CursorTracker:
             cs = self.add_latest_cursor(cursor)
         cs.add_stat(params)
     def reset(self):
+        empty = []
         for c in self.latest_cursors:
-            self.add_latest_cursor(c)
+            if self.latest_cursors[c].is_not_empty():
+                self.add_latest_cursor(c)
+            else:
+                empty.append(c)
+        for c in empty:
+            del(self.latest_cursors[c])
     def flush(self, fname):
         self.logger.debug('flush')
         if not self.db:
