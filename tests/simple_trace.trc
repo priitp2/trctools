@@ -1,7 +1,24 @@
-*** 2023-05-19T05:28:00.339263+02:00 (OPRD21(11))
+Trace file /u01/app/oracle/diag/rdbms/xxx/yyy/trace/xxx_ora_613102_TESTAPP.trc
+Oracle Database 19c Enterprise Edition Release 19.0.0.0.0 - Production
+Version 19.14.2.0.0
+Build label:    RDBMS_19.14.0.0.0DBRUR_LINUX.X64_220707
+ORACLE_HOME:    /u01/app/oracle/product/19-clean-19142
+System name:    Linux
+Node name:      testserver.example.com
+Release:        5.4.17-2136.309.5.el8uek.x86_64
+Version:        #2 SMP Sat Jul 16 13:06:22 PDT 2022
+Machine:        x86_64
+Instance name: yyy
+Redo thread mounted by this instance: 4
+Oracle process number: 871
+Unix process pid: 613102, image: oracle@testserver.example.com
+
+
+
+*** 2023-05-19T05:28:00.339263+02:00 (TESTPDB(11))
 *** SESSION ID:(2773.37935) 2023-05-19T05:28:00.339309+02:00
 *** CLIENT ID:() 2023-05-19T05:28:00.339315+02:00
-*** SERVICE NAME:(bonusprogression.prod.unibet.com) 2023-05-19T05:28:00.339319+02:00
+*** SERVICE NAME:(testservice.example.com) 2023-05-19T05:28:00.339319+02:00
 *** MODULE NAME:(JDBC Thin Client) 2023-05-19T05:28:00.339325+02:00
 *** ACTION NAME:() 2023-05-19T05:28:00.339329+02:00
 *** CLIENT DRIVER:() 2023-05-19T05:28:00.339332+02:00
