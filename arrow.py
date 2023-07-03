@@ -1,7 +1,6 @@
-import pyarrow as pa
-from pyarrow import fs
-import pyarrow.parquet as pq
 import logging
+import pyarrow as pa
+import pyarrow.parquet as pq
 
 class DB:
     def __init__(self, dbdir):
@@ -66,8 +65,8 @@ class DB:
         #self.batches.append(batch)
         if len(self.batches) > self.max_batch_size:
             self.flush_batches()
-    def insert_cursors(self, cs):
-        batch = pa.record_batch([i for i in zip(*cs)], self.cursor_statement_schema)
+    def insert_cursors(self, cursors):
+        batch = pa.record_batch(list(zip(*cursors)), self.cursor_statement_schema)
         self.cursor_statement_batches.append(batch)
     def set_filename(self, fname):
         self.fname = fname
@@ -83,7 +82,8 @@ class DB:
         table = pa.Table.from_arrays(arrays, schema = self.cursor_exec_schema)
         self.logger.debug('flush_batches: table done')
 
-        pq.write_table(table, '{}/trace/{}.parquet.{}'.format(self.dbdir, self.fname, self.flush_count), compression='gzip')
+        pq.write_table(table, f'{self.dbdir}/trace/{self.fname}.parquet.{self.flush_count}',
+                        compression='gzip')
         self.logger.debug('flush_batches: table written')
 
         self.batches = []
@@ -105,6 +105,5 @@ class DB:
         self.flush_batches()
 
         table = pa.Table.from_batches(self.cursor_statement_batches)
-        pq.write_table(table, '{}/cursors/{}.parquet'.format(self.dbdir, fname), compression='gzip')
+        pq.write_table(table, f'{self.dbdir}/cursors/{fname}.parquet', compression='gzip')
         self.cursor_statement_batches = []
-
