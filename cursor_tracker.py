@@ -107,6 +107,11 @@ class CursorTracker:
         if not cs:
             cs = self.add_latest_cursor(cursor)
         cs.add_stat(params)
+    def add_binds(self, cursor, params):
+        cs = self._get_cursor(cursor)
+        if not cs:
+            cs = self.add_latest_cursor(cursor)
+        cs.add_binds(params)
     def reset(self):
         empty = []
         for c in self.latest_cursors:

@@ -25,6 +25,9 @@ class Ops:
             self.__dict__['raw'] = params
             self.__dict__['ts2'] = ts2
             self.__slots__ = (op_type, cursor, 'raw', fname, line, 'name', 'ts2')
+        elif op_type == 'BINDS':
+            self.__dict__['raw'] = params
+            self.__slots__ = (op_type, cursor, 'raw', fname, line)
         else:
             for item in params.split(','):
                 if len(item):
@@ -56,7 +59,7 @@ class Ops:
         # FIXME: does not handle WAIT
         if self.op_type == 'WAIT':
             return [exec_id, sql_id, self.cursor, self.op_type, None, self.e, None, None, None, None, None, None, None, None, self.tim, None, self.name, self.raw, self.fname, self.line, None]
-        elif self.op_type == 'STAT':
+        elif self.op_type in ['STAT', 'BINDS']:
             return [exec_id, sql_id, self.cursor, self.op_type, None, None, None, None, None, None, None, None, None, None, None, None, None, self.raw, self.fname, self.line, None]
         elif self.op_type == 'STAR':
             return [exec_id, sql_id, self.cursor, self.op_type, None, None, None, None, None, None, None, None, None, None, None, None, self.name, self.raw, self.fname, self.line, self.ts2]
@@ -65,7 +68,7 @@ class Ops:
 
     def __str__(self):
         str0 = "{}: {} ".format(self.cursor, self.op_type)
-        if self.op_type in ['WAIT', 'STAT']:
+        if self.op_type in ['WAIT', 'STAT', 'BINDS']:
             return str0 + "{}".format(self.raw)
         elif self.op_type == 'STAR':
             return "*** {}: ({}) {}".format(self.name, self.raw, self.ts2)

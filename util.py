@@ -16,6 +16,9 @@ class Filer:
     def process_file(self, tr, fname, sql_ids):
 
         line_count = 0
+        in_binds = False
+        in_pic = False
+        binds = ()
         self.logger.info('process_file: processing %s', fname)
         with open(fname, 'r') as f:
             for line in f:
@@ -24,8 +27,16 @@ class Filer:
                 if len(line) == 0:
                     continue
 
+
                 match = self.call_matcher.match(line)
                 if match:
+                    if in_binds:
+                        in_binds = False
+                        b = Ops('BINDS', binds[0], "".join(binds[3]), binds[1], binds[2])
+                        tr.add_binds(binds[0], b)
+                        #(cursor, file name, line no, [binds])
+                        binds = ()
+
                     if match.group(1) == 'PARSING IN CURSOR':
                         tr.add_parsing_in(match.group(2), match.group(4))
                     elif match.group(1) == 'PARSE':
@@ -47,10 +58,15 @@ class Filer:
                         s = Ops('STAT', match.group(2), match.group(4), fname, line_count)
                         tr.add_stat(match.group(2), s)
                     elif match.group(1) == 'BINDS':
-                        pass
+                        in_binds = True
+                        binds = (match.group(2), fname, line_count, [])
                     else:
                         print(match.group(1))
                         print("process_file: no match: {}".format(line))
+                    continue
+
+                if in_binds:
+                    binds[3].append(line)
                     continue
 
                 match = self.res_matcher.match(line)

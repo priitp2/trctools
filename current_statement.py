@@ -16,6 +16,7 @@ class CurrentStatement:
         self.sql_id = sql_id
         self.db = db
         self.stat = []
+        self.binds = None
     def is_not_empty(self):
         if self.parsing_in:
             return True
@@ -84,6 +85,12 @@ class CurrentStatement:
         if self.cursor != ops.cursor:
             raise(BaseException("add_stat: got cursor {}, have: {}".format(ops.cursor, self.cursor)))
         self.stat.append(ops)
+    def add_binds(self, ops):
+        if ops.op_type != 'BINDS':
+            raise(BaseException("add_stat: wrong op_type = {}".format(ops.op_type)))
+        if self.cursor != ops.cursor:
+            raise(BaseException("add_stat: got cursor {}, have: {}".format(ops.cursor, self.cursor)))
+        self.binds = ops
     def dump_to_db(self):
         if not self.db:
             raise BaseException("dump_to_db: database not set!")
@@ -101,3 +108,5 @@ class CurrentStatement:
             self.db.insert_ops(self.close.to_list(exec_id, self.sql_id))
         for s in self.stat:
             self.db.insert_ops(s.to_list(exec_id, self.sql_id))
+        if self.binds:
+            self.db.insert_ops(self.binds.to_list(exec_id, self.sql_id))
