@@ -7,6 +7,7 @@ class Filer:
     def __init__(self):
         self.res_matcher = re.compile(r'''^(={21})''')
         self.pic_matcher = re.compile(r'''^END OF STMT(.*)''')
+        self.xctend_matcher = re.compile(r'''^XCTEND (.*)''')
         # 2023-05-19T05:28:00.339263+02:00
         self.date_matcher = re.compile(r'''^\*{3} (\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\.\d{6}\+\d\d:\d\d)''')
         self.timezone_matcher = re.compile(r'''(?:.*)\+(\d\d:\d\d)''')
@@ -86,6 +87,11 @@ class Filer:
                         pic = None
                     else:
                         pic.raw.append(line)
+                    continue
+
+                match = self.xctend_matcher.match(line)
+                if match:
+                    tr.db.insert_ops(Ops('XCTEND', None, match.group(1), fname, line_count).to_list(tr.db.get_exec_id(), None))
                     continue
 
                 match = self.res_matcher.match(line)
