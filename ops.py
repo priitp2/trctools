@@ -1,7 +1,7 @@
 import re
 
 class Ops:
-    # FIXME: add __str__ method
+    """This is a hot mess. Do not touch! """
     def __init__(self, op_type, cursor, params, fname, line, name=None, ts2=None):
         self.op_type = op_type
         self.cursor = cursor
@@ -34,7 +34,6 @@ class Ops:
                 self.__dict__[key[0]] = int(key[1])
             self.__slots__ = (op_type, cursor, 'rlbk', 'rd_only', 'tim', fname, line)
         elif op_type == 'PIC':
-            # len=80 dep=0 uid=331 oct=3 lid=331 tim=7104844976089 hv=1167462720 ad='9d4125228' sqlid='6v48b7j2tc4a0'
             for item in params.split(' '):
                 if len(item):
                     key = item.split('=')
@@ -42,20 +41,21 @@ class Ops:
                         self.__dict__[key[0]] = key[1].strip("'")
                     else:
                         self.__dict__[key[0]] = int(key[1])
-            self.__slots__ = (op_type, cursor, 'dep', 'tim', 'len', 'uid', 'oct', 'lid', 'hv', 'ad', 'raw', fname, line, 'sqlid')
+            self.__slots__ = (op_type, cursor, 'dep', 'tim', 'len', 'uid', 'oct', 'lid',
+                                'hv', 'ad', 'raw', fname, line, 'sqlid')
             self.__dict__['raw'] = []
         else:
             for item in params.split(','):
                 if len(item):
                     key = item.split('=')
                     self.__dict__[key[0]] = int(key[1])
-            self.__slots__ = ('op_type', 'cursor', 'c', 'e', 'p', 'cr', 'cu', 'mis', 'r', 'dep', 'og', 'plh', 'tim', 'type', fname, line)
+            self.__slots__ = ('op_type', 'cursor', 'c', 'e', 'p', 'cr', 'cu', 'mis', 'r',
+                                'dep', 'og', 'plh', 'tim', 'type', fname, line)
 
     def __getattr__(self, name):
-            if name in self.__slots__:
-                return 0
-            else:
-                raise AttributeError("Wrong attribute: {}".format(name))
+        if name in self.__slots__:
+            return 0
+        raise AttributeError(f"Wrong attribute: {name}")
     def merge(self, ops1):
         if not ops1:
             return self
@@ -66,38 +66,54 @@ class Ops:
         out.e = self.e
         for o in ops1:
             if out.cursor != o.cursor:
-                raise ValueError("Ops.merge: cursor = {}, o.cursor = {}".format(self.cursor, o.cursor))
+                raise ValueError("Ops.merge: cursor = {self.cursor}, o.cursor = {o.cursor}")
             out.c += o.c
             out.e += o.e
 
         return out
     def to_list(self, exec_id, sql_id):
-        # FIXME: does not handle WAIT
         if self.op_type == 'WAIT':
-            return [exec_id, sql_id, self.cursor, self.op_type, None, self.e, None, None, None, None, None, None, None, None, self.tim, None, self.name, self.raw, self.fname, self.line, None, None, None, None, None, None, None, None, None]
-        elif self.op_type in ['STAT', 'BINDS']:
-            return [exec_id, sql_id, self.cursor, self.op_type, None, None, None, None, None, None, None, None, None, None, None, None, None, self.raw, self.fname, self.line, None, None, None, None, None, None, None, None, None]
-        elif self.op_type == 'STAR':
-            return [exec_id, sql_id, self.cursor, self.op_type, None, None, None, None, None, None, None, None, None, None, None, None, self.name, self.raw, self.fname, self.line, self.ts2, None, None, None, None, None, None, None, None]
-        elif self.op_type == 'PIC':
-            return [exec_id, sql_id, self.cursor, self.op_type, None, None, None, None, None, None, None, self.dep, None, None, self.tim, None, '', "".join(self.raw), self.fname, self.line, None, self.len, self.uid, self.oct, self.lid, self.hv, self.ad, None, None]
-        elif self.op_type == 'XCTEND':
-            return [exec_id, sql_id, self.cursor, self.op_type, None, None, None, None, None, None, None, None, None, None, self.tim, None, '', None, self.fname, self.line, None, None, None, None, None, None, None, self.rlbk, self.rd_only]
-        else:
-            return [exec_id, sql_id, self.cursor, self.op_type, self.c, self.e, self.p, self.cr, self.cu, self.mis, self.r, self.dep, self.og, self.plh, self.tim, self.type, '', '', self.fname, self.line, None, None, None, None, None, None, None, None, None]
+            return [exec_id, sql_id, self.cursor, self.op_type, None, self.e, None, None,
+                        None, None, None, None, None, None, self.tim, None, self.name,
+                        self.raw, self.fname, self.line, None, None, None, None, None, None,
+                        None, None, None]
+        if self.op_type in ['STAT', 'BINDS']:
+            return [exec_id, sql_id, self.cursor, self.op_type, None, None, None, None, None,
+                        None, None, None, None, None, None, None, None, self.raw, self.fname,
+                        self.line, None, None, None, None, None, None, None, None, None]
+        if self.op_type == 'STAR':
+            return [exec_id, sql_id, self.cursor, self.op_type, None, None, None, None, None,
+                        None, None, None, None, None, None, None, self.name, self.raw, self.fname,
+                        self.line, self.ts2, None, None, None, None, None, None, None, None]
+        if self.op_type == 'PIC':
+            return [exec_id, sql_id, self.cursor, self.op_type, None, None, None, None, None,
+                        None, None, self.dep, None, None, self.tim, None, '', "".join(self.raw),
+                        self.fname, self.line, None, self.len, self.uid, self.oct, self.lid,
+                        self.hv, self.ad, None, None]
+        if self.op_type == 'XCTEND':
+            return [exec_id, sql_id, self.cursor, self.op_type, None, None, None, None, None,
+                        None, None, None, None, None, self.tim, None, '', None, self.fname,
+                        self.line, None, None, None, None, None, None, None, self.rlbk,
+                        self.rd_only]
+        return [exec_id, sql_id, self.cursor, self.op_type, self.c, self.e, self.p, self.cr,
+                    self.cu, self.mis, self.r, self.dep, self.og, self.plh, self.tim, self.type,
+                    '', '', self.fname, self.line, None, None, None, None, None, None, None, None,
+                    None]
 
     def __str__(self):
-        str0 = "{}: {} ".format(self.cursor, self.op_type)
+        str0 = f"{self.cursor}: {self.op_type} "
         if self.op_type in ['WAIT', 'STAT', 'BINDS']:
-            return str0 + "{}".format(self.raw)
-        elif self.op_type == 'STAR':
-            return "*** {}: ({}) {}".format(self.name, self.raw, self.ts2)
-        elif self.op_type == 'CLOSE':
-            return str0 + "c={},e={},type={},tim={}, fname={},line={}".format(self.c, self.e, self.type, self.tim, self.fname, self.line)
-        elif self.op_type == 'XCTEND':
-            return "XCTEND rlbk={}, rd_only={}, tim={}".format(self.rlbk, self.rd_only, self.tim)
-        elif self.op_type == 'PIC':
-            # PARSING IN CURSOR #139620869130984 len=80 dep=0 uid=331 oct=3 lid=331 tim=7104844976089 hv=1167462720 ad='9d4125228' sqlid='6v48b7j2tc4a0'
-            return "PARSING IN CURSOR len={} dep={} uid={} oct={} lid={} tim={} hv={} ad={} sqlid={}\n{}\nEND OF STMT".format(self.len, self.dep, self.uid, self.oct, self.lid, self.tim, self.hv, self.ad, self.sqlid, self.raw)
-        else:
-            return str0 + "c={},e={},p={},cr={},cu={},mis={},r={},dep={},og={},plh={},tim={}, fname={},line={}".format(self.c, self.e, self.p, self.cr, self.cu, self.mis, self.r, self.dep, self.og, self.plh, self.tim, self.fname, self.line)
+            return str0 + f"{self.raw}"
+        if self.op_type == 'STAR':
+            return f"*** {self.name}: ({self.raw}) {self.ts2}"
+        if self.op_type == 'CLOSE':
+            return str0 + f"c={self.c},e={self.e},type={self.type},tim={self.tim}"
+        if self.op_type == 'XCTEND':
+            return f"XCTEND rlbk={self.rlbk}, rd_only={self.rd_only}, tim={self.tim}"
+        if self.op_type == 'PIC':
+            return f"PARSING IN CURSOR len={self.len} dep={self.dep} uid={self.uid} " \
+                   + f"oct={self.oct} lid={self.lid} tim={self.tim} hv={self.hv} "    \
+                   + f"ad={self.ad} sqlid={self.sqlid}\n{self.raw}\nEND OF STMT"
+        return str0 + f"c={self.c},e={self.e},p={self.p},cr={self.cr},cu={self.cu},"           \
+                    + f"mis={self.mis},r={self.r},dep={self.dep},og={self.og},plh={self.plh}," \
+                    + f"tim={self.tim},fname={self.fname},line={self.line}"
