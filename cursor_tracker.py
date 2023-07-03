@@ -62,6 +62,10 @@ class CursorTracker:
             self.statements[s.sql_id] = s
         self.cursors[cursor] = s.sql_id
         self.latest_cursors[cursor] = CurrentStatement(cursor, self.db, s.sql_id)
+    def add_pic(self, cursor, params):
+        cs = self._get_cursor(cursor)
+        cs.add_pic(params)
+        return
     def add_parse(self, cursor, params):
         cs = self._get_cursor(cursor)
         if cs:

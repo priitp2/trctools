@@ -30,6 +30,12 @@ class DB:
             ('file_name', pa.string()),
             ('line', pa.int64()),
             ('ts2', pa.timestamp('us')),
+            ('len', pa.int64()),
+            ('uid', pa.int64()),
+            ('oct', pa.int64()),
+            ('lid', pa.int64()),
+            ('hv', pa.int64()),
+            ('ad', pa.string()),
             ])
         self.exec_id = 0
         self.batches = []

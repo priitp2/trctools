@@ -6,6 +6,7 @@ import datetime
 class Filer:
     def __init__(self):
         self.res_matcher = re.compile(r'''^(={21})''')
+        self.pic_matcher = re.compile(r'''^END OF STMT(.*)''')
         # 2023-05-19T05:28:00.339263+02:00
         self.date_matcher = re.compile(r'''^\*{3} (\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\.\d{6}\+\d\d:\d\d)''')
         self.timezone_matcher = re.compile(r'''(?:.*)\+(\d\d:\d\d)''')
@@ -19,12 +20,18 @@ class Filer:
         in_binds = False
         in_pic = False
         binds = ()
+        pic = None
         self.logger.info('process_file: processing %s', fname)
         with open(fname, 'r') as f:
             for line in f:
                 line_count += 1
 
-                if len(line) == 0:
+                # Skip the first line
+                if line_count < 4:
+                    continue
+
+                # FIXME: skip lines with CR
+                if len(line) < 2:
                     continue
 
 
@@ -38,7 +45,9 @@ class Filer:
                         binds = ()
 
                     if match.group(1) == 'PARSING IN CURSOR':
+                        in_pic = True
                         tr.add_parsing_in(match.group(2), match.group(4))
+                        pic = Ops('PIC', match.group(2), match.group(4), fname, line_count)
                     elif match.group(1) == 'PARSE':
                         last_parse = Ops('PARSE', match.group(2), match.group(4), fname, line_count)
                         tr.add_parse(match.group(2), last_parse)
@@ -69,6 +78,16 @@ class Filer:
                     binds[3].append(line)
                     continue
 
+                if in_pic:
+                    match = self.pic_matcher.match(line)
+                    if match:
+                        tr.add_pic(pic.cursor, pic)
+                        in_pic = False
+                        pic = None
+                    else:
+                        pic.raw.append(line)
+                    continue
+
                 match = self.res_matcher.match(line)
                 if match:
                     self.logger.debug('reset tracker')
@@ -92,7 +111,7 @@ class Filer:
                     tr.db.insert_ops(Ops('STAR', None, match.group(2), fname, line_count, match.group(1), None).to_list(tr.db.get_exec_id(), None))
                     continue
 
-                #print("non-matching line: {}".format(line))
+                print("non-matching line: {}".format(line))
 
         self.logger.info('process_file: %s done', fname)
         return line_count
