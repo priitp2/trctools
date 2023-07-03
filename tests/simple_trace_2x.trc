@@ -1,3 +1,18 @@
+Trace file tests/simple_trace_2x.trc
+Oracle Database 19c Enterprise Edition Release 19.0.0.0.0 - Production
+Version 19.14.2.0.0
+Build label:    RDBMS_19.14.0.0.0DBRUR_LINUX.X64_220707
+ORACLE_HOME:    /u01/app/oracle/product/19-clean-19142
+System name:    Linux
+Node name:      testserver.example.com
+Release:        5.4.17-2136.309.5.el8uek.x86_64
+Version:        #2 SMP Sat Jul 16 13:06:22 PDT 2022
+Machine:        x86_64
+Instance name: yyy
+Redo thread mounted by this instance: 4
+Oracle process number: 871
+Unix process pid: 613102, image: oracle@testserver.example.com
+
 =====================
 PARSING IN CURSOR #140641987987624 len=123 dep=0 uid=127 oct=3 lid=127 tim=5793511830707 hv=41568804 ad='b3cba2e50' sqlid='atxg62s17nkj4'
 select distinct customerse0_.SEGMENT_NAME as col_0_0_ from CUSTOMER_SEGMENT customerse0_ where customerse0_.CUSTOMER_ID=:1

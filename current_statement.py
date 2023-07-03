@@ -17,6 +17,7 @@ class CurrentStatement:
         self.db = db
         self.stat = []
         self.binds = None
+        self.pic = None
     def is_not_empty(self):
         if self.parsing_in:
             return True
@@ -35,11 +36,20 @@ class CurrentStatement:
         else:
             return False
 
+    # FIXME: merge add_parsing_in and add_pic
     def add_parsing_in(self, params):
         if self.parsing_in:
             raise(BaseException("add_parsing_in: already set!"))
         else:
             self.parsing_in = params
+    def add_pic(self, ops):
+        if ops.op_type != 'PIC':
+            raise(BaseException("add_parse: wrong op_type = {}".format(ops.op_type)))
+        if self.pic:
+            raise(BaseException("add_parse: already set!"))
+        if self.cursor != ops.cursor:
+            raise(BaseException("add_parse: got cursor {}, have: {}, params: {}".format(ops.cursor, self.cursor, ops)))
+        self.pic = ops
     def add_parse(self, ops):
         if ops.op_type != 'PARSE':
             raise(BaseException("add_parse: wrong op_type = {}".format(ops.op_type)))
@@ -110,3 +120,5 @@ class CurrentStatement:
             self.db.insert_ops(s.to_list(exec_id, self.sql_id))
         if self.binds:
             self.db.insert_ops(self.binds.to_list(exec_id, self.sql_id))
+        if self.pic:
+            self.db.insert_ops(self.pic.to_list(exec_id, self.sql_id))

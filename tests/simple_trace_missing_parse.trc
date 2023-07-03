@@ -1,3 +1,18 @@
+Trace file tests/simple_trace_missing_parse.trc
+Oracle Database 19c Enterprise Edition Release 19.0.0.0.0 - Production
+Version 19.14.2.0.0
+Build label:    RDBMS_19.14.0.0.0DBRUR_LINUX.X64_220707
+ORACLE_HOME:    /u01/app/oracle/product/19-clean-19142
+System name:    Linux
+Node name:      testserver.example.com
+Release:        5.4.17-2136.309.5.el8uek.x86_64
+Version:        #2 SMP Sat Jul 16 13:06:22 PDT 2022
+Machine:        x86_64
+Instance name: yyy
+Redo thread mounted by this instance: 4
+Oracle process number: 871
+Unix process pid: 613102, image: oracle@testserver.example.com
+
 =====================
 PARSE #140641987987624:c=33,e=33,p=0,cr=0,cu=0,mis=0,r=0,dep=0,og=1,plh=2725028981,tim=5793511830706
 BINDS #140641987987624:

@@ -39,6 +39,7 @@ class TestUtil(unittest.TestCase):
         fetches = 2
         stars = 20
         binds = 1
+        pics = 1
 
         db = DB()
         tracker = CursorTracker(db)
@@ -49,7 +50,7 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(len(tracker.statements), 2)
         self.assertEqual(len(tracker.cursors), 2)
 
-        self.assertEqual(len(db.batches), 32)
+        self.assertEqual(len(db.batches), 33)
         (db_cpu, db_elapsed, db_nowait) = self.get_aggregates(db.batches)
 
         self.assertEqual(cpu, db_cpu)
@@ -60,6 +61,7 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(self.get_count(db.batches, 3, 'FETCH'), fetches)
         self.assertEqual(self.get_count(db.batches, 3, 'STAR'), stars)
         self.assertEqual(self.get_count(db.batches, 3, 'BINDS'), binds)
+        self.assertEqual(self.get_count(db.batches, 3, 'PIC'), pics)
     def test_process_file_simple_2x(self):
         # Calculated from the trace file
         # From 1st exec
@@ -73,13 +75,13 @@ class TestUtil(unittest.TestCase):
         db = DB()
         tracker = CursorTracker(db)
         lines = self.filer.process_file(tracker, 'tests/simple_trace_2x.trc', sql_ids)
-        self.assertEqual(lines, 44)
+        self.assertEqual(lines, 59)
 
         # There is special statement for cursor #0, so len == 2
         self.assertEqual(len(tracker.statements), 2)
         self.assertEqual(len(tracker.cursors), 2)
 
-        self.assertEqual(len(db.batches), 25)
+        self.assertEqual(len(db.batches), 37)
         (db_cpu, db_elapsed, db_nowait) = self.get_aggregates(db.batches)
         self.assertEqual(cpu, db_cpu)
         self.assertEqual(elapsed, db_elapsed)
@@ -99,14 +101,14 @@ class TestUtil(unittest.TestCase):
         db = DB()
         tracker = CursorTracker(db)
         lines = self.filer.process_file(tracker, 'tests/simple_trace_missing_parse.trc', sql_ids)
-        self.assertEqual(lines, 45)
+        self.assertEqual(lines, 60)
 
         # There is special statement for cursor #0, so len == 2
         # FIXME: decide if we should fix the sql_id for dummy1 or not
         self.assertEqual(len(tracker.statements), 3)
         self.assertEqual(len(tracker.cursors), 2)
 
-        self.assertEqual(len(db.batches), 25)
+        self.assertEqual(len(db.batches), 37)
 
         # First execution of #140641987987624 gets sql_id dummy1, b/c of missing PIC
         (db_cpu, db_elapsed, db_nowait) = self.get_aggregates(db.batches, 1, 'dummy1')
@@ -157,7 +159,7 @@ class TestUtil(unittest.TestCase):
         db = DB()
         tracker = CursorTracker(db)
         lines = self.filer.process_file(tracker, 'tests/stray_close.trc', sql_ids)
-        self.assertEqual(lines, 1)
+        self.assertEqual(lines, 16)
         self.assertEqual(self.get_count(db.batches, 3, 'CLOSE'), 1)
 
 if __name__ == '__main__':
