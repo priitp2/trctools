@@ -28,6 +28,11 @@ class Ops:
         elif op_type == 'BINDS':
             self.__dict__['raw'] = params
             self.__slots__ = (op_type, cursor, 'raw', fname, line)
+        elif op_type == 'XCTEND':
+            for item in params.split(', '):
+                key = item.split('=')
+                self.__dict__[key[0]] = int(key[1])
+            self.__slots__ = (op_type, cursor, 'rlbk', 'rd_only', 'tim', fname, line)
         elif op_type == 'PIC':
             # len=80 dep=0 uid=331 oct=3 lid=331 tim=7104844976089 hv=1167462720 ad='9d4125228' sqlid='6v48b7j2tc4a0'
             for item in params.split(' '):
@@ -69,15 +74,17 @@ class Ops:
     def to_list(self, exec_id, sql_id):
         # FIXME: does not handle WAIT
         if self.op_type == 'WAIT':
-            return [exec_id, sql_id, self.cursor, self.op_type, None, self.e, None, None, None, None, None, None, None, None, self.tim, None, self.name, self.raw, self.fname, self.line, None, None, None, None, None, None, None]
+            return [exec_id, sql_id, self.cursor, self.op_type, None, self.e, None, None, None, None, None, None, None, None, self.tim, None, self.name, self.raw, self.fname, self.line, None, None, None, None, None, None, None, None, None]
         elif self.op_type in ['STAT', 'BINDS']:
-            return [exec_id, sql_id, self.cursor, self.op_type, None, None, None, None, None, None, None, None, None, None, None, None, None, self.raw, self.fname, self.line, None, None, None, None, None, None, None]
+            return [exec_id, sql_id, self.cursor, self.op_type, None, None, None, None, None, None, None, None, None, None, None, None, None, self.raw, self.fname, self.line, None, None, None, None, None, None, None, None, None]
         elif self.op_type == 'STAR':
-            return [exec_id, sql_id, self.cursor, self.op_type, None, None, None, None, None, None, None, None, None, None, None, None, self.name, self.raw, self.fname, self.line, self.ts2, None, None, None, None, None, None]
+            return [exec_id, sql_id, self.cursor, self.op_type, None, None, None, None, None, None, None, None, None, None, None, None, self.name, self.raw, self.fname, self.line, self.ts2, None, None, None, None, None, None, None, None]
         elif self.op_type == 'PIC':
-            return [exec_id, sql_id, self.cursor, self.op_type, None, None, None, None, None, None, None, self.dep, None, None, self.tim, None, '', "".join(self.raw), self.fname, self.line, None, self.len, self.uid, self.oct, self.lid, self.hv, self.ad]
+            return [exec_id, sql_id, self.cursor, self.op_type, None, None, None, None, None, None, None, self.dep, None, None, self.tim, None, '', "".join(self.raw), self.fname, self.line, None, self.len, self.uid, self.oct, self.lid, self.hv, self.ad, None, None]
+        elif self.op_type == 'XCTEND':
+            return [exec_id, sql_id, self.cursor, self.op_type, None, None, None, None, None, None, None, None, None, None, self.tim, None, '', None, self.fname, self.line, None, None, None, None, None, None, None, self.rlbk, self.rd_only]
         else:
-            return [exec_id, sql_id, self.cursor, self.op_type, self.c, self.e, self.p, self.cr, self.cu, self.mis, self.r, self.dep, self.og, self.plh, self.tim, self.type, '', '', self.fname, self.line, None, None, None, None, None, None, None]
+            return [exec_id, sql_id, self.cursor, self.op_type, self.c, self.e, self.p, self.cr, self.cu, self.mis, self.r, self.dep, self.og, self.plh, self.tim, self.type, '', '', self.fname, self.line, None, None, None, None, None, None, None, None, None]
 
     def __str__(self):
         str0 = "{}: {} ".format(self.cursor, self.op_type)
@@ -87,6 +94,8 @@ class Ops:
             return "*** {}: ({}) {}".format(self.name, self.raw, self.ts2)
         elif self.op_type == 'CLOSE':
             return str0 + "c={},e={},type={},tim={}, fname={},line={}".format(self.c, self.e, self.type, self.tim, self.fname, self.line)
+        elif self.op_type == 'XCTEND':
+            return "XCTEND rlbk={}, rd_only={}, tim={}".format(self.rlbk, self.rd_only, self.tim)
         elif self.op_type == 'PIC':
             # PARSING IN CURSOR #139620869130984 len=80 dep=0 uid=331 oct=3 lid=331 tim=7104844976089 hv=1167462720 ad='9d4125228' sqlid='6v48b7j2tc4a0'
             return "PARSING IN CURSOR len={} dep={} uid={} oct={} lid={} tim={} hv={} ad={} sqlid={}\n{}\nEND OF STMT".format(self.len, self.dep, self.uid, self.oct, self.lid, self.tim, self.hv, self.ad, self.sqlid, self.raw)

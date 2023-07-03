@@ -50,7 +50,7 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(len(tracker.statements), 2)
         self.assertEqual(len(tracker.cursors), 2)
 
-        self.assertEqual(len(db.batches), 33)
+        self.assertEqual(len(db.batches), 34)
         (db_cpu, db_elapsed, db_nowait) = self.get_aggregates(db.batches)
 
         self.assertEqual(cpu, db_cpu)
@@ -81,7 +81,7 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(len(tracker.statements), 2)
         self.assertEqual(len(tracker.cursors), 2)
 
-        self.assertEqual(len(db.batches), 37)
+        self.assertEqual(len(db.batches), 39)
         (db_cpu, db_elapsed, db_nowait) = self.get_aggregates(db.batches)
         self.assertEqual(cpu, db_cpu)
         self.assertEqual(elapsed, db_elapsed)
@@ -108,7 +108,7 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(len(tracker.statements), 3)
         self.assertEqual(len(tracker.cursors), 2)
 
-        self.assertEqual(len(db.batches), 37)
+        self.assertEqual(len(db.batches), 39)
 
         # First execution of #140641987987624 gets sql_id dummy1, b/c of missing PIC
         (db_cpu, db_elapsed, db_nowait) = self.get_aggregates(db.batches, 1, 'dummy1')
@@ -117,6 +117,8 @@ class TestUtil(unittest.TestCase):
         (db_cpu, db_elapsed, db_nowait) = self.get_aggregates(db.batches, 1, 'atxg62s17nkj4')
         self.assertEqual(elapsed, db_elapsed)
         self.assertEqual(ela_nowait, db_nowait)
+
+        self.assertEqual(self.get_count(db.batches, 3, 'XCTEND'), 2)
 
     def test_process_file_3_statements_1_cursor(self):
         db = DB()

@@ -70,7 +70,7 @@ class TestOps(unittest.TestCase):
         sql_id = 'abc123'
         o1 = Ops('EXEC', cursor, 'c=73,e=73,p=1,cr=2,cu=3,mis=4,r=5,dep=6,og=7,plh=2725028981,tim=5793511830834', fname, 1)
         l = o1.to_list(0, sql_id)
-        self.assertEqual(len(l), len(o1.__slots__) + 11)
+        self.assertEqual(len(l), len(o1.__slots__) + 13)
         self.assertEqual(l[0], 0)
         self.assertEqual(l[1], sql_id)
         self.assertEqual(l[2], cursor)
@@ -116,6 +116,9 @@ class TestOps(unittest.TestCase):
 
         o1 = Ops('PIC', cursor, "len=80 dep=0 uid=331 oct=3 lid=331 tim=7104844976089 hv=1167462720 ad='9d4125228' sqlid='6v48b7j2tc4a0'", fname, 4, name='select dummy from dual')
         self.assertRegex(str(o1), '^PARSING IN CURSOR (.*) tim=7104844976089(.*)')
+
+        o1 = Ops('XCTEND', None, 'rlbk=0, rd_only=1, tim=5793512315347', fname, 4)
+        self.assertRegex(str(o1), '^XCTEND rlbk=0,*')
 if __name__ == '__main__':
     unittest.main()
 
