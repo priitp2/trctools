@@ -121,11 +121,11 @@ class CursorTracker:
                 empty.append(c)
         for c in empty:
             del(self.latest_cursors[c])
-    def flush(self, fname):
+    def flush(self):
         self.logger.debug('flush')
         if not self.db:
             return
         for c in self.latest_cursors:
             self.add_latest_cursor(c)
-        self.db.flush(fname)
+        self.db.flush()
         self.logger.debug('flush: done')

@@ -3,10 +3,11 @@ import pyarrow as pa
 import pyarrow.parquet as pq
 
 class DB:
-    def __init__(self, dbdir):
+    def __init__(self, dbdir, prefix):
         self.logger = logging.getLogger(__name__)
         self.max_batch_size = 8000000
         self.dbdir = dbdir
+        self.prefix = prefix
         self.cursor_exec_schema = pa.schema([
             ('exec_id', pa.int64()),
             ('sql_id', pa.string()),
@@ -60,9 +61,6 @@ class DB:
         #self.batches.append(batch)
         if len(self.batches) > self.max_batch_size:
             self.flush_batches()
-    def set_filename(self, fname):
-        self.fname = fname
-        self.flush_count = 0
     def flush_batches(self):
         #batch = pa.record_batch([i for i in zip(*self.batches)], self.cursor_exec_schema)
         self.logger.debug('flush_batches: flusing %d records', len(self.batches))
@@ -74,13 +72,13 @@ class DB:
         table = pa.Table.from_arrays(arrays, schema = self.cursor_exec_schema)
         self.logger.debug('flush_batches: table done')
 
-        pq.write_table(table, f'{self.dbdir}/{self.fname}.parquet.{self.flush_count}',
+        pq.write_table(table, f'{self.dbdir}/{self.prefix}.{self.flush_count}',
                         compression='gzip')
         self.logger.debug(f'flush_batches: table written, {len(self.batches)} rows')
 
         self.batches = []
         self.flush_count += 1
-    def flush(self, fname):
+    def flush(self):
         if len(self.batches) == 0:
             return
         #table = pa.Table.from_batches(self.batches)
@@ -92,6 +90,4 @@ class DB:
 
         #pq.write_table(table, '{}/trace/{}.parquet'.format(self.dbdir, fname), compression='gzip')
         #self.batches = []
-        if not self.fname:
-            self.fname = fname
         self.flush_batches()
