@@ -46,7 +46,6 @@ class CursorTracker:
             # Trace can contain cursor without matching PARSING IN CURSOR
             #self.logger.debug('add_latest_cursor: done')
             return self.latest_cursors[cursor]
-        #statement = self.statements[self.cursors[cursor]]
         if self.db:
             #self.logger.debug('add_latest_cursor: dump to db')
             cs.dump_to_db()
@@ -128,6 +127,5 @@ class CursorTracker:
             return
         for c in self.latest_cursors:
             self.add_latest_cursor(c)
-        self.db.insert_cursors([(self.statements[s].cursor, s) for s in self.statements.keys()])
         self.db.flush(fname)
         self.logger.debug('flush: done')
