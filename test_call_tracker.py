@@ -1,5 +1,5 @@
 import unittest
-from cursor_tracker import CursorTracker
+from CallTracker import CallTracker
 from ops import Ops
 from test_db import DB
 
@@ -8,11 +8,11 @@ params = "len=80 dep=0 uid=331 oct=3 lid=331 tim=1648763822995 hv=1167462720 ad=
 fname = 'trace.trc'
 line = 1
 
-class TestCursorTracker(unittest.TestCase):
+class TestCallTracker(unittest.TestCase):
     def test_init(self):
-        tr = CursorTracker(None)
+        tr = CallTracker(None)
     def test_add_cursor(self):
-        tr = CursorTracker(None)
+        tr = CallTracker(None)
         tr.add_pic(cursor, Ops('PIC', cursor, params, fname, line))
         self.assertEqual(len(tr.cursors), 2)
         self.assertEqual(len(tr.statements), 2)
@@ -25,7 +25,7 @@ class TestCursorTracker(unittest.TestCase):
         self.assertEqual(len(tr.latest_cursors), 2)
     def test_add_parse(self):
         db = DB()
-        tr = CursorTracker(db)
+        tr = CallTracker(db)
         tr.add_pic(cursor, Ops('PIC', cursor, params, fname, line))
 
         parse_lat = Ops('PARSE', cursor, '', fname, 0)
@@ -52,7 +52,7 @@ class TestCursorTracker(unittest.TestCase):
 
     def test_add_exec(self):
         db = DB()
-        tr = CursorTracker(db)
+        tr = CallTracker(db)
         tr.add_pic(cursor, Ops('PIC', cursor, params, fname, line))
         exec_lat = Ops('EXEC', cursor, '', fname, 0)
         tr.add_exec(cursor, exec_lat)
@@ -70,7 +70,7 @@ class TestCursorTracker(unittest.TestCase):
 
         self.assertEqual(len(db.batches), 2)
     def test_add_fetch(self):
-        tr = CursorTracker(None)
+        tr = CallTracker(None)
         tr.add_pic(cursor, Ops('PIC', cursor, params, fname, line))
         fetch_lat = Ops('FETCH', cursor, '', fname, 0)
         tr.add_fetch(cursor, fetch_lat)
@@ -79,7 +79,7 @@ class TestCursorTracker(unittest.TestCase):
         cs = tr.latest_cursors[cursor]
         self.assertEqual(len(cs.fetches), 3)
     def test_add_wait(self):
-        tr = CursorTracker(None)
+        tr = CallTracker(None)
         tr.add_pic(cursor, Ops('PIC', cursor, params, fname, line))
         wait_lat = Ops('WAIT', cursor, '', fname, 0)
         tr.add_wait(cursor, wait_lat)
@@ -89,7 +89,7 @@ class TestCursorTracker(unittest.TestCase):
         self.assertEqual(len(cs.waits), 3)
     def test_add_close(self):
         db = DB()
-        tr = CursorTracker(db)
+        tr = CallTracker(db)
         tr.add_pic(cursor, Ops('PIC', cursor, params, fname, line))
 
         exec_lat = Ops('EXEC', cursor, '', fname, line)
@@ -107,19 +107,19 @@ class TestCursorTracker(unittest.TestCase):
         self.assertEqual(len(db.batches), 3)
     def test_stray_cursors(self):
         # When PARSING IN CURSOR is missing in the trace file
-        tr = CursorTracker(None)
+        tr = CallTracker(None)
         o = Ops('EXEC', '#1234', '', fname, line)
         tr.add_exec('#1234', o)
         self.assertEqual(len(tr.cursors), 2)
         self.assertEqual(len(tr.statements), 2)
 
-        tr = CursorTracker(None)
+        tr = CallTracker(None)
         o = Ops('FETCH', '#1234', '', fname, line)
         tr.add_fetch('#1234', o)
         self.assertEqual(len(tr.cursors), 2)
         self.assertEqual(len(tr.statements), 2)
 
-        tr = CursorTracker(None)
+        tr = CallTracker(None)
         o = Ops('WAIT', '#1234', '', fname, line)
         tr.add_wait('#1234', o)
         self.assertEqual(len(tr.cursors), 2)
@@ -128,13 +128,13 @@ class TestCursorTracker(unittest.TestCase):
         tr.add_pic('#1234', Ops('PIC', '#1234', params, fname, line))
         # FIXME: what to do with those? What if there's another parse call later?
     def test__get_cursor(self):
-        tr = CursorTracker(None)
+        tr = CallTracker(None)
         self.assertEqual(tr._get_cursor('#123'), None)
         tr.add_pic(cursor, Ops('PIC', cursor, params, fname, line))
         self.assertEqual(tr._get_cursor(cursor).cursor, cursor)
         self.assertEqual(tr._get_cursor('#123'), None)
     def test__add_dummy_statement(self):
-        tr = CursorTracker(None)
+        tr = CallTracker(None)
         tr._add_dummy_statement('#1234')
         self.assertNotEqual(tr._get_cursor('#1234'), None)
         self.assertEqual(len(tr.cursors), 2)

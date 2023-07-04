@@ -5,7 +5,7 @@ import re
 import sys
 #from scipy.stats import shapiro,kstest
 from util import Filer
-from cursor_tracker import CursorTracker
+from CallTracker import CallTracker
 import logging
 import time
 
@@ -49,7 +49,7 @@ else:
     database = None
 
 
-tracker = CursorTracker(database)
+tracker = CallTracker(database)
 
 no_files = len(args.trace_files)
 fcount = 1

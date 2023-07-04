@@ -1,6 +1,6 @@
 import unittest
 from util import Filer
-from cursor_tracker import CursorTracker
+from CallTracker import CallTracker
 from test_db import DB
 
 cursor1 = '#123223'
@@ -43,7 +43,7 @@ class TestUtil(unittest.TestCase):
         dummy_sql_id = 'dummy0'
 
         db = DB()
-        tracker = CursorTracker(db)
+        tracker = CallTracker(db)
         lines = self.filer.process_file(tracker, 'tests/simple_trace.trc')
         self.assertEqual(lines, 51)
 
@@ -77,7 +77,7 @@ class TestUtil(unittest.TestCase):
         fetches = 4
 
         db = DB()
-        tracker = CursorTracker(db)
+        tracker = CallTracker(db)
         lines = self.filer.process_file(tracker, 'tests/simple_trace_2x.trc')
         self.assertEqual(lines, 59)
 
@@ -103,7 +103,7 @@ class TestUtil(unittest.TestCase):
         ela_nowait = 1146
 
         db = DB()
-        tracker = CursorTracker(db)
+        tracker = CallTracker(db)
         lines = self.filer.process_file(tracker, 'tests/simple_trace_missing_parse.trc')
         self.assertEqual(lines, 60)
 
@@ -126,7 +126,7 @@ class TestUtil(unittest.TestCase):
 
     def test_process_file_3_statements_1_cursor(self):
         db = DB()
-        tracker = CursorTracker(db)
+        tracker = CallTracker(db)
         lines = self.filer.process_file(tracker, 'tests/two_statements_one_cursor.trc')
         self.assertEqual(lines, 90)
 
@@ -154,7 +154,7 @@ class TestUtil(unittest.TestCase):
            Add them as a different exec_id.
            """
         db = DB()
-        tracker = CursorTracker(db)
+        tracker = CallTracker(db)
         lines = self.filer.process_file(tracker, 'tests/mixed_execs.trc')
         self.assertEqual(lines, 107)
         # 3 EXEC calls + 1 dummy for the stray WAITs
@@ -163,7 +163,7 @@ class TestUtil(unittest.TestCase):
     def test_process_file_3_statements_1_cursor(self):
         # PARSE/PIC happened before start of the trace. Just add the call to the database w/o sql_id
         db = DB()
-        tracker = CursorTracker(db)
+        tracker = CallTracker(db)
         lines = self.filer.process_file(tracker, 'tests/stray_close.trc')
         self.assertEqual(lines, 16)
         self.assertEqual(self.get_count(db.batches, 3, 'CLOSE'), 1)
