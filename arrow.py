@@ -42,11 +42,6 @@ class DB:
             ])
         self.exec_id = 0
         self.batches = []
-        self.cursor_statement_schema = pa.schema([
-            ('cursor_id', pa.string()),
-            ('sql_id', pa.string())
-            ])
-        self.cursor_statement_batches = []
         self.fname = None
         self.flush_count = 0
     def add_rows(self, sql_id, rt):
@@ -65,9 +60,6 @@ class DB:
         #self.batches.append(batch)
         if len(self.batches) > self.max_batch_size:
             self.flush_batches()
-    def insert_cursors(self, cursors):
-        batch = pa.record_batch(list(zip(*cursors)), self.cursor_statement_schema)
-        self.cursor_statement_batches.append(batch)
     def set_filename(self, fname):
         self.fname = fname
         self.flush_count = 0
@@ -82,9 +74,9 @@ class DB:
         table = pa.Table.from_arrays(arrays, schema = self.cursor_exec_schema)
         self.logger.debug('flush_batches: table done')
 
-        pq.write_table(table, f'{self.dbdir}/trace/{self.fname}.parquet.{self.flush_count}',
+        pq.write_table(table, f'{self.dbdir}/{self.fname}.parquet.{self.flush_count}',
                         compression='gzip')
-        self.logger.debug('flush_batches: table written')
+        self.logger.debug(f'flush_batches: table written, {len(self.batches)} rows')
 
         self.batches = []
         self.flush_count += 1
@@ -103,7 +95,3 @@ class DB:
         if not self.fname:
             self.fname = fname
         self.flush_batches()
-
-        table = pa.Table.from_batches(self.cursor_statement_batches)
-        pq.write_table(table, f'{self.dbdir}/cursors/{fname}.parquet', compression='gzip')
-        self.cursor_statement_batches = []
