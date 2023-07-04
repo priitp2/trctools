@@ -17,14 +17,40 @@ class SummaryDuckdb:
               """.format(dbdir))
 
     def summary(self):
-        res = d.sql("""select sql_id,
-                            count(*) execs,
-                            median(ela) median,
-                            percentile_disc(0.99) within group(order by ela) p99
-                        from
-                            elapsed_time
-                        group by sql_id
-                        order by execs, median
+        res = d.sql(f"""
+			SELECT
+                            ela.sql_id,
+                            dbc.sql_text,
+                            ela.execs,
+                            ela.median,
+                            ela.p99
+                        FROM
+                            (
+                                SELECT
+                                    sql_id,
+                                    COUNT(*)    execs,
+                                    MEDIAN(ela) median,
+                                    PERCENTILE_DISC(0.99) WITHIN GROUP( ORDER BY ela) p99
+                                FROM
+                                    elapsed_time
+                                GROUP BY
+                                    sql_id
+                                ORDER BY
+                                    execs, median
+                            ) ela
+                        JOIN (
+                                SELECT
+                                    sql_id,
+                                    any_value(wait_raw) "sql_text"
+                                FROM
+                                    read_parquet ( '{self.dbdir}' )
+                                WHERE
+                                    ops = 'PIC'
+                                GROUP BY
+                                    sql_id
+                        ) dbc ON ( ela.sql_id = dbc.sql_id )
+                        ORDER BY
+                        ela.execs;
                     """)
         print(res)
         #for r in res:
@@ -89,7 +115,7 @@ class SummaryDuckdb:
                     """.format(self.dbdir))
         print(res)
 
-        res = d.sql("""select file_name, count(*)
+        res = d.sql("""select file_name, count(*) "rows", min(ts2) "first timestamp"
                         from read_parquet('{}')
                         group by file_name order by count(*)
                     """.format(self.dbdir))
@@ -110,7 +136,7 @@ parser.add_argument('--output', dest='fname', type=str,
                                     help='Output for the wait_histogram command')
 args = parser.parse_args()
 
-s = SummaryDuckdb(args.dbdir + '/trace/*')
+s = SummaryDuckdb(args.dbdir + '/*')
 
 if args.action == 'summary':
     s.summary()
