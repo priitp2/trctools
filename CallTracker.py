@@ -1,7 +1,7 @@
 from current_statement import CurrentStatement
 import logging
 
-class CursorTracker:
+class CallTracker:
     '''
         Keeps track of the statements and cursors. add_parsing_in() creates new statement, 
         add_parse, and add_exec add new cursors if needed. If new cursor is added, events
