@@ -143,7 +143,16 @@ class TestCallTracker(unittest.TestCase):
         with self.assertRaisesRegex(BaseException, '_add_dummy_statement: *'):
             tr._add_dummy_statement('#1234')
 
+    def test_reset(self):
+        tracker = CallTracker(None)
+        tracker._add_dummy_statement('#123')
+        tracker._add_dummy_statement('#223')
+        tracker._add_dummy_statement('#323')
+        tracker._add_dummy_statement('#423')
 
+        self.assertEqual(len(tracker.latest_cursors), 5)
+        tracker.reset()
+        self.assertEqual(len(tracker.latest_cursors), 0)
 
 if __name__ == '__main__':
     unittest.main()
