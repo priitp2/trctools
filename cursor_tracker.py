@@ -1,5 +1,4 @@
 from current_statement import CurrentStatement
-from statement import Statement
 import logging
 
 class CursorTracker:
@@ -27,9 +26,9 @@ class CursorTracker:
     def _add_dummy_statement(self, cursor):
         if cursor in self.cursors.keys():
             raise(BaseException("_add_dummy_statement: cursor {} already present with sql_id = {}".format(cursor, self.cursors[cursor])))
-        s = Statement(cursor, "sqlid='dummy{}'".format(self.dummy_counter))
-        self.statements[s.sql_id] = s
-        self.cursors[cursor] = s.sql_id
+        sql_id = f'dummy{self.dummy_counter}'
+        self.statements[sql_id] = ''
+        self.cursors[cursor] = sql_id
         self.add_latest_cursor(cursor)
         self.dummy_counter += 1
     def add_latest_cursor(self, cursor):
@@ -55,14 +54,12 @@ class CursorTracker:
         self.latest_cursors[cursor] = CurrentStatement(cursor, self.db, self.cursors[cursor])
         #self.logger.debug('add_latest_cursor: done')
         return self.latest_cursors[cursor]
-    def add_parsing_in(self, cursor, params):
-        # FIXME: check if statement already exists whrh sql_id "dummy*" and try to fix this 
-        s = Statement(cursor, params)
-        if s.sql_id not in self.statements.keys():
-            self.statements[s.sql_id] = s
-        self.cursors[cursor] = s.sql_id
-        self.latest_cursors[cursor] = CurrentStatement(cursor, self.db, s.sql_id)
     def add_pic(self, cursor, params):
+        if params.sqlid not in self.statements.keys():
+            self.statements[params.sqlid] = ''
+        self.cursors[cursor] = params.sqlid
+        self.latest_cursors[cursor] = CurrentStatement(cursor, self.db, params.sqlid)
+
         cs = self._get_cursor(cursor)
         cs.add_pic(params)
         return

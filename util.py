@@ -47,8 +47,9 @@ class Filer:
 
                     if match.group(1) == 'PARSING IN CURSOR':
                         in_pic = True
-                        tr.add_parsing_in(match.group(2), match.group(4))
+                        #tr.add_parsing_in(match.group(2), match.group(4))
                         pic = Ops('PIC', match.group(2), match.group(4), fname, line_count)
+                        tr.add_pic(pic.cursor, pic)
                     elif match.group(1) == 'PARSE':
                         last_parse = Ops('PARSE', match.group(2), match.group(4), fname, line_count)
                         tr.add_parse(match.group(2), last_parse)
@@ -82,7 +83,6 @@ class Filer:
                 if in_pic:
                     match = self.pic_matcher.match(line)
                     if match:
-                        tr.add_pic(pic.cursor, pic)
                         in_pic = False
                         pic = None
                     else:
@@ -117,7 +117,7 @@ class Filer:
                     tr.db.insert_ops(Ops('STAR', None, match.group(2), fname, line_count, match.group(1), None).to_list(tr.db.get_exec_id(), None))
                     continue
 
-                print("non-matching line: {}".format(line))
+                #print("non-matching line: {}".format(line))
 
         self.logger.info('process_file: %s done', fname)
         return line_count

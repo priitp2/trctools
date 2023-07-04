@@ -40,6 +40,8 @@ class TestUtil(unittest.TestCase):
         stars = 20
         binds = 1
         pics = 1
+        sql_id = 'atxg62s17nkj4'
+        dummy_sql_id = 'dummy0'
 
         db = DB()
         tracker = CursorTracker(db)
@@ -62,6 +64,9 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(self.get_count(db.batches, 3, 'STAR'), stars)
         self.assertEqual(self.get_count(db.batches, 3, 'BINDS'), binds)
         self.assertEqual(self.get_count(db.batches, 3, 'PIC'), pics)
+
+        self.assertTrue(dummy_sql_id in tracker.statements.keys())
+        self.assertTrue(sql_id in tracker.statements.keys())
     def test_process_file_simple_2x(self):
         # Calculated from the trace file
         # From 1st exec
