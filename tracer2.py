@@ -6,7 +6,6 @@ import sys
 #from scipy.stats import shapiro,kstest
 from util import Filer
 from cursor_tracker import CursorTracker
-from pathlib import PurePath
 import logging
 import time
 
@@ -20,6 +19,7 @@ parser.add_argument('--norm', type=bool, default = False, dest='norm',
                             help="Perform Shapiro-Wilk normality test on values")
 parser.add_argument('--db', type=str, default = None, dest='db', help="Persists raw data in the db, supported implementations: oracle, parquet")
 parser.add_argument('--dbdir', type=str, default = 'arrow', dest='dbdir', help="Directory for the parquet files")
+parser.add_argument('--db-file-prefix', type=str, default = 'parquet', dest='file_prefix', help="File name prefix")
 parser.add_argument('--logfile', type=str, default = None, dest='logfile', help="Sends output to the file")
 parser.add_argument('--log-level', type=str, default = None, dest='loglevel', help="Sets logging level: from DEBUG to CRITICAL")
 
@@ -43,7 +43,7 @@ if args.db == 'oracle':
 elif args.db == 'parquet':
     logging.info('Using database: arrow/parquet')
     from arrow import DB
-    database = DB(args.dbdir)
+    database = DB(args.dbdir, args.file_prefix)
 else:
     logging.info('Using database: None')
     database = None
@@ -57,8 +57,6 @@ cumul_lines = 0
 cumul_time = 0
 filer = Filer()
 for fname in args.trace_files:
-    p = PurePath(fname)
-    tracker.db.set_filename(p.stem)
     print("[{}/{}] processing file {}".format(fcount, no_files, fname))
     start = time.time_ns()
     lines = filer.process_file(tracker, fname)
@@ -69,5 +67,5 @@ for fname in args.trace_files:
     print("   -> {} lines, {} seconds".format(lines, delta))
 
 print("tracker.latest_cursors = {}".format(len(tracker.latest_cursors)))
-tracker.flush(p.stem)
+tracker.flush()
 print("Processed {} lines in {} seconds".format(cumul_lines, cumul_time))
