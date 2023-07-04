@@ -16,7 +16,7 @@ class Filer:
         self.call_matcher = re.compile(r'''^(PARSE|PARSING IN CURSOR|EXEC|FETCH|WAIT|CLOSE|BINDS|STAT) (#\d+)(:| )(.*)''')
         self.file_header_matcher = re.compile(r'''^(Build label|ORACLE_HOME|System name|Node name|Release|Version|Machine|Instance name|Redo thread mounted by this instance|Oracle process number|Unix process pid):\s+(.*)''')
         self.logger = logging.getLogger(__name__)
-    def process_file(self, tracker, fname, sql_ids):
+    def process_file(self, tracker, fname):
 
         line_count = 0
         in_binds = False

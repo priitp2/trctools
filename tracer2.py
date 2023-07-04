@@ -16,8 +16,6 @@ max_exec_elapsed = 500000
 parser = argparse.ArgumentParser(description='Do stuff with Oracle 19c trace files')
 parser.add_argument('trace_files', metavar='files', type=str, nargs='+',
                             help='Trace files to process')
-parser.add_argument('--sql_id', type=str, dest='sqlid',
-                            help="Comma separated list of sql_id's for which histograms are produced")
 parser.add_argument('--norm', type=bool, default = False, dest='norm',
                             help="Perform Shapiro-Wilk normality test on values")
 parser.add_argument('--db', type=str, default = None, dest='db', help="Persists raw data in the db, supported implementations: oracle, parquet")
@@ -53,12 +51,6 @@ else:
 
 tracker = CursorTracker(database)
 
-# Silly bandaid in case sqlids argument isn't specified
-if args.sqlid:
-    ids = args.sqlid.split(',')
-else:
-    ids = []
-
 no_files = len(args.trace_files)
 fcount = 1
 cumul_lines = 0
@@ -69,7 +61,7 @@ for fname in args.trace_files:
     tracker.db.set_filename(p.stem)
     print("[{}/{}] processing file {}".format(fcount, no_files, fname))
     start = time.time_ns()
-    lines = filer.process_file(tracker, fname, ids)
+    lines = filer.process_file(tracker, fname)
     cumul_lines += lines
     delta = int((time.time_ns() - start)/1000000000)
     cumul_time += delta
