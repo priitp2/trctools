@@ -36,10 +36,21 @@ class CurrentStatement:
         return False
 
     # FIXME: merge add_parsing_in and add_pic
-    def add_opt(self, opt):
-        pass
-    def opt_is_set(self, opt):
-        pass
+    def add_ops(self, ops):
+        if self.cursor != ops.cursor:
+            raise KeyError(f"add_ops: wrong cursor, got {ops.cursor}, have {self.cursor}")
+        if ops.op_type not in self.known_ops:
+            raise KeyError(f"add_ops: unknown ops type: {ops.op_type}")
+        if self.ops[ops.op_type] and ops.op_type not in ('WAIT', 'FETCH', 'STAT'):
+            raise KeyError(f"add_ops: already set: ops {ops.op_type}")
+        if ops.op_type in ('WAIT', 'FETCH', 'STAT'):
+            self.ops[ops.op_type].append(ops)
+            return
+        self.ops[ops.op_type] = ops
+    def is_set(self, op_type):
+        if self.ops[op_type]:
+            return True
+        return False
     def add_parsing_in(self, params):
         if self.parsing_in:
             raise ValueError("add_parsing_in: already set!")
