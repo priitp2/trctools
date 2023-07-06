@@ -107,15 +107,12 @@ class TestCurrentStatement(unittest.TestCase):
             cs.add_stat(ops)
 
     def test_dump_to_db(self):
-        cs = CurrentStatement(CURSOR, None)
         with self.assertRaisesRegex(BaseException, 'dump_to_db: database not set!'):
-            cs.dump_to_db()
+            self.cstat.dump_to_db()
     def test_is_not_empty(self):
-        cs = CurrentStatement(CURSOR, None)
         self.assertFalse(cs.is_not_empty())
-        ops = Ops('STAT', CURSOR, "id=1 cnt=1 pid=0 pos=1 obj=89434 op='TABLE ACCESS BY INDEX ROWID CUSTOMER_SEGMENT (cr=5 pr=0 pw=0 str=1 time=173 us cost=4 size=103 card=1)'", FNAME, 8)
-        cs.add_stat(ops)
-        self.assertTrue(cs.is_not_empty())
+        self.cstat.add_stat(self.happy_ops['STAT'])
+        self.assertTrue(self.cstat.is_not_empty())
     def test_add_ops(self):
         for ops in self.happy_ops:
             self.cstat.add_ops(self.happy_ops[ops])
@@ -146,7 +143,6 @@ class TestCurrentStatement(unittest.TestCase):
             self.cstat.add_ops(ops)
 
     def test_is_set(self):
-        print(self.cstat.ops)
         self.assertFalse(self.cstat.is_set('EXEC'))
 
 if __name__ == '__main__':
