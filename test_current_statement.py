@@ -1,6 +1,7 @@
 import unittest
 from current_statement import CurrentStatement
 from ops import Ops
+from test_db import DB
 
 CURSOR = '#123'
 WRONG_CURSOR = '#321'
@@ -109,6 +110,12 @@ class TestCurrentStatement(unittest.TestCase):
     def test_dump_to_db(self):
         with self.assertRaisesRegex(BaseException, 'dump_to_db: database not set!'):
             self.cstat.dump_to_db()
+
+        self.cstat.db = DB()
+        for ops in self.happy_ops:
+            self.cstat.add_ops(self.happy_ops[ops])
+        self.cstat.dump_to_db()
+        self.assertEqual(len(self.cstat.db.batches), len(self.happy_ops))
     def test_is_not_empty(self):
         self.assertFalse(self.cstat.is_not_empty())
         self.cstat.add_stat(self.happy_ops['STAT'])
