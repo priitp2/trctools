@@ -1,26 +1,19 @@
 class CurrentStatement:
-    def __init__(self, cursor, db, sql_id=None):
+    """Tracks operations done within one database interaction."""
+    def __init__(self, cursor, dbs, sql_id=None):
         self.__slots__ = ('cursor', 'parsing_in', 'parse', 'exec', 'waits', 'fetches',
-                            'close', 'sql_id', 'db', 'stat')
+                            'close', 'sql_id', 'dbs', 'stat')
         if len(cursor) < 2 and cursor != '#0':
             raise ValueError("init: got empty cursor")
         self.cursor = cursor
         self.known_ops = ('PIC', 'PARSE', 'EXEC', 'WAIT', 'FETCH', 'CLOSE', 'STAT', 'BINDS')
-        self.ops = {'PIC':None, 'PARSE':None, 'EXEC':None, 'WAIT':[], 'FETCH':[], 'CLOSE':None, 'STAT':[], 'BINDS':None}
-        self.parsing_in = None
-        self.parse = None
-        self.exec = None
-        self.waits = []
-        self.fetches = []
-        self.close = None
+        self.ops = {'PIC':None, 'PARSE':None, 'EXEC':None, 'WAIT':[], 'FETCH':[], 'CLOSE':None,
+                    'STAT':[], 'BINDS':None}
         self.sql_id = sql_id
-        self.db = db
-        self.stat = []
-        self.binds = None
-        self.pic = None
+        self.dbs = dbs
     def is_not_empty(self):
-        for op in self.ops:
-            if self.ops[op]:
+        for ops in self.ops.items():
+            if ops[1]:
                 return True
         return False
 
@@ -41,22 +34,23 @@ class CurrentStatement:
         return False
     def count_ops(self, op_type):
         """Counts number of (listy) ops. Useful for tests."""
-        count = 0
-        for op in self.ops:
-            if op == op_type and self.ops[op]:
-                if isinstance(self.ops[op], list):
-                    return len(self.ops[op])
+        for ops in self.ops.values():
+            if ops and isinstance(ops, list):
+                if ops[0].op_type == op_type:
+                    return len(ops)
+            if ops and ops.op_type == op_type:
                 return 1
-        return count
+        return 0
     def dump_to_db(self):
-        if not self.db:
+        """Turns ops into lists and adds to the database"""
+        if not self.dbs:
             raise TypeError("dump_to_db: database not set!")
-        exec_id = self.db.get_exec_id()
+        exec_id = self.dbs.get_exec_id()
 
-        for op_type in self.ops:
-            if self.ops[op_type]:
-                if isinstance(self.ops[op_type], list):
-                    for listy_op in self.ops[op_type]:
-                        self.db.insert_ops(listy_op.to_list(exec_id, self.sql_id))
+        for ops in self.ops.values():
+            if ops:
+                if isinstance(ops, list):
+                    for listy_op in ops:
+                        self.dbs.insert_ops(listy_op.to_list(exec_id, self.sql_id))
                     continue
-                self.db.insert_ops(self.ops[op_type].to_list(exec_id, self.sql_id))
+                self.dbs.insert_ops(ops.to_list(exec_id, self.sql_id))
