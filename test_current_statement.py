@@ -159,5 +159,9 @@ class TestCurrentStatement(unittest.TestCase):
         self.cstat.add_ops(ops)
         self.assertEqual(self.cstat.count_ops('EXEC'), 1)
 
+        wait = self.happy_ops['WAIT']
+        for i in range(0, 3):
+            self.cstat.add_ops(wait)
+        self.assertEqual(self.cstat.count_ops('WAIT'), 3)
 if __name__ == '__main__':
     unittest.main()
