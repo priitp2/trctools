@@ -103,6 +103,14 @@ class TestCurrentStatement(unittest.TestCase):
         ops = Ops('STAT', CURSOR, "id=1 cnt=1 pid=0 pos=1 obj=89434 op='TABLE ACCESS BY INDEX ROWID CUSTOMER_SEGMENT (cr=5 pr=0 pw=0 str=1 time=173 us cost=4 size=103 card=1)'", FNAME, 8)
         cs.add_stat(ops)
         self.assertTrue(cs.is_not_empty())
+    def test_add_opt(self):
+        # happy path
+        # happy list
+        # unknown opt
+        # already set
+        self.fail('Not implemented')
+    def test_opt_is_set(self):
+        self.fail('Not implemented')
 
 if __name__ == '__main__':
     unittest.main()
