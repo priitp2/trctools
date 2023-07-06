@@ -5,6 +5,8 @@ class CurrentStatement:
         if len(cursor) < 2 and cursor != '#0':
             raise ValueError("init: got empty cursor")
         self.cursor = cursor
+        self.known_ops = ('PIC', 'PARSE', 'EXEC', 'WAIT', 'FETCH', 'CLOSE', 'STAT', 'BINDS')
+        self.ops = {'PIC':None, 'PARSE':None, 'EXEC':None, 'WAIT':[], 'FETCH':[], 'CLOSE':None, 'STAT':[], 'BINDS':None}
         self.parsing_in = None
         self.parse = None
         self.exec = None
@@ -34,6 +36,10 @@ class CurrentStatement:
         return False
 
     # FIXME: merge add_parsing_in and add_pic
+    def add_opt(self, opt):
+        pass
+    def opt_is_set(self, opt):
+        pass
     def add_parsing_in(self, params):
         if self.parsing_in:
             raise ValueError("add_parsing_in: already set!")
