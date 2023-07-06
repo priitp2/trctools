@@ -33,7 +33,7 @@ class TestCallTracker(unittest.TestCase):
         # add_parsing_in adds item to latest_cursors
         cs = tr._get_cursor(cursor)
         self.assertNotEqual(cs, None)
-        self.assertNotEqual(cs.parse, None)
+        self.assertEqual(cs.count_ops('PARSE'), 1)
         self.assertEqual(len(tr.latest_cursors), 2)
         self.assertEqual(len(tr.statements), 2)
         self.assertEqual(len(tr.cursors), 2)
@@ -44,7 +44,7 @@ class TestCallTracker(unittest.TestCase):
         tr.add_parse(cursor, parse_lat)
         cs = tr._get_cursor(cursor)
         self.assertNotEqual(cs, None)
-        self.assertNotEqual(cs.parse, None)
+        self.assertTrue(cs.is_set('PARSE'))
         self.assertEqual(len(tr.latest_cursors), 2)
         self.assertEqual(len(tr.statements), 2)
         self.assertEqual(len(tr.cursors), 2)
@@ -62,7 +62,7 @@ class TestCallTracker(unittest.TestCase):
 
         cs = tr._get_cursor(cursor)
         self.assertNotEqual(cs, None)
-        self.assertNotEqual(cs.exec, None)
+        self.assertTrue(cs.is_set('EXEC'))
 
         self.assertEqual(len(tr.latest_cursors), 2)
         self.assertEqual(len(tr.statements), 2)
@@ -77,7 +77,7 @@ class TestCallTracker(unittest.TestCase):
         tr.add_fetch(cursor, fetch_lat)
         tr.add_fetch(cursor, fetch_lat)
         cs = tr.latest_cursors[cursor]
-        self.assertEqual(len(cs.fetches), 3)
+        self.assertEqual(cs.count_ops('FETCH'), 3)
     def test_add_wait(self):
         tr = CallTracker(None)
         tr.add_pic(cursor, Ops('PIC', cursor, params, fname, line))
@@ -86,7 +86,7 @@ class TestCallTracker(unittest.TestCase):
         tr.add_wait(cursor, wait_lat)
         tr.add_wait(cursor, wait_lat)
         cs = tr.latest_cursors[cursor]
-        self.assertEqual(len(cs.waits), 3)
+        self.assertEqual(cs.count_ops('WAIT'), 3)
     def test_add_close(self):
         db = DB()
         tr = CallTracker(db)

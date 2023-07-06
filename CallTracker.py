@@ -60,33 +60,33 @@ class CallTracker:
         cs = CurrentStatement(cursor, self.db, params.sqlid)
         self.latest_cursors[cursor] = cs
 
-        cs.add_pic(params)
+        cs.add_ops(params)
     def add_parse(self, cursor, params):
         cs = self._get_cursor(cursor)
         if cs:
-            if cs.parse:
+            if cs.is_set('PARSE'):
                 cs = self.add_latest_cursor(cursor)
         else:
             cs = self.add_latest_cursor(cursor)
-        cs.add_parse(params)
+        cs.add_ops(params)
     def add_exec(self, cursor, params):
         cs = self._get_cursor(cursor)
         if cs:
-            if cs.exec:
+            if cs.is_set('EXEC'):
                 cs = self.add_latest_cursor(cursor)
         else:
             cs = self.add_latest_cursor(cursor)
-        cs.add_exec(params)
+        cs.add_ops(params)
     def add_fetch(self, cursor, params):
         cs = self._get_cursor(cursor)
         if not cs:
             cs = self.add_latest_cursor(cursor)
-        cs.add_fetch(params)
+        cs.add_ops(params)
     def add_wait(self, cursor, params):
         cs = self._get_cursor(cursor)
         if not cs:
             cs = self.add_latest_cursor(cursor)
-        cs.add_wait(params)
+        cs.add_ops(params)
     def add_close(self, cursor, params):
         cs = self._get_cursor(cursor)
         if not cs:
@@ -94,19 +94,20 @@ class CallTracker:
             # to the database w/o sql_id
             self.db.insert_ops(params.to_list(self.db.get_exec_id(), ''))
             return
-        cs.add_close(params)
+        cs.add_ops(params)
         self.add_latest_cursor(cursor)
         return
     def add_stat(self, cursor, params):
         cs = self._get_cursor(cursor)
+        # FIXME: this is wrong, do not add cursor on stray STAT
         if not cs:
             cs = self.add_latest_cursor(cursor)
-        cs.add_stat(params)
+        cs.add_ops(params)
     def add_binds(self, cursor, params):
         cs = self._get_cursor(cursor)
         if not cs:
             cs = self.add_latest_cursor(cursor)
-        cs.add_binds(params)
+        cs.add_ops(params)
     def reset(self):
         empty = []
         for cursor in self.latest_cursors:
