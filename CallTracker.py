@@ -57,9 +57,9 @@ class CallTracker:
         if params.sqlid not in self.statements:
             self.statements[params.sqlid] = ''
         self.cursors[cursor] = params.sqlid
-        self.latest_cursors[cursor] = CurrentStatement(cursor, self.db, params.sqlid)
+        cs = CurrentStatement(cursor, self.db, params.sqlid)
+        self.latest_cursors[cursor] = cs
 
-        cs = self._get_cursor(cursor)
         cs.add_pic(params)
     def add_parse(self, cursor, params):
         cs = self._get_cursor(cursor)
