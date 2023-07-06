@@ -41,7 +41,7 @@ class CurrentStatement:
             raise KeyError(f"add_ops: wrong cursor, got {ops.cursor}, have {self.cursor}")
         if ops.op_type not in self.known_ops:
             raise KeyError(f"add_ops: unknown ops type: {ops.op_type}")
-        if self.ops[ops.op_type] and ops.op_type not in ('WAIT', 'FETCH', 'STAT'):
+        if self.ops[ops.op_type] and not isinstance(self.ops[ops.op_type], list):
             raise KeyError(f"add_ops: already set: ops {ops.op_type}")
         if ops.op_type in ('WAIT', 'FETCH', 'STAT'):
             self.ops[ops.op_type].append(ops)
@@ -130,7 +130,7 @@ class CurrentStatement:
 
         for op_type in self.ops:
             if self.ops[op_type]:
-                if op_type in ('WAIT', 'FETCH', 'STAT'):
+                if isinstance(self.ops[op_type], list):
                     for listy_op in self.ops[op_type]:
                         self.db.insert_ops(listy_op.to_list(exec_id, self.sql_id))
                     continue
