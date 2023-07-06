@@ -38,7 +38,7 @@ class SummaryDuckdb:
                                 ORDER BY
                                     execs, median
                             ) ela
-                        JOIN (
+                        LEFT JOIN (
                                 SELECT
                                     sql_id,
                                     any_value(wait_raw) "sql_text"
@@ -53,8 +53,6 @@ class SummaryDuckdb:
                         ela.execs;
                     """)
         print(res)
-        #for r in res:
-        #    print("sq_id = {}, execs = {}, median = {}, 99th percentile = {}".format(r[0], r[1], r[2], r[3]))
 
     def create_hdrh(self, sql_id):
         r = d.sql("select ela from elapsed_time where sql_id = '{}'".format(sql_id)).fetchall()
