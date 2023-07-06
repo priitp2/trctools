@@ -24,7 +24,6 @@ class CurrentStatement:
                 return True
         return False
 
-    # FIXME: merge add_parsing_in and add_pic
     def add_ops(self, ops):
         if self.cursor != ops.cursor:
             raise KeyError(f"add_ops: wrong cursor, got {ops.cursor}, have {self.cursor}")
