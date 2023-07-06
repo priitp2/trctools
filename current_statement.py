@@ -51,6 +51,13 @@ class CurrentStatement:
         if self.ops[op_type]:
             return True
         return False
+    def count_ops(self, op_type):
+        """Counts number of (listy) ops. Useful for tests."""
+        count = 0
+        for op in self.ops:
+            if self.ops[op] and self.ops[op].op_type == op_type:
+                count += 1
+        return count
     def add_parsing_in(self, params):
         if self.parsing_in:
             raise ValueError("add_parsing_in: already set!")
