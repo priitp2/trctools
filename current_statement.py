@@ -128,6 +128,14 @@ class CurrentStatement:
             raise TypeError("dump_to_db: database not set!")
         exec_id = self.db.get_exec_id()
 
+        for op_type in self.ops:
+            if self.ops[op_type]:
+                if op_type in ('WAIT', 'FETCH', 'STAT'):
+                    for listy_op in self.ops[op_type]:
+                        self.db.insert_ops(listy_op.to_list(exec_id, self.sql_id))
+                    continue
+                self.db.insert_ops(self.ops[op_type].to_list(exec_id, self.sql_id))
+
         if self.parse:
             self.db.insert_ops(self.parse.to_list(exec_id, self.sql_id))
         if self.exec:
