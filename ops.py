@@ -1,7 +1,9 @@
 import re
 
 class Ops:
-    """This is a hot mess. Do not touch! """
+    """Ops corresponds to a line in SQL trace file, with some exceptions (empty lines,
+    some parts of of the file header). Since different oerations have different formats,
+    this class is a hot mess. Do not touch! """
     def __init__(self, op_type, cursor, params, fname, line, name=None, ts2=None):
         self.op_type = op_type
         self.cursor = cursor
