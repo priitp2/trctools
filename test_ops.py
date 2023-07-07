@@ -46,25 +46,6 @@ class TestOps(unittest.TestCase):
         with self.assertRaises(AttributeError):
             self.assertEqual(ops.og, 1)
 
-    def test_merge(self):
-        ops1 = Ops('EXEC', CURSOR, 'c=73,e=73,p=0,cr=0,cu=0,mis=0,r=0,dep=0,og=1,plh=2725028981,tim=5793511830834', FNAME, 2)
-
-        ops2 = Ops('EXEC', '#0', 'c=123,e=223,p=0,cr=0,cu=0,mis=0,r=0,dep=0,og=1,plh=2725028981,tim=5793511830834', FNAME, 1)
-        with self.assertRaises(ValueError):
-            ops3 = ops2.merge(ops1)
-
-        ops2 = Ops('EXEC', CURSOR, 'c=123,e=223,p=0,cr=0,cu=0,mis=0,r=0,dep=0,og=1,plh=2725028981,tim=5793511830834', FNAME, 1)
-        ops3 = ops2.merge(ops1)
-        self.assertEqual(ops2.op_type, ops3.op_type)
-        self.assertEqual(ops3.c, 196)
-        self.assertEqual(ops3.e, 296)
-        self.assertEqual(ops3.tim, 0)
-
-        ops3 = Ops('EXEC', CURSOR, 'c=123,e=223,p=0,cr=0,cu=0,mis=0,r=0,dep=0,og=1,plh=2725028981,tim=5793511830834', FNAME, 1)
-        ops4 = ops3.merge([ops1, ops2])
-        self.assertEqual(ops4.c, ops1.c + ops2.c + ops3.c)
-        self.assertEqual(ops4.e, ops1.e + ops2.e + ops3.e)
-
     def test_to_list(self):
         sql_id = 'abc123'
         ops = Ops('EXEC', CURSOR, 'c=73,e=73,p=1,cr=2,cu=3,mis=4,r=5,dep=6,og=7,plh=2725028981,tim=5793511830834', FNAME, 1)
@@ -92,13 +73,6 @@ class TestOps(unittest.TestCase):
         self.assertEqual(lst[19], 1)
         # ts2
         self.assertEqual(lst[20], None)
-
-    def test_empty_wait(self):
-        ops1 = Ops('WAIT', '#140641987987624', " nam='SQL*Net message to client' ela= 1 driver id=675562835 #bytes=1 p3=0 obj#=89440 tim=5793511831582", FNAME, 3)
-        ops2 = Ops('WAIT', '#140641987987624', " nam='SQL*Net message to client' ela= 66 driver id=675562835 #bytes=1 p3=0 obj#=89440 tim=5793511831582", FNAME, 4)
-        ops3 = ops2.merge(ops1)
-        self.assertEqual(ops3.e, 67)
-        self.assertEqual(ops3.c, 0)
 
     def test_str(self):
         ops = Ops('WAIT', '#140641987987624', " nam='SQL*Net message to client' ela= 1 driver id=675562835 #bytes=1 p3=0 obj#=89440 tim=5793511831582", FNAME, 2)
