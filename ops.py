@@ -58,21 +58,6 @@ class Ops:
         if name in self.__slots__:
             return 0
         raise AttributeError(f"Wrong attribute: {name}")
-    def merge(self, ops1):
-        if not ops1:
-            return self
-        if not isinstance(ops1, list):
-            ops1 = [ops1]
-        out = Ops(self.op_type, self.cursor, '', '', 0)
-        out.c = self.c
-        out.e = self.e
-        for o in ops1:
-            if out.cursor != o.cursor:
-                raise ValueError("Ops.merge: cursor = {self.cursor}, o.cursor = {o.cursor}")
-            out.c += o.c
-            out.e += o.e
-
-        return out
     def to_list(self, exec_id, sql_id):
         if self.op_type == 'WAIT':
             return [exec_id, sql_id, self.cursor, self.op_type, None, self.e, None, None,
