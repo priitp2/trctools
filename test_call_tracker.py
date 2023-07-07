@@ -9,8 +9,9 @@ fname = 'trace.trc'
 line = 1
 
 class TestCallTracker(unittest.TestCase):
-    def test_init(self):
-        tr = CallTracker(None)
+    def setUp(self):
+        db = DB()
+        self.tracker = CallTracker(db)
     def test_add_cursor(self):
         tr = CallTracker(None)
         tr.add_pic(cursor, Ops('PIC', cursor, params, fname, line))
@@ -154,5 +155,14 @@ class TestCallTracker(unittest.TestCase):
         tracker.reset()
         self.assertEqual(len(tracker.latest_cursors), 0)
 
+    def test_add_ops_add_pic(self):
+        self.tracker.add_ops(cursor, Ops('PIC', cursor, params, fname, line))
+        self.tracker.add_ops(cursor,  Ops('EXEC', cursor, '', fname, line))
+        self.assertEqual(len(self.tracker.latest_cursors), 2)
+
+        # This closes existing CurrentStatement/db interaction and adds new one
+        self.tracker.add_ops(cursor, Ops('PIC', cursor, params, fname, line))
+        self.assertEqual(len(self.tracker.latest_cursors), 2)
+        self.assertEqual(len(self.tracker.db.batches), 2)
 if __name__ == '__main__':
     unittest.main()
