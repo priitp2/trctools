@@ -16,6 +16,6 @@ class DB:
         self.batches.append(ops)
     def insert_cursors(self, cs):
         self.cursor_statement_batches.append(ops)
-    def flush(self, fname):
+    def flush(self):
         pass
 
