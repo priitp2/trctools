@@ -42,7 +42,7 @@ class Filer:
                     if in_binds:
                         in_binds = False
                         ops = Ops('BINDS', binds[0], "".join(binds[3]), binds[1], binds[2])
-                        tracker.add_binds(binds[0], ops)
+                        tracker.add_ops(binds[0], ops)
                         #(cursor, file name, line no, [binds])
                         binds = ()
 
@@ -50,27 +50,9 @@ class Filer:
                         in_pic = True
                         pic = Ops('PIC', match.group(2), match.group(4), fname, line_count)
                         tracker.add_pic(pic.cursor, pic)
-                    if match.group(1) == 'PARSE':
-                        ops = Ops('PARSE', match.group(2), match.group(4), fname, line_count)
-                        tracker.add_parse(match.group(2), ops)
-                    if match.group(1) == 'EXEC':
-                        ops = Ops('EXEC', match.group(2), match.group(4), fname, line_count)
-                        tracker.add_exec(match.group(2), ops)
-                    if match.group(1) == 'FETCH':
-                        ops = Ops('FETCH', match.group(2), match.group(4), fname, line_count)
-                        tracker.add_fetch(match.group(2), ops)
-                    if match.group(1) == 'WAIT':
-                        ops = Ops('WAIT', match.group(2), match.group(4), fname, line_count)
-                        tracker.add_wait(match.group(2), ops)
-                    if match.group(1) == 'CLOSE':
-                        ops = Ops('CLOSE', match.group(2), match.group(4), fname, line_count)
-                        tracker.add_close(match.group(2), ops)
-                    if match.group(1) == 'STAT':
-                        ops = Ops('STAT', match.group(2), match.group(4), fname, line_count)
-                        tracker.add_stat(match.group(2), ops)
-                    if match.group(1) == 'BINDS':
-                        in_binds = True
-                        binds = (match.group(2), fname, line_count, [])
+                        continue
+                    ops = Ops(match.group(1), match.group(2), match.group(4), fname, line_count)
+                    tracker.add_ops(match.group(2), ops)
                     continue
 
                 if in_binds:
