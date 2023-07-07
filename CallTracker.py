@@ -87,7 +87,8 @@ class CallTracker:
         self.logger.debug('flush')
         if not self.db:
             return
-        for cursor in self.latest_cursors:
-            self.add_latest_cursor(cursor)
+        self.reset()
+        #for cursor in self.latest_cursors:
+        #    self.add_latest_cursor(cursor)
         self.db.flush()
         self.logger.debug('flush: done')
