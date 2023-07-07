@@ -65,6 +65,11 @@ class CallTracker:
             cstat = self.add_latest_cursor(cursor)
         cstat.add_ops(ops)
     def add_pic(self, cursor, params):
+        cstat = self._get_cursor(cursor)
+        if cstat:
+            cstat = self.add_latest_cursor(cursor)
+            cstat.add_ops(params)
+
         if params.sqlid not in self.statements:
             self.statements[params.sqlid] = ''
         self.cursors[cursor] = params.sqlid
