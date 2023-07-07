@@ -101,8 +101,8 @@ class TestCallTracker(unittest.TestCase):
         # Cursor got cleaned up
         cs = tr._get_cursor(cursor)
         self.assertNotEqual(cs, None)
-        self.assertEqual(cs.close, None)
-        self.assertEqual(cs.exec, None)
+        self.assertFalse(cs.is_set('CLOSE'))
+        self.assertFalse(cs.is_set('EXEC'))
 
         self.assertEqual(len(db.batches), 3)
     def test_stray_cursors(self):
