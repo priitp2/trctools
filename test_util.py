@@ -165,6 +165,7 @@ class TestUtil(unittest.TestCase):
         db = DB()
         tracker = CallTracker(db)
         lines = self.filer.process_file(tracker, 'tests/stray_close.trc')
+        tracker.flush()
         self.assertEqual(lines, 16)
         self.assertEqual(self.get_count(db.batches, 3, 'CLOSE'), 1)
 
