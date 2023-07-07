@@ -54,13 +54,10 @@ class CallTracker:
         #self.logger.debug('add_latest_cursor: done')
         return self.latest_cursors[cursor]
     def add_ops(self, cursor, ops):
-        if ops.op_type == 'PIC':
-            if ops.sqlid not in self.statements:
-                self.statements[ops.sqlid] = ''
-            self.cursors[cursor] = ops.sqlid
-            self.latest_cursors[cursor] = CurrentStatement(cursor, self.db, ops.sqlid)
 
         cstat = self._get_cursor(cursor)
+        # If non-list ops is already set we assume previous client interaction is over and
+        # we can close latest cursor/interaction
         if not cstat or (cstat.is_set(ops.op_type) and not isinstance(cstat.ops[ops.op_type], list)):
             cstat = self.add_latest_cursor(cursor)
         cstat.add_ops(ops)
@@ -77,46 +74,46 @@ class CallTracker:
         self.latest_cursors[cursor] = cstat
 
         cstat.add_ops(params)
-    def add_parse(self, cursor, params):
-        cstat = self._get_cursor(cursor)
-        if not cstat or cstat.is_set('PARSE'):
-            cstat = self.add_latest_cursor(cursor)
-        cstat.add_ops(params)
-    def add_exec(self, cursor, params):
-        cstat = self._get_cursor(cursor)
-        if not cstat or cstat.is_set('EXEC'):
-            cstat = self.add_latest_cursor(cursor)
-        cstat.add_ops(params)
-    def add_fetch(self, cursor, params):
-        cstat = self._get_cursor(cursor)
-        if not cstat:
-            cstat = self.add_latest_cursor(cursor)
-        cstat.add_ops(params)
-    def add_wait(self, cursor, params):
-        cstat = self._get_cursor(cursor)
-        if not cstat:
-            cstat = self.add_latest_cursor(cursor)
-        cstat.add_ops(params)
-    def add_close(self, cursor, params):
-        cstat = self._get_cursor(cursor)
-        if not cstat:
-            # PARSE/PIC happened before start of the trace. Just add the call
-            # to the database w/o sql_id
-            self.db.insert_ops(params.to_list(self.db.get_exec_id(), ''))
-            return
-        cstat.add_ops(params)
-        self.add_latest_cursor(cursor)
-    def add_stat(self, cursor, params):
-        cstat = self._get_cursor(cursor)
-        # FIXME: this is wrong, do not add cursor on stray STAT
-        if not cstat:
-            cstat = self.add_latest_cursor(cursor)
-        cstat.add_ops(params)
-    def add_binds(self, cursor, params):
-        cstat = self._get_cursor(cursor)
-        if not cstat or cstat.is_set('BINDS'):
-            cstat = self.add_latest_cursor(cursor)
-        cstat.add_ops(params)
+#    def add_parse(self, cursor, params):
+#        cstat = self._get_cursor(cursor)
+#        if not cstat or cstat.is_set('PARSE'):
+#            cstat = self.add_latest_cursor(cursor)
+#        cstat.add_ops(params)
+#    def add_exec(self, cursor, params):
+#        cstat = self._get_cursor(cursor)
+#        if not cstat or cstat.is_set('EXEC'):
+#            cstat = self.add_latest_cursor(cursor)
+#        cstat.add_ops(params)
+#    def add_fetch(self, cursor, params):
+#        cstat = self._get_cursor(cursor)
+#        if not cstat:
+#            cstat = self.add_latest_cursor(cursor)
+#        cstat.add_ops(params)
+#    def add_wait(self, cursor, params):
+#        cstat = self._get_cursor(cursor)
+#        if not cstat:
+#            cstat = self.add_latest_cursor(cursor)
+#        cstat.add_ops(params)
+#    def add_close(self, cursor, params):
+#        cstat = self._get_cursor(cursor)
+#        if not cstat:
+#            # PARSE/PIC happened before start of the trace. Just add the call
+#            # to the database w/o sql_id
+#            self.db.insert_ops(params.to_list(self.db.get_exec_id(), ''))
+#            return
+#        cstat.add_ops(params)
+#        self.add_latest_cursor(cursor)
+#    def add_stat(self, cursor, params):
+#        cstat = self._get_cursor(cursor)
+#        # FIXME: this is wrong, do not add cursor on stray STAT
+#        if not cstat:
+#            cstat = self.add_latest_cursor(cursor)
+#        cstat.add_ops(params)
+#    def add_binds(self, cursor, params):
+#        cstat = self._get_cursor(cursor)
+#        if not cstat or cstat.is_set('BINDS'):
+#            cstat = self.add_latest_cursor(cursor)
+#        cstat.add_ops(params)
     def reset(self):
         empty = []
         for cursor in self.latest_cursors:
