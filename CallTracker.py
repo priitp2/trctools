@@ -3,9 +3,7 @@ from current_statement import CurrentStatement
 
 class CallTracker:
     '''
-        Keeps track of the statements and cursors. add_parsing_in() creates new statement, 
-        add_parse, and add_exec add new cursors if needed. If new cursor is added, events
-        in the old one are added to the statement.
+        Tracks database client interactions.
     '''
     def __init__(self, db):
         self.logger = logging.getLogger(__name__)
@@ -32,8 +30,8 @@ class CallTracker:
         self.add_latest_cursor(cursor)
         self.dummy_counter += 1
     def add_latest_cursor(self, cursor):
-        ''' If cursor is present then this is new execution, so merge the cursor with
-            the statement and overwrite the latest_cursor.
+        ''' If cursor is present then this is new execution, so dump the cursor to the
+            database and overwrite the latest_cursor.
         '''
         #self.logger.debug('add_latest_cursor: start')
         cs = self._get_cursor(cursor)
@@ -89,7 +87,5 @@ class CallTracker:
         if not self.db:
             return
         self.reset()
-        #for cursor in self.latest_cursors:
-        #    self.add_latest_cursor(cursor)
         self.db.flush()
         self.logger.debug('flush: done')
