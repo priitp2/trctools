@@ -1,8 +1,6 @@
 import unittest
 import test_constants
 
-CURSOR = '#140641987987624'
-FNAME = 'file.trc'
 class TestOps(unittest.TestCase):
     def test_init(self):
         ops = test_constants.CORRECT_OPS['EXEC']
