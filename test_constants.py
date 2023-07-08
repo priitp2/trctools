@@ -1,3 +1,4 @@
+import datetime
 from ops import Ops
 
 __doc__ = """
@@ -23,4 +24,8 @@ CORRECT_OPS = {
         + " blocks=1 obj#=89440 tim=5793512314261", FNAME, LINE),
     'FETCH':Ops('FETCH', CURSOR, "c=0,e=45,p=0,cr=1,cu=0,mis=0,r=4,dep=0,og=1,plh=2725028981," \
         + "tim=5793511831594", FNAME, LINE)
+}
+UNTRACKED_OPS = {
+    'STAR':Ops('STAR', None, 'jdbcthin : 21.5.0.0.0', FNAME, LINE, 'CLIENT DRIVER', datetime.datetime.now()),
+    'XCTEND':Ops('XCTEND', None, 'rlbk=0, rd_only=1, tim=5793512315347', FNAME, LINE)
 }
