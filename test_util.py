@@ -144,6 +144,10 @@ class TestUtil(unittest.TestCase):
         # Cursor #139623166535832 gets overwritten by every execution
         self.assertEqual(len(tracker.cursors), 2)
 
+        for batch in db.batches:
+            if batch[3] == 'BINDS' and len(batch[17]) < 5:
+                self.fail(f'BINDS not set, wait_raw is {batch[17]}')
+
     @unittest.skip("Decide if this test is needed or not")
     def test_mixed_execs(self):
         # FIXME: is this test needed?
