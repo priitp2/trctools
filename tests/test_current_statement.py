@@ -1,8 +1,8 @@
 import unittest
 from current_statement import CurrentStatement
 from ops import Ops
-from test_db import DB
-import test_constants
+from tests.test_db import DB
+import tests.test_constants as test_constants
 
 class TestCurrentStatement(unittest.TestCase):
     def setUp(self):
