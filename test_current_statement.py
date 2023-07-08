@@ -40,8 +40,12 @@ class TestCurrentStatement(unittest.TestCase):
         self.assertTrue(self.cstat.is_set('STAT'))
         self.assertTrue(self.cstat.is_set('WAIT'))
 
-        self.assertFalse(self.cstat.is_set('BINDS'))
+        # Unset PIC, so we can test is_set returning False
+        self.cstat.ops['PIC'] = None
         self.assertFalse(self.cstat.is_set('PIC'))
+
+        # Missing in CORRECT_OPS
+        self.assertFalse(self.cstat.is_set('BINDS'))
 
         wrong_cs = Ops('WAIT', test_constants.WRONG_CURSOR, " nam='db file sequential read' ela= 403 file#=414 block#=2682927 ", test_constants.FNAME, 3)
         with self.assertRaisesRegex(BaseException, 'add_ops: wrong cursor *'):
