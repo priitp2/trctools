@@ -12,26 +12,26 @@ class TestCurrentStatement(unittest.TestCase):
             self.cstat.dump_to_db()
 
         self.cstat.dbs = DB()
-        for ops in test_constants.CORRECT_OPS.values():
+        for ops in test_constants.TRACKED_OPS.values():
             self.cstat.add_ops(ops)
         self.cstat.dump_to_db()
-        self.assertEqual(len(self.cstat.dbs.batches), len(test_constants.CORRECT_OPS))
+        self.assertEqual(len(self.cstat.dbs.batches), len(test_constants.TRACKED_OPS))
     def test_is_not_empty(self):
         self.assertFalse(self.cstat.is_not_empty())
-        self.cstat.add_ops(test_constants.CORRECT_OPS['EXEC'])
+        self.cstat.add_ops(test_constants.TRACKED_OPS['EXEC'])
         self.assertTrue(self.cstat.is_not_empty())
 
         self.cstat = CurrentStatement(test_constants.CURSOR, None)
-        wait = test_constants.CORRECT_OPS['WAIT']
+        wait = test_constants.TRACKED_OPS['WAIT']
         for i in range(0, 3):
             self.cstat.add_ops(wait)
         self.assertTrue(self.cstat.is_not_empty())
     def test_add_ops(self):
-        for ops in test_constants.CORRECT_OPS.values():
+        for ops in test_constants.TRACKED_OPS.values():
             self.cstat.add_ops(ops)
-        stat = test_constants.CORRECT_OPS['STAT']
+        stat = test_constants.TRACKED_OPS['STAT']
         self.cstat.add_ops(stat)
-        wait = test_constants.CORRECT_OPS['WAIT']
+        wait = test_constants.TRACKED_OPS['WAIT']
         self.cstat.add_ops(wait)
 
         self.assertTrue(self.cstat.is_set('PARSE'))
@@ -44,7 +44,7 @@ class TestCurrentStatement(unittest.TestCase):
         self.cstat.ops['PIC'] = None
         self.assertFalse(self.cstat.is_set('PIC'))
 
-        # Missing in CORRECT_OPS
+        # Missing in TRACKED_OPS
         self.assertFalse(self.cstat.is_set('BINDS'))
 
         wrong_cs = Ops('WAIT', test_constants.WRONG_CURSOR, " nam='db file sequential read' " \
@@ -56,7 +56,7 @@ class TestCurrentStatement(unittest.TestCase):
         with self.assertRaisesRegex(BaseException, 'add_ops: unknown ops type:*'):
             self.cstat.add_ops(wrong_ops)
 
-        ops = test_constants.CORRECT_OPS['EXEC']
+        ops = test_constants.TRACKED_OPS['EXEC']
         with self.assertRaisesRegex(BaseException, 'add_ops: already set: *'):
             self.cstat.add_ops(ops)
 
@@ -66,11 +66,11 @@ class TestCurrentStatement(unittest.TestCase):
     def test_count_ops(self):
         self.assertEqual(self.cstat.count_ops('FETCH'), 0)
 
-        ops = test_constants.CORRECT_OPS['EXEC']
+        ops = test_constants.TRACKED_OPS['EXEC']
         self.cstat.add_ops(ops)
         self.assertEqual(self.cstat.count_ops('EXEC'), 1)
 
-        wait = test_constants.CORRECT_OPS['WAIT']
+        wait = test_constants.TRACKED_OPS['WAIT']
         for i in range(0, 3):
             self.cstat.add_ops(wait)
         self.assertEqual(self.cstat.count_ops('WAIT'), 3)

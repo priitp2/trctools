@@ -3,7 +3,7 @@ import test_constants
 
 class TestOps(unittest.TestCase):
     def test_init(self):
-        ops = test_constants.CORRECT_OPS['EXEC']
+        ops = test_constants.TRACKED_OPS['EXEC']
         self.assertEqual(ops.op_type, 'EXEC')
         self.assertEqual(ops.cursor, test_constants.CURSOR)
         self.assertEqual(ops.c, 73)
@@ -19,7 +19,7 @@ class TestOps(unittest.TestCase):
         self.assertEqual(ops.tim, 5793511830834)
 
     def test_init_close(self):
-        ops = test_constants.CORRECT_OPS['CLOSE']
+        ops = test_constants.TRACKED_OPS['CLOSE']
         self.assertEqual(ops.op_type, 'CLOSE')
         self.assertEqual(ops.cursor, test_constants.CURSOR)
         self.assertEqual(ops.c, 0)
@@ -32,7 +32,7 @@ class TestOps(unittest.TestCase):
         self.assertEqual(ops.cu, 0)
 
     def test_init_wait(self):
-        ops = test_constants.CORRECT_OPS['WAIT']
+        ops = test_constants.TRACKED_OPS['WAIT']
         self.assertEqual(ops.op_type, 'WAIT')
         self.assertEqual(ops.cursor, test_constants.CURSOR)
         self.assertEqual(ops.e, 403)
@@ -45,7 +45,7 @@ class TestOps(unittest.TestCase):
 
     def test_to_list(self):
         sql_id = 'abc123'
-        ops = test_constants.CORRECT_OPS['EXEC']
+        ops = test_constants.TRACKED_OPS['EXEC']
         lst = ops.to_list(0, sql_id)
         self.assertEqual(len(lst), len(ops.__slots__) + 13)
         self.assertEqual(lst[0], 0)
@@ -72,19 +72,19 @@ class TestOps(unittest.TestCase):
         self.assertEqual(lst[20], None)
 
     def test_str(self):
-        ops = test_constants.CORRECT_OPS['WAIT']
+        ops = test_constants.TRACKED_OPS['WAIT']
         self.assertRegex(str(ops), f'^{test_constants.CURSOR}: WAIT*')
 
-        ops = test_constants.CORRECT_OPS['EXEC']
+        ops = test_constants.TRACKED_OPS['EXEC']
         self.assertRegex(str(ops), f'^{test_constants.CURSOR}: EXEC*')
 
-        ops = test_constants.CORRECT_OPS['CLOSE']
+        ops = test_constants.TRACKED_OPS['CLOSE']
         self.assertRegex(str(ops), f'^{test_constants.CURSOR}: CLOSE*')
 
         ops = test_constants.UNTRACKED_OPS['STAR']
         self.assertRegex(str(ops), r'^\*\*\* CLIENT DRIVER:*')
 
-        ops = test_constants.CORRECT_OPS['PIC']
+        ops = test_constants.TRACKED_OPS['PIC']
         self.assertRegex(str(ops), f'^PARSING IN CURSOR (.*) tim={ops.tim}(.*)')
 
         ops = test_constants.UNTRACKED_OPS['XCTEND']
