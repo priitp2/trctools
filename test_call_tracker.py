@@ -1,13 +1,12 @@
 import unittest
 from CallTracker import CallTracker
-from ops import Ops
 from test_db import DB
 import test_constants
 
 class TestCallTracker(unittest.TestCase):
     def setUp(self):
-        db = DB()
-        self.tracker = CallTracker(db)
+        dbs = DB()
+        self.tracker = CallTracker(dbs)
     def test_add_cursor(self):
         self.tracker.add_pic(test_constants.CURSOR, test_constants.CORRECT_OPS['PIC'])
         self.assertEqual(len(self.tracker.cursors), 2)
@@ -24,20 +23,21 @@ class TestCallTracker(unittest.TestCase):
 
         self.tracker.add_ops(test_constants.CURSOR, test_constants.CORRECT_OPS['PARSE'])
         # add_parsing_in adds item to latest_test_constants.CURSORs
-        cs = self.tracker._get_cursor(test_constants.CURSOR)
-        self.assertNotEqual(cs, None)
-        self.assertEqual(cs.count_ops('PARSE'), 1)
+        cursor = self.tracker._get_cursor(test_constants.CURSOR)
+        self.assertNotEqual(cursor, None)
+        self.assertEqual(cursor.count_ops('PARSE'), 1)
         self.assertEqual(len(self.tracker.latest_cursors), 2)
         self.assertEqual(len(self.tracker.statements), 2)
         self.assertEqual(len(self.tracker.cursors), 2)
 
         self.assertEqual(len(self.tracker.db.batches), 0)
 
-        # This merges the item in tr.latest_test_constants.CURSORs with statements and overwrites the item
+        # This merges the item in tr.latest_test_constants.CURSORs with statements
+        # and overwrites the item
         self.tracker.add_ops(test_constants.CURSOR, test_constants.CORRECT_OPS['PARSE'])
-        cs = self.tracker._get_cursor(test_constants.CURSOR)
-        self.assertNotEqual(cs, None)
-        self.assertTrue(cs.is_set('PARSE'))
+        cursor = self.tracker._get_cursor(test_constants.CURSOR)
+        self.assertNotEqual(cursor, None)
+        self.assertTrue(cursor.is_set('PARSE'))
         self.assertEqual(len(self.tracker.latest_cursors), 2)
         self.assertEqual(len(self.tracker.statements), 2)
         self.assertEqual(len(self.tracker.cursors), 2)
@@ -50,9 +50,9 @@ class TestCallTracker(unittest.TestCase):
 
         self.tracker.add_ops(test_constants.CURSOR, test_constants.CORRECT_OPS['EXEC'])
 
-        cs = self.tracker._get_cursor(test_constants.CURSOR)
-        self.assertNotEqual(cs, None)
-        self.assertTrue(cs.is_set('EXEC'))
+        cursor = self.tracker._get_cursor(test_constants.CURSOR)
+        self.assertNotEqual(cursor, None)
+        self.assertTrue(cursor.is_set('EXEC'))
 
         self.assertEqual(len(self.tracker.latest_cursors), 2)
         self.assertEqual(len(self.tracker.statements), 2)
@@ -63,14 +63,14 @@ class TestCallTracker(unittest.TestCase):
         self.tracker.add_pic(test_constants.CURSOR, test_constants.CORRECT_OPS['PIC'])
         for i in range(0, 3):
             self.tracker.add_ops(test_constants.CURSOR, test_constants.CORRECT_OPS['FETCH'])
-        cs = self.tracker.latest_cursors[test_constants.CURSOR]
-        self.assertEqual(cs.count_ops('FETCH'), 3)
+        cursor = self.tracker.latest_cursors[test_constants.CURSOR]
+        self.assertEqual(cursor.count_ops('FETCH'), 3)
     def test_add_wait(self):
         self.tracker.add_pic(test_constants.CURSOR, test_constants.CORRECT_OPS['PIC'])
         for i in range(0, 3):
             self.tracker.add_ops(test_constants.CURSOR, test_constants.CORRECT_OPS['WAIT'])
-        cs = self.tracker.latest_cursors[test_constants.CURSOR]
-        self.assertEqual(cs.count_ops('WAIT'), 3)
+        cursor = self.tracker.latest_cursors[test_constants.CURSOR]
+        self.assertEqual(cursor.count_ops('WAIT'), 3)
     def test_add_close(self):
         self.tracker.add_pic(test_constants.CURSOR, test_constants.CORRECT_OPS['PIC'])
 
@@ -81,10 +81,10 @@ class TestCallTracker(unittest.TestCase):
         # This closes current statement/client int
         self.tracker.add_ops(test_constants.CURSOR, test_constants.CORRECT_OPS['CLOSE'])
 
-        cs = self.tracker._get_cursor(test_constants.CURSOR)
-        self.assertNotEqual(cs, None)
-        self.assertTrue(cs.is_set('CLOSE'))
-        self.assertFalse(cs.is_set('EXEC'))
+        cursor = self.tracker._get_cursor(test_constants.CURSOR)
+        self.assertNotEqual(cursor, None)
+        self.assertTrue(cursor.is_set('CLOSE'))
+        self.assertFalse(cursor.is_set('EXEC'))
 
         self.assertEqual(len(self.tracker.db.batches), 3)
     def test_stray_cursors(self):
@@ -109,7 +109,8 @@ class TestCallTracker(unittest.TestCase):
     def test__get_cursor(self):
         self.assertEqual(self.tracker._get_cursor('#123'), None)
         self.tracker.add_pic(test_constants.CURSOR, test_constants.CORRECT_OPS['PIC'])
-        self.assertEqual(self.tracker._get_cursor(test_constants.CURSOR).cursor, test_constants.CURSOR)
+        self.assertEqual(self.tracker._get_cursor(test_constants.CURSOR).cursor,
+                test_constants.CURSOR)
         self.assertEqual(self.tracker._get_cursor('#123'), None)
     def test__add_dummy_statement(self):
         self.tracker._add_dummy_statement('#1234')
