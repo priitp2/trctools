@@ -8,7 +8,7 @@ CURSOR = '#140131077570528'
 WRONG_CURSOR = '#321'
 FNAME = 'trace.trc'
 LINE = 77
-CORRECT_OPS = {
+TRACKED_OPS = {
     'PIC':Ops('PIC', CURSOR, "len=80 dep=0 uid=331 oct=3 lid=331 tim=7104844976089 hv=1167462720 " \
         + "ad='9d4125228' sqlid='6v48b7j2tc4a0'", FNAME, LINE, name='select dummy from dual'),
     'PARSE':Ops('PARSE', CURSOR,
