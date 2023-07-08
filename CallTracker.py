@@ -60,6 +60,7 @@ class CallTracker:
                             and not isinstance(cstat.ops[ops.op_type], list)):
             cstat = self.add_latest_cursor(cursor)
         cstat.add_ops(ops)
+        # FIXME: should we have special handling for close?
     def add_pic(self, cursor, params):
         cstat = self._get_cursor(cursor)
         if cstat:
