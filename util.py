@@ -41,11 +41,13 @@ class Filer:
                 if match:
                     if in_binds:
                         in_binds = False
-                        ops = Ops('BINDS', binds[0], "".join(binds[3]), binds[1], binds[2])
-                        tracker.add_ops(binds[0], ops)
-                        #(cursor, file name, line no, [binds])
-                        binds = ()
+                        binds = None
 
+                    if match.group(1) == 'BINDS':
+                        in_binds = True
+                        binds = Ops('BINDS', match.group(2), [], fname, line_count)
+                        tracker.add_ops(binds.cursor, binds)
+                        continue
                     if match.group(1) == 'PARSING IN CURSOR':
                         in_pic = True
                         pic = Ops('PIC', match.group(2), match.group(4), fname, line_count)
@@ -56,7 +58,7 @@ class Filer:
                     continue
 
                 if in_binds:
-                    binds[3].append(line)
+                    binds.raw.append(line)
                     continue
 
                 if in_pic:
