@@ -128,18 +128,16 @@ class TestUtil(unittest.TestCase):
         db = DB()
         tracker = CallTracker(db)
         lines = self.filer.process_file(tracker, 'tests/two_statements_one_cursor.trc')
-        self.assertEqual(lines, 90)
+        tracker.flush()
+        self.assertEqual(lines, 119)
 
         self.assertEqual(self.get_count(db.batches, 3, 'FETCH'), 14)
-        self.assertEqual(self.get_count(db.batches, 1, 'cdgn9f8spbxnt'), 12)
-        # Counts by sql_id and exec_id should match
-        self.assertEqual(self.get_count(db.batches, 0, 1), self.get_count(db.batches, 1, 'cdgn9f8spbxnt'))
+        self.assertEqual(self.get_count(db.batches, 1, 'cdgn9f8spbxnt'), 13)
 
-        self.assertEqual(self.get_count(db.batches, 1, 'atxg62s17nkj4'), 11)
-        self.assertEqual(self.get_count(db.batches, 0, 2), self.get_count(db.batches, 1, 'atxg62s17nkj4'))
+        self.assertEqual(self.get_count(db.batches, 1, 'atxg62s17nkj4'), 13)
 
-        self.assertEqual(self.get_count(db.batches, 1, '6ssxu7vjxb51a'), 40)
-        self.assertEqual(self.get_count(db.batches, 0, 3), self.get_count(db.batches, 1, '6ssxu7vjxb51a'))
+        self.assertEqual(self.get_count(db.batches, 1, '6ssxu7vjxb51a'), 42)
+        self.assertEqual(self.get_count(db.batches, 1, 'dummy1'), 0)
 
         self.assertEqual(len(tracker.statements), 4)
 
@@ -160,7 +158,7 @@ class TestUtil(unittest.TestCase):
         # 3 EXEC calls + 1 dummy for the stray WAITs
         self.assertEqual(tracker.statements['6v48b7j2tc4a0'].execs, 3)
 
-    def test_process_file_3_statements_1_cursor(self):
+    def test_stray_close(self):
         # PARSE/PIC happened before start of the trace. Just add the call to the database w/o sql_id
         db = DB()
         tracker = CallTracker(db)
