@@ -1,9 +1,11 @@
 import re
 
 class Ops:
-    """Ops corresponds to a line in SQL trace file, with some exceptions (empty lines,
-    some parts of of the file header). Since different oerations have different formats,
-    this class is a hot mess. Do not touch! """
+    """
+        Ops corresponds to a line in SQL trace file, with some exceptions (empty lines,
+        some parts of of the file header). Since different operations have different formats,
+        this class is a hot mess. Do not touch!
+    """
     def __init__(self, op_type, cursor, params, fname, line, name=None, ts2=None):
         self.op_type = op_type
         self.cursor = cursor
@@ -64,10 +66,15 @@ class Ops:
                         None, None, None, None, None, None, self.tim, None, self.name,
                         self.raw, self.fname, self.line, None, None, None, None, None, None,
                         None, None, None]
-        if self.op_type in ['STAT', 'BINDS']:
+        if self.op_type in 'STAT':
             return [exec_id, sql_id, self.cursor, self.op_type, None, None, None, None, None,
                         None, None, None, None, None, None, None, None, self.raw, self.fname,
                         self.line, None, None, None, None, None, None, None, None, None]
+        if self.op_type in 'BINDS':
+            return [exec_id, sql_id, self.cursor, self.op_type, None, None, None, None, None,
+                        None, None, None, None, None, None, None, None, "".join(self.raw),
+                        self.fname, self.line, None, None, None, None, None, None, None, None,
+                        None]
         if self.op_type == 'STAR':
             return [exec_id, sql_id, self.cursor, self.op_type, None, None, None, None, None,
                         None, None, None, None, None, None, None, self.name, self.raw, self.fname,
