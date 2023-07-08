@@ -32,7 +32,6 @@ class TestOps(unittest.TestCase):
         self.assertEqual(ops.cu, 0)
 
     def test_init_wait(self):
-        # FIXME: space in the beginning of the param string
         ops = test_constants.CORRECT_OPS['WAIT']
         self.assertEqual(ops.op_type, 'WAIT')
         self.assertEqual(ops.cursor, test_constants.CURSOR)
