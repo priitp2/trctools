@@ -1,46 +1,46 @@
 import unittest
-from ops import Ops
+import test_constants
 
 CURSOR = '#140641987987624'
 FNAME = 'file.trc'
 class TestOps(unittest.TestCase):
     def test_init(self):
-        ops = Ops('EXEC', CURSOR, 'c=73,e=73,p=0,cr=0,cu=0,mis=0,r=0,dep=0,og=1,plh=2725028981,tim=5793511830834', FNAME, 3)
+        ops = test_constants.CORRECT_OPS['EXEC']
         self.assertEqual(ops.op_type, 'EXEC')
-        self.assertEqual(ops.cursor, CURSOR)
+        self.assertEqual(ops.cursor, test_constants.CURSOR)
         self.assertEqual(ops.c, 73)
         self.assertEqual(ops.e, 73)
-        self.assertEqual(ops.p, 0)
-        self.assertEqual(ops.cr, 0)
-        self.assertEqual(ops.cu, 0)
-        self.assertEqual(ops.mis, 0)
-        self.assertEqual(ops.r, 0)
-        self.assertEqual(ops.dep, 0)
-        self.assertEqual(ops.og, 1)
+        self.assertEqual(ops.p, 1)
+        self.assertEqual(ops.cr, 2)
+        self.assertEqual(ops.cu, 3)
+        self.assertEqual(ops.mis, 4)
+        self.assertEqual(ops.r, 5)
+        self.assertEqual(ops.dep, 6)
+        self.assertEqual(ops.og, 7)
         self.assertEqual(ops.plh, 2725028981)
         self.assertEqual(ops.tim, 5793511830834)
 
     def test_init_close(self):
-        ops = Ops('CLOSE', '#140641987987624', 'c=3,e=3,dep=0,type=1,tim=5793511831927', FNAME, 2)
+        ops = test_constants.CORRECT_OPS['CLOSE']
         self.assertEqual(ops.op_type, 'CLOSE')
-        self.assertEqual(ops.cursor, CURSOR)
-        self.assertEqual(ops.c, 3)
-        self.assertEqual(ops.e, 3)
+        self.assertEqual(ops.cursor, test_constants.CURSOR)
+        self.assertEqual(ops.c, 0)
+        self.assertEqual(ops.e, 4)
         self.assertEqual(ops.dep, 0)
-        self.assertEqual(ops.type, 1)
-        self.assertEqual(ops.tim, 5793511831927)
+        self.assertEqual(ops.type, 3)
+        self.assertEqual(ops.tim, 5793512315335)
 
         # Missing attribute,but present in __slots__: __getattr__ returns 0 instead
         self.assertEqual(ops.cu, 0)
 
     def test_init_wait(self):
         # FIXME: space in the beginning of the param string
-        ops = Ops('WAIT', '#140641987987624', " nam='SQL*Net message to client' ela= 1 driver id=675562835 #bytes=1 p3=0 obj#=89440 tim=5793511831582", FNAME, 2)
+        ops = test_constants.CORRECT_OPS['WAIT']
         self.assertEqual(ops.op_type, 'WAIT')
-        self.assertEqual(ops.cursor, CURSOR)
-        self.assertEqual(ops.e, 1)
-        self.assertEqual(ops.tim, 5793511831582)
-        self.assertEqual(ops.name, 'SQL*Net message to client')
+        self.assertEqual(ops.cursor, test_constants.CURSOR)
+        self.assertEqual(ops.e, 403)
+        self.assertEqual(ops.tim, 5793512314261)
+        self.assertEqual(ops.name, 'db file sequential read')
 
         # Missing attribute, not in __slots__
         with self.assertRaises(AttributeError):
@@ -48,12 +48,12 @@ class TestOps(unittest.TestCase):
 
     def test_to_list(self):
         sql_id = 'abc123'
-        ops = Ops('EXEC', CURSOR, 'c=73,e=73,p=1,cr=2,cu=3,mis=4,r=5,dep=6,og=7,plh=2725028981,tim=5793511830834', FNAME, 1)
+        ops = test_constants.CORRECT_OPS['EXEC']
         lst = ops.to_list(0, sql_id)
         self.assertEqual(len(lst), len(ops.__slots__) + 13)
         self.assertEqual(lst[0], 0)
         self.assertEqual(lst[1], sql_id)
-        self.assertEqual(lst[2], CURSOR)
+        self.assertEqual(lst[2], test_constants.CURSOR)
         self.assertEqual(lst[3], 'EXEC')
         self.assertEqual(lst[4], ops.c)
         self.assertEqual(lst[5], ops.e)
@@ -69,28 +69,28 @@ class TestOps(unittest.TestCase):
         self.assertEqual(lst[15], 0) # type will be 0
         self.assertEqual(lst[16], '')
         self.assertEqual(lst[17], '')
-        self.assertEqual(lst[18], FNAME)
-        self.assertEqual(lst[19], 1)
+        self.assertEqual(lst[18], test_constants.FNAME)
+        self.assertEqual(lst[19], test_constants.LINE)
         # ts2
         self.assertEqual(lst[20], None)
 
     def test_str(self):
-        ops = Ops('WAIT', '#140641987987624', " nam='SQL*Net message to client' ela= 1 driver id=675562835 #bytes=1 p3=0 obj#=89440 tim=5793511831582", FNAME, 2)
-        self.assertRegex(str(ops), '^#140641987987624: WAIT*')
+        ops = test_constants.CORRECT_OPS['WAIT']
+        self.assertRegex(str(ops), f'^{test_constants.CURSOR}: WAIT*')
 
-        ops = Ops('EXEC', CURSOR, 'c=73,e=73,p=1,cr=2,cu=3,mis=4,r=5,dep=6,og=7,plh=2725028981,tim=5793511830834', FNAME, 4)
-        self.assertRegex(str(ops), '^#140641987987624: EXEC*')
+        ops = test_constants.CORRECT_OPS['EXEC']
+        self.assertRegex(str(ops), f'^{test_constants.CURSOR}: EXEC*')
 
-        ops = Ops('CLOSE', '#140641987987624', 'c=3,e=3,dep=0,type=1,tim=5793511831927', FNAME, 4)
-        self.assertRegex(str(ops), '^#140641987987624: CLOSE*')
+        ops = test_constants.CORRECT_OPS['CLOSE']
+        self.assertRegex(str(ops), f'^{test_constants.CURSOR}: CLOSE*')
 
-        ops = Ops('STAR', None, '123.223', FNAME, 4, name='SESSION ID')
-        self.assertRegex(str(ops), r'^\*\*\* SESSION ID*')
+        ops = test_constants.UNTRACKED_OPS['STAR']
+        self.assertRegex(str(ops), r'^\*\*\* CLIENT DRIVER:*')
 
-        ops = Ops('PIC', CURSOR, "len=80 dep=0 uid=331 oct=3 lid=331 tim=7104844976089 hv=1167462720 ad='9d4125228' sqlid='6v48b7j2tc4a0'", FNAME, 4, name='select dummy from dual')
-        self.assertRegex(str(ops), '^PARSING IN CURSOR (.*) tim=7104844976089(.*)')
+        ops = test_constants.CORRECT_OPS['PIC']
+        self.assertRegex(str(ops), f'^PARSING IN CURSOR (.*) tim={ops.tim}(.*)')
 
-        ops = Ops('XCTEND', None, 'rlbk=0, rd_only=1, tim=5793512315347', FNAME, 4)
+        ops = test_constants.UNTRACKED_OPS['XCTEND']
         self.assertRegex(str(ops), '^XCTEND rlbk=0,*')
 if __name__ == '__main__':
     unittest.main()
