@@ -1,5 +1,5 @@
 import unittest
-import test_constants
+import tests.test_constants as test_constants
 
 class TestOps(unittest.TestCase):
     def test_init(self):

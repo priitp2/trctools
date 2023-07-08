@@ -1,7 +1,7 @@
 import unittest
 from util import Filer
-from CallTracker import CallTracker
-from test_db import DB
+from call_tracker import CallTracker
+from tests.test_db import DB
 
 cursor1 = '#123223'
 class TestUtil(unittest.TestCase):
