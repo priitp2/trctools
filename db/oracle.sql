@@ -1,24 +1,10 @@
-CREATE TABLE cursors (
-    id integer generated as identity primary key,
-    cursor_id        VARCHAR2(64) not null,
-    statement_length INTEGER NOT NULL,
-    rec_depth        INTEGER NOT NULL,
-    schema_id        INTEGER NOT NULL,
-    command_type     INTEGER NOT NULL,
-    priv_user_id     INTEGER NOT NULL,
-    ts               INTEGER NOT NULL,
-    hash_id          INTEGER NOT NULL,
-    sqltext_addr     VARCHAR2(128) NOT NULL,
-    sql_id           VARCHAR2(64) NOT NULL
-);
-
 -- increment by should match DB.seq_batch_size
 create sequence cursor_exec_id increment by 100;
 
 CREATE TABLE dbcall (
     exec_id        INTEGER NOT NULL,
-    sql_id         VARCHAR2(16) NOT NULL,
-    cursor_id      VARCHAR2(64) NOT NULL,
+    sql_id         VARCHAR2(16),
+    cursor_id      VARCHAR2(64),
     ops            VARCHAR2(12) NOT NULL,
     cpu_time       INTEGER, -- c
     elapsed_time   INTEGER, -- e
@@ -34,7 +20,27 @@ CREATE TABLE dbcall (
     c_type 	   INTEGER,
     wait_name	   VARCHAR2(256),
     wait_raw	   VARCHAR2(4000),
-    file_name	   VARCHAR2(1000),
-    line	   INTEGER
+    file_name	   VARCHAR2(1000) NOT NULL,
+    line	   INTEGER NOT NULL,
+    ts2		   TIMESTAMP,
+    len		   INTEGER,
+    pic_uid	   INTEGER,
+    oct		   INTEGER,
+    lid		   INTEGER,
+    hv		   INTEGER,
+    ad		   VARCHAR2(64),
+    rlbk	   INTEGER,
+    rd_only	   INTEGER
 ) PCTFREE 0 ROW STORE COMPRESS ADVANCED;
+
+create view elapsed_time as
+    select
+        sql_id,
+	exec_id,
+	max(ts) keep (dense_rank last order by ts) over (partition by sql_id, exec_id) - min(ts) keep (dense_rank first order by ts) over (partition by sql_id, exec_id) as ela
+    from
+	dbcall
+    where
+	ts is not null
+    group by sql_id, exec_id;
 
