@@ -76,6 +76,7 @@ class Filer:
                                         line_count).to_list(tracker.db.get_exec_id(), None))
                     continue
 
+                # FIXME: make this configurable
                 match = self.res_matcher.match(line)
                 if match:
                     self.logger.debug('reset tracker')
@@ -99,7 +100,7 @@ class Filer:
 
                 match = self.file_header_matcher.match(line)
                 if match:
-                    tracker.db.insert_ops(Ops('STAR', None, match.group(2), fname, line_count,
+                    tracker.db.insert_ops(Ops('HEADER', None, match.group(2), fname, line_count,
                                             match.group(1), None).to_list(tracker.db.get_exec_id(), None))
                     continue
 

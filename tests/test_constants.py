@@ -27,5 +27,6 @@ TRACKED_OPS = {
 }
 UNTRACKED_OPS = {
     'STAR':Ops('STAR', None, 'jdbcthin : 21.5.0.0.0', FNAME, LINE, 'CLIENT DRIVER', datetime.datetime.now()),
-    'XCTEND':Ops('XCTEND', None, 'rlbk=0, rd_only=1, tim=5793512315347', FNAME, LINE)
+    'XCTEND':Ops('XCTEND', None, 'rlbk=0, rd_only=1, tim=5793512315347', FNAME, LINE),
+    'HEADER':Ops('HEADER', None, 'Build label', FNAME, LINE, 'RDBMS_19.16.0.0.0DBRUR_LINUX.X64_230111')
 }

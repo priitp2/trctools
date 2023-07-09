@@ -36,7 +36,8 @@ class TestUtil(unittest.TestCase):
         ela_nowait = 598
         waits = 5
         fetches = 2
-        stars = 20
+        stars = 9
+        headers = 11
         binds = 1
         pics = 1
         sql_id = 'atxg62s17nkj4'
@@ -61,6 +62,7 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(self.get_count(db.batches, 3, 'WAIT'), waits)
         self.assertEqual(self.get_count(db.batches, 3, 'FETCH'), fetches)
         self.assertEqual(self.get_count(db.batches, 3, 'STAR'), stars)
+        self.assertEqual(self.get_count(db.batches, 3, 'HEADER'), headers)
         self.assertEqual(self.get_count(db.batches, 3, 'BINDS'), binds)
         self.assertEqual(self.get_count(db.batches, 3, 'PIC'), pics)
 

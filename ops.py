@@ -24,7 +24,7 @@ class Ops:
         elif op_type == 'STAT':
             self.__dict__['raw'] = params
             self.__slots__ = (op_type, cursor, 'raw', fname, line)
-        elif op_type == 'STAR':
+        elif op_type in ('STAR', 'HEADER'):
             self.__dict__['name'] = name
             self.__dict__['raw'] = params
             self.__dict__['ts2'] = ts2
@@ -75,7 +75,7 @@ class Ops:
                         None, None, None, None, None, None, None, None, "".join(self.raw),
                         self.fname, self.line, None, None, None, None, None, None, None, None,
                         None]
-        if self.op_type == 'STAR':
+        if self.op_type in ('STAR', 'HEADER'):
             return [exec_id, sql_id, self.cursor, self.op_type, None, None, None, None, None,
                         None, None, None, None, None, None, None, self.name, self.raw, self.fname,
                         self.line, self.ts2, None, None, None, None, None, None, None, None]
@@ -98,6 +98,8 @@ class Ops:
         str0 = f"{self.cursor}: {self.op_type} "
         if self.op_type in ['WAIT', 'STAT', 'BINDS']:
             return str0 + f"{self.raw}"
+        if self.op_type == 'HEADER':
+            return f"{self.name}: {self.raw}"
         if self.op_type == 'STAR':
             return f"*** {self.name}: ({self.raw}) {self.ts2}"
         if self.op_type == 'CLOSE':
