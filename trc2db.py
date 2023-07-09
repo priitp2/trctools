@@ -15,15 +15,15 @@ parser.add_argument('trace_files', metavar='files', type=str, nargs='+',
                             help='Trace files to process')
 parser.add_argument('--norm', type=bool, default = False, dest='norm',
                             help="Perform Shapiro-Wilk normality test on values")
-parser.add_argument('--db', type=str, default = None, dest='db',
+parser.add_argument('--db', type=str, default = 'parquet', dest='db',
                     help="Persists raw data in the db, supported implementations: oracle, parquet")
-parser.add_argument('--dbdir', type=str, default = 'arrow', dest='dbdir',
+parser.add_argument('--dbdir', type=str, default = './', dest='dbdir',
                     help="Directory for the parquet files")
 parser.add_argument('--db-file-prefix', type=str, default = 'parquet', dest='file_prefix',
-                    help="File name prefix")
-parser.add_argument('--logfile', type=str, default = None, dest='logfile',
-                    help="Sends output to the file")
-parser.add_argument('--log-level', type=str, default = None, dest='loglevel',
+                    help="Parquet file name prefix")
+parser.add_argument('--logfile', type=str, default = 'trc2db.log', dest='logfile',
+                    help="Sends output to the logfile")
+parser.add_argument('--log-level', type=str, default = 'ERROR', dest='loglevel',
                     help="Sets logging level: from DEBUG to CRITICAL")
 
 args = parser.parse_args()
@@ -58,18 +58,15 @@ tracker = CallTracker(database)
 no_files = len(args.trace_files)
 fcount = 1
 cumul_lines = 0
-cumul_time = 0
 filer = Filer()
+start_time = time.time_ns()
 for fname in args.trace_files:
     print(f"[{fcount}/{no_files}] processing file {fname}")
     start = time.time_ns()
     lines = filer.process_file(tracker, fname)
     cumul_lines += lines
-    delta = int((time.time_ns() - start)/1000000000)
-    cumul_time += delta
     fcount += 1
-    print("   -> {} lines, {} seconds".format(lines, delta))
+    print(f"   -> {lines} lines, {int((time.time_ns() - start)/1000000000)} seconds")
 
-print("tracker.latest_cursors = {}".format(len(tracker.latest_cursors)))
 tracker.flush()
-print("Processed {} lines in {} seconds".format(cumul_lines, cumul_time))
+print(f"Processed {cumul_lines} lines in {int((time.time_ns() - start_time)/1000000000)} seconds")
