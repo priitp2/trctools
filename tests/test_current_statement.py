@@ -1,7 +1,7 @@
 import unittest
 from current_statement import CurrentStatement
 from ops import Ops
-from tests.test_db import DB
+from tests.mock_db import DB
 import tests.test_constants as test_constants
 
 class TestCurrentStatement(unittest.TestCase):
