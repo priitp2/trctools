@@ -11,11 +11,11 @@ class SummaryDuckdb:
         d.sql(f"""create or replace view elapsed_time as
                 select sql_id,
                     exec_id,
-                    last( ts order by ts) - first(ts order by ts) as ela
+                    last( tim order by tim) - first(tim order by tim) as ela
                 from
                     read_parquet('{dbdir}')
                 where
-                    ts is not null
+                    tim is not null
                 group by sql_id, exec_id;
               """)
 
@@ -44,7 +44,7 @@ class SummaryDuckdb:
                         LEFT JOIN (
                                 SELECT
                                     sql_id,
-                                    any_value(wait_raw) "sql_text"
+                                    any_value(event_raw) "sql_text"
                                 FROM
                                     read_parquet ( '{self.dbdir}' )
                                 WHERE
@@ -70,8 +70,8 @@ class SummaryDuckdb:
                             ops,
                             elapsed_time,
                             ifnull(rows_processed, -1) "rows",
-                            ts,
-                            wait_name,
+                            tim,
+                            event_name,
                             file_name,
                             line
                         from
@@ -86,7 +86,7 @@ class SummaryDuckdb:
         pred = ''
         if sql_id:
             pred = f"sql_id = '{sql_id}' and"
-        res = d.sql(f"""select wait_name wait,
+        res = d.sql(f"""select event_name wait,
                             count(*) count,
                             sum(elapsed_time) sum,
                             median(elapsed_time) median,
@@ -94,8 +94,8 @@ class SummaryDuckdb:
                             max(elapsed_time) max
                         from read_parquet('{self.dbdir}')
                         where {pred}
-                             wait_name <> '' and ops = 'WAIT'
-                        group by wait_name order by count(*) desc
+                             ops = 'WAIT'
+                        group by event_name order by count(*) desc
                     """)
         print(res)
     def wait_histogram(self, wait_name, fname):
@@ -117,8 +117,8 @@ class SummaryDuckdb:
         if sql_id:
             res = d.sql(f"select ela from elapsed_time where sql_id = '{sql_id}'").fetchall()
         elif wait_name:
-            res = d.sql(f"select elapsed_time from read_parquet('{self.dbdir}') where wait_name " \
-                        +f"= '{wait_name}'").fetchall()
+            res = d.sql(f"select elapsed_time from read_parquet('{self.dbdir}') where event_name " \
+                        +f"= '{wait_name}' and ops = 'WAIT'").fetchall()
 
         ret = self._stat_test(test, dist, [r[0] for r in res])
         print(ret)
