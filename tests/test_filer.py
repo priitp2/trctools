@@ -4,7 +4,7 @@ from call_tracker import CallTracker
 from tests.test_db import DB
 
 cursor1 = '#123223'
-class TestUtil(unittest.TestCase):
+class TestFiler(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.filer = Filer()
