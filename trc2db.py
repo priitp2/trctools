@@ -42,11 +42,11 @@ logging.basicConfig(filename = args.logfile, level = log_level,
 
 if args.db == 'oracle':
     logging.info('Using database: oracle')
-    from oracle import DB
+    from db.oracle import DB
     database = DB()
 elif args.db == 'parquet':
     logging.info('Using database: arrow/parquet')
-    from arrow import DB
+    from db.arrow import DB
     database = DB(args.dbdir, args.file_prefix)
 else:
     logging.info('Using database: None')
