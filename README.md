@@ -1,5 +1,4 @@
 `trc2db` turns Oracle SQL trace (also known as event 10046) files into Parquet, or loads it into Oracle database.
-It tracle database client interactions with the database and assigns unique id's.
 
  `summary.py` contains pre-canned queries and statistics about the generated Parquet file(s).
 
@@ -24,6 +23,10 @@ $pip3.11 install pyarrow duckdb HdrHistogram scipy
 ```
 
 # Data schema
+
+trc2db tracks database client interactions with the database, and assigns `exec_id` to each interactions. `ops` is a type of
+the database call, with some exceptions. Lines from the file header have a ops `HEADER`, and lines starting with `***` have ops
+`STAR`. 
 
 |      name      |    type    |                                            logical_type                                             |
 |----------------|------------|-----------------------------------------------------------------------------------------------------|
