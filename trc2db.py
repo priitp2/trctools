@@ -3,18 +3,16 @@
 import argparse
 import logging
 import time
-#from scipy.stats import shapiro,kstest
 from filer import Filer
 from call_tracker import CallTracker
 
 max_fetch_elapsed = 500000
 max_exec_elapsed = 500000
 
-parser = argparse.ArgumentParser(description='Do stuff with Oracle 19c trace files')
+parser = argparse.ArgumentParser(description='Turn Oracle SQL trace files into Parquet, or put them " \
+                                                +"into a Oracle database')
 parser.add_argument('trace_files', metavar='files', type=str, nargs='+',
                             help='Trace files to process')
-parser.add_argument('--norm', type=bool, default = False, dest='norm',
-                            help="Perform Shapiro-Wilk normality test on values")
 parser.add_argument('--db', type=str, default = 'parquet', dest='db',
                     help="Persists raw data in the db, supported implementations: oracle, parquet")
 parser.add_argument('--dbdir', type=str, default = './', dest='dbdir',
