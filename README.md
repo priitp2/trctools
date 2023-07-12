@@ -4,6 +4,8 @@
 
 # Installation
 
+It is tested with Python 3.11, but in principle it should work with older versions as well.
+
 ```
 git clone ...
 ```
@@ -12,10 +14,14 @@ For trc2db.py
 ```
 $ pip.3.11 install pyarrow oracledb
 ```
+
+If you do not intend to use Oracle as a backend, then `oracledb` can be omitted.
+
 For summary.py
 ```
 $pip3.11 install pyarrow duckdb HdrHistogram scipy
 ```
+
 # Usage
 
 ```
@@ -31,7 +37,7 @@ the database call, with some exceptions. Lines from the file header have a ops `
 Some of the properties are renamed to something more human friendly, for example `e` to `elapsed_time`, but more esoteric
 ones come as they are in the trace files.
 
-## `event_name` and `event_raw`
+### `event_name` and `event_raw`
 
 In case of `WAIT`, `event_name` contains wait event name and `event_raw` unparsed text. In case of file headers, `event_name`
 is the name of the header field and `event_raw` contains the value. Same goes with the lines starting with `***`. Timestamps
@@ -71,7 +77,37 @@ in those lines are persisted in `ts`.
 
 # summary.py
 
-It contains some pre-canned examples what can be done in Duckdb. Available subcommands:
+It contains some pre-canned examples what can be done in Duckdb.
+
+```
+$ ./summary.py -h
+usage: summary.py [-h] [--sql_id SQL_ID] [--thresold THRESOLD] [--dbdir dbdir] [--wait_name WAIT_NAME] [--output FNAME]
+                  [--test TEST_TYPE] [--dist DIST] [--dist-args DIST-ARGS]
+                  {summary,histogram,outliers,waits,wait_histogram,db,norm}
+
+Generate summary from processed traces
+
+positional arguments:
+  {summary,histogram,outliers,waits,wait_histogram,db,norm}
+                        Directory for Parquet files
+
+options:
+  -h, --help            show this help message and exit
+  --sql_id SQL_ID       Comma separated list of sql_id's for which summary is produced
+  --thresold THRESOLD   Thresold in microsecond for which the outliers are displayed
+  --dbdir dbdir         Directory for Parquet files
+  --wait_name WAIT_NAME
+                        Name for the wait_histogram command
+  --output FNAME        Output for the wait_histogram command
+  --test TEST_TYPE      For the normality test, type of the test performed. Accepted values: shapiro, anderson (Anderson-Darling),
+                        kstest (Kolmogorov-Smirnov). See scipy.statistics documentation for the explanation
+  --dist DIST           For normality test, specifies cdf for Kolmogorov-Smirnov, or distribution for Anderson-Darling.
+  --dist-args DIST-ARGS
+                        Arguments for the CDF in normality/goodness-of-fit test
+
+```
+
+Available subcommands:
 
 |   name        |   action                                                                                      |
 |---------------|-----------------------------------------------------------------------------------------------|
@@ -81,5 +117,6 @@ It contains some pre-canned examples what can be done in Duckdb. Available subco
 | waits         | Prints summary for the wait events.                                                           |
 | wait_histogram| Creates histogram for the elapsed time for a specific wait event                              |
 | db            | Prints some statistics about the stuff in PArquet files and recorded trace files              |
-| norm          | Checks ow well the data fits the well know distributions. Defaults to the normal distribution.|
-|               | Use this before you start demanding averages and variance!                                    |
+| norm          | Checks ow well the data fits the well know distributions. Defaults to the normal distribution. Use this before you start demanding averages and variance!|
+
+
