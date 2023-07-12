@@ -28,6 +28,15 @@ trc2db tracks database client interactions with the database, and assigns `exec_
 the database call, with some exceptions. Lines from the file header have a ops `HEADER`, and lines starting with `***` have ops
 `STAR`. 
 
+Some of the properties are renamed to something more human friendly, for example `e` to `elapsed_time`, but more esoteric
+ones come as they are in the trace files.
+
+## `event_name` and `event_raw`
+
+In case of `WAIT`, `event_name` contains wait event name and `event_raw` unparsed text. In case of file headers, `event_name`
+is the name of the header field and `event_raw` contains the value. Same goes with the lines starting with `***`. Timestamps
+in those lines are persisted in `ts`.  
+
 |      name      |    type    |                                            logical_type                                             |
 |----------------|------------|-----------------------------------------------------------------------------------------------------|
 | exec_id        | INT64      |                                                                                                     |
@@ -60,3 +69,17 @@ the database call, with some exceptions. Lines from the file header have a ops `
 | rlbk           | BYTE_ARRAY | StringType()                                                                                        |
 | rd_only        | BYTE_ARRAY | StringType()                                                                                        |
 
+# summary.py
+
+It contains some pre-canned examples what can be done in Duckdb. Available subcommands:
+
+|   name        |   action                                                                                      |
+|---------------|-----------------------------------------------------------------------------------------------|
+| summary       | Prints out list of SQL queries, execution counts, median and p99 execution times, etc.        |
+| histogram     | Creates response time histogram for a query                                                   |
+| outliers      | Analyses wait event for the executions that took more than specified amount of time.          |
+| waits         | Prints summary for the wait events.                                                           |
+| wait_histogram| Creates histogram for the elapsed time for a specific wait event                              |
+| db            | Prints some statistics about the stuff in PArquet files and recorded trace files              |
+| norm          | Checks ow well the data fits the well know distributions. Defaults to the normal distribution.|
+|               | Use this before you start demanding averages and variance!                                    |
