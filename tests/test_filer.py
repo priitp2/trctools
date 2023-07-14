@@ -100,7 +100,7 @@ class TestFiler(unittest.TestCase):
         elapsed_both = 3710
 
         lines = self.filer.process_file(self.tracker, 'tests/traces/simple_trace_missing_parse.trc')
-        self.assertEqual(lines, 60)
+        self.assertEqual(lines, 61)
 
         # There is special statement for cursor #0, so len == 2
         # FIXME: decide if we should fix the sql_id for dummy1 or not

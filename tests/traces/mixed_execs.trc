@@ -37,8 +37,8 @@ WAIT #140386304541280: nam='db file sequential read' ela= 897 file#=258 block#=2
 WAIT #140386304541280: nam='gc cr grant 2-way' ela= 122 p1=258 p2=892602 p3=1 obj#=70049 tim=7097999865580
 WAIT #140386304541280: nam='db file sequential read' ela= 947 file#=258 block#=892602 blocks=1 obj#=70049 tim=7097999866542
 FETCH #140386304541280:c=1483,e=3269,p=3,cr=6,cu=0,mis=0,r=1,dep=0,og=1,plh=2910648220,tim=7097999866563
-STAT #140386304541280 id=1 cnt=1 pid=0 pos=1 obj=70033 op='TABLE ACCESS BY GLOBAL INDEX ROWID AUTHENTICATION_PROFILE PARTITION: ROW LOCATION ROW LOCATION (cr=6 pr=3 pw=0 str=1 time=3269 us cost=3 size=78 card=1)'
-STAT #140386304541280 id=2 cnt=1 pid=1 pos=1 obj=1408852 op='INDEX UNIQUE SCAN AP_USERNAME_BRAND_IX (cr=4 pr=1 pw=0 str=1 time=1025 us cost=2 size=0 card=1)'
+STAT #140386304541280 id=1 cnt=1 pid=0 pos=1 obj=70033 op='TABLE ACCESS BY GLOBAL INDEX ROWID SOME_TABLE PARTITION: ROW LOCATION ROW LOCATION (cr=6 pr=3 pw=0 str=1 time=3269 us cost=3 size=78 card=1)'
+STAT #140386304541280 id=2 cnt=1 pid=1 pos=1 obj=1408852 op='INDEX UNIQUE SCAN AP_SOMETHING_SOMETHING_IX (cr=4 pr=1 pw=0 str=1 time=1025 us cost=2 size=0 card=1)'
 =====================
 
 *** 2022-10-25T15:07:26.941104+02:00 (OPRD21(11))

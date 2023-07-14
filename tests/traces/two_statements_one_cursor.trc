@@ -35,10 +35,10 @@ EXEC #139623166535832:c=14,e=14,p=0,cr=0,cu=0,mis=0,r=0,dep=0,og=1,plh=200159330
 WAIT #139623166535832: nam='SQL*Net message to client' ela= 2 driver id=675562835 #bytes=1 p3=0 obj#=89437 tim=5793959272981
 FETCH #139623166535832:c=8,e=8,p=0,cr=1,cu=0,mis=0,r=0,dep=0,og=1,plh=2001593300,tim=5793959273013
 STAT #139623166535832 id=1 cnt=0 pid=0 pos=1 obj=0 op='NESTED LOOPS  (cr=1 pr=0 pw=0 str=1 time=8 us cost=3 size=137 card=1)'
-STAT #139623166535832 id=2 cnt=0 pid=1 pos=1 obj=76155 op='TABLE ACCESS BY INDEX ROWID EXCLUSION_LIST (cr=1 pr=0 pw=0 str=1 time=8 us cost=1 size=43 card=1)'
+STAT #139623166535832 id=2 cnt=0 pid=1 pos=1 obj=76155 op='TABLE ACCESS BY INDEX ROWID SOMETHING(cr=1 pr=0 pw=0 str=1 time=8 us cost=1 size=43 card=1)'
 STAT #139623166535832 id=3 cnt=0 pid=2 pos=1 obj=76157 op='INDEX UNIQUE SCAN SYS_C009328 (cr=1 pr=0 pw=0 str=1 time=6 us cost=0 size=0 card=1)'
-STAT #139623166535832 id=4 cnt=0 pid=1 pos=2 obj=76158 op='TABLE ACCESS BY INDEX ROWID EXCLUSION_LIST_ENTRY (cr=0 pr=0 pw=0 str=0 time=0 us cost=2 size=94 card=1)'
-STAT #139623166535832 id=5 cnt=0 pid=4 pos=1 obj=174336 op='INDEX UNIQUE SCAN IDX_EXCL_CUST_ID (cr=0 pr=0 pw=0 str=0 time=0 us cost=1 size=0 card=1)'
+STAT #139623166535832 id=4 cnt=0 pid=1 pos=2 obj=76158 op='TABLE ACCESS BY INDEX ROWID SOME_OTHER_THING (cr=0 pr=0 pw=0 str=0 time=0 us cost=2 size=94 card=1)'
+STAT #139623166535832 id=5 cnt=0 pid=4 pos=1 obj=174336 op='INDEX UNIQUE SCAN IDX_EXCL_UGH_ID (cr=0 pr=0 pw=0 str=0 time=0 us cost=1 size=0 card=1)'
 WAIT #139623166535832: nam='PGA memory operation' ela= 31 p1=0 p2=0 p3=0 obj#=89437 tim=5793959273211
 WAIT #139623166535832: nam='SQL*Net message from client' ela= 214 driver id=675562835 #bytes=1 p3=0 obj#=89437 tim=5793959273444
 CLOSE #139623166535832:c=4,e=4,dep=0,type=0,tim=5793959273465
@@ -61,7 +61,7 @@ FETCH #139623166535832:c=404,e=404,p=1,cr=4,cu=0,mis=0,r=10,dep=0,og=1,plh=27250
 WAIT #139623166535832: nam='SQL*Net message from client' ela= 293 driver id=675562835 #bytes=1 p3=0 obj#=89440 tim=5793964643817
 WAIT #139623166535832: nam='SQL*Net message to client' ela= 1 driver id=675562835 #bytes=1 p3=0 obj#=89440 tim=5793964643872
 FETCH #139623166535832:c=0,e=35,p=0,cr=1,cu=0,mis=0,r=4,dep=0,og=1,plh=2725028981,tim=5793964643885
-STAT #139623166535832 id=1 cnt=14 pid=0 pos=1 obj=89440 op='INDEX RANGE SCAN CUST_SEG_CUST_ID_IDX (cr=5 pr=1 pw=0 str=1 time=412 us cost=4 size=287 card=7)'
+STAT #139623166535832 id=1 cnt=14 pid=0 pos=1 obj=89440 op='INDEX RANGE SCAN SOMETHING_ID_IDX (cr=5 pr=1 pw=0 str=1 time=412 us cost=4 size=287 card=7)'
 WAIT #139623166535832: nam='SQL*Net message from client' ela= 301 driver id=675562835 #bytes=1 p3=0 obj#=89440 tim=5793964644251
 CLOSE #139623166535832:c=0,e=4,dep=0,type=1,tim=5793964644275
 
@@ -110,9 +110,9 @@ WAIT #139623166535832: nam='SQL*Net message from client' ela= 149 driver id=6755
 WAIT #139623166535832: nam='SQL*Net message to client' ela= 1 driver id=675562835 #bytes=1 p3=0 obj#=174336 tim=5799082614545
 FETCH #139623166535832:c=6795,e=8031,p=0,cr=2539,cu=0,mis=0,r=3,dep=0,og=1,plh=3448963908,tim=5799082622569
 STAT #139623166535832 id=1 cnt=37233 pid=0 pos=1 obj=0 op='NESTED LOOPS OUTER (cr=21628 pr=0 pw=0 str=1 time=89065 us cost=4419 size=60 68979 card=37233)'
-STAT #139623166535832 id=2 cnt=1 pid=1 pos=1 obj=76155 op='TABLE ACCESS BY INDEX ROWID EXCLUSION_LIST (cr=2 pr=0 pw=0 str=1 time=11 us cost=1 size=69 card=1)'
-STAT #139623166535832 id=3 cnt=1 pid=2 pos=1 obj=76156 op='INDEX UNIQUE SCAN PK_EXCLUSION_LIST (cr=1 pr=0 pw=0 str=1 time=7 us cost=0 size=0 card=1)'
-STAT #139623166535832 id=4 cnt=37233 pid=1 pos=2 obj=76158 op='TABLE ACCESS FULL EXCLUSION_LIST_ENTRY (cr=21626 pr=0 pw=0 str=1 time=82010 us cost=4418 size=3499902 card=37233)'
+STAT #139623166535832 id=2 cnt=1 pid=1 pos=1 obj=76155 op='TABLE ACCESS BY INDEX ROWID UGH (cr=2 pr=0 pw=0 str=1 time=11 us cost=1 size=69 card=1)'
+STAT #139623166535832 id=3 cnt=1 pid=2 pos=1 obj=76156 op='INDEX UNIQUE SCAN PK_UGH (cr=1 pr=0 pw=0 str=1 time=7 us cost=0 size=0 card=1)'
+STAT #139623166535832 id=4 cnt=37233 pid=1 pos=2 obj=76158 op='TABLE ACCESS FULL OOF (cr=21626 pr=0 pw=0 str=1 time=82010 us cost=4418 size=3499902 card=37233)'
 WAIT #139623166535832: nam='SQL*Net message from client' ela= 59501 driver id=675562835 #bytes=1 p3=0 obj#=174336 tim=5799082682378
 CLOSE #139623166535832:c=9,e=10,dep=0,type=1,tim=5799082682468
 
