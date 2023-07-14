@@ -29,7 +29,7 @@ class CallTracker:
             # Cursors/statements come either throug add_parsing_in() with sql_id,
             # or from here with dummy sql_id
             if cursor not in self.cursors:
-                self.cursors[cursor] = ''
+                self.cursors[cursor] = None
             self.latest_cursors[cursor] = CurrentStatement(cursor, self.db, self.cursors[cursor])
             # Trace can contain cursor without matching PARSING IN CURSOR
             #self.logger.debug('add_latest_cursor: done')
