@@ -15,20 +15,10 @@ class CallTracker:
         self.statements = {}
 
         self.dummy_counter = 0
-        self._add_dummy_statement('#0')
     def _get_cursor(self, cursor):
         if cursor in self.latest_cursors:
             return self.latest_cursors[cursor]
         return None
-    def _add_dummy_statement(self, cursor):
-        if cursor in self.cursors:
-            raise KeyError(f"_add_dummy_statement: cursor {cursor} already present with" \
-                            + f" sql_id = {self.cursors[cursor]}")
-        sql_id = f'dummy{self.dummy_counter}'
-        self.statements[sql_id] = ''
-        self.cursors[cursor] = sql_id
-        self.add_latest_cursor(cursor)
-        self.dummy_counter += 1
     def add_latest_cursor(self, cursor):
         ''' If cursor is present then this is new execution, so dump the cursor to the
             database and overwrite the latest_cursor.
@@ -39,7 +29,7 @@ class CallTracker:
             # Cursors/statements come either throug add_parsing_in() with sql_id,
             # or from here with dummy sql_id
             if cursor not in self.cursors:
-                self._add_dummy_statement(cursor)
+                self.cursors[cursor] = ''
             self.latest_cursors[cursor] = CurrentStatement(cursor, self.db, self.cursors[cursor])
             # Trace can contain cursor without matching PARSING IN CURSOR
             #self.logger.debug('add_latest_cursor: done')
