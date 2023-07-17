@@ -15,7 +15,7 @@ class CallTracker:
         self.statements = {}
 
         self.dummy_counter = 0
-    def _get_cursor(self, cursor):
+    def _get_statement(self, cursor):
         if cursor in self.latest_cursors:
             return self.latest_cursors[cursor]
         return None
@@ -24,7 +24,7 @@ class CallTracker:
             database and overwrite the latest_cursor.
         '''
         #self.logger.debug('add_latest_cursor: start')
-        cs = self._get_cursor(cursor)
+        cs = self._get_statement(cursor)
         if not cs:
             # Cursors/statements come either throug add_parsing_in() with sql_id,
             # or from here with dummy sql_id
@@ -43,7 +43,7 @@ class CallTracker:
         return self.latest_cursors[cursor]
     def add_ops(self, cursor, ops):
 
-        cstat = self._get_cursor(cursor)
+        cstat = self._get_statement(cursor)
         # If non-list ops is already set we assume previous client interaction is over and
         # we can close latest cursor/interaction
         if not cstat or (cstat.is_set(ops.op_type)
@@ -52,7 +52,7 @@ class CallTracker:
         cstat.add_ops(ops)
         # FIXME: should we have special handling for close?
     def add_pic(self, cursor, params):
-        cstat = self._get_cursor(cursor)
+        cstat = self._get_statement(cursor)
         if cstat:
             cstat = self.add_latest_cursor(cursor)
             cstat.add_ops(params)
