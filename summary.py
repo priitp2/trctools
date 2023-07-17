@@ -11,12 +11,22 @@ class SummaryDuckdb:
         d.sql(f"""create or replace view elapsed_time as
                 select sql_id,
                     exec_id,
-                    last( tim order by tim) - first(tim order by tim) as ela
+                    max(tim) - min(tim) as ela
                 from
                     read_parquet('{dbdir}')
                 where
                     tim is not null
                 group by sql_id, exec_id;
+              """)
+        d.sql(f"""create or replace view cursor_elapsed_time as
+                select cursor_id,
+                    exec_id,
+                    max(tim) - min(tim) as ela
+                from
+                    read_parquet('{dbdir}')
+                where
+                    tim is not null
+                group by cursor_id, exec_id;
               """)
 
     def summary(self):
@@ -52,6 +62,43 @@ class SummaryDuckdb:
                                 GROUP BY
                                     sql_id
                         ) dbc ON ( ela.sql_id = dbc.sql_id )
+                        ORDER BY
+                        ela.execs;
+                    """)
+        print(res)
+    def cursor_summary(self):
+        res = d.sql(f"""
+			SELECT
+                            ela.cursor_id,
+                            dbc.sql_text,
+                            ela.execs,
+                            ela.median,
+                            ela.p99
+                        FROM
+                            (
+                                SELECT
+                                    cursor_id,
+                                    COUNT(*)    execs,
+                                    MEDIAN(ela) median,
+                                    PERCENTILE_DISC(0.99) WITHIN GROUP( ORDER BY ela) p99
+                                FROM
+                                    cursor_elapsed_time
+                                GROUP BY
+                                    cursor_id
+                                ORDER BY
+                                    execs, median
+                            ) ela
+                        LEFT JOIN (
+                                SELECT
+                                    cursor_id,
+                                    any_value(event_raw) "sql_text"
+                                FROM
+                                    read_parquet ( '{self.dbdir}' )
+                                WHERE
+                                    ops = 'PIC'
+                                GROUP BY
+                                    cursor_id
+                        ) dbc ON ( ela.cursor_id = dbc.cursor_id )
                         ORDER BY
                         ela.execs;
                     """)
@@ -153,7 +200,7 @@ class SummaryDuckdb:
 
 parser = argparse.ArgumentParser(description='Generate summary from processed traces')
 parser.add_argument('action', type=str, choices=['summary', 'histogram', 'outliers', 'waits',
-                                                    'wait_histogram', 'db', 'norm'],
+                                                    'wait_histogram', 'db', 'norm', 'cursor-summary'],
                      help='Directory for Parquet files')
 parser.add_argument('--sql_id', type=str, dest='sql_id',
                      help="Comma separated list of sql_id's for which summary is produced")
@@ -180,6 +227,8 @@ s = SummaryDuckdb(args.dbdir + '/*')
 
 if args.action == 'summary':
     s.summary()
+if args.action == 'cursor-summary':
+    s.cursor_summary()
 elif args.action == 'histogram':
     for sqlid in args.sql_id.split(','):
         s.create_hdrh(args.sql_id)
