@@ -10,7 +10,6 @@ class TestCallTracker(unittest.TestCase):
     def test_add_cursor(self):
         self.tracker.add_pic(test_constants.CURSOR, test_constants.TRACKED_OPS['PIC'])
         self.assertEqual(len(self.tracker.cursors), 1)
-        self.assertEqual(len(self.tracker.statements), 1)
 
 
         self.tracker.add_latest_cursor(test_constants.CURSOR)
@@ -30,7 +29,6 @@ class TestCallTracker(unittest.TestCase):
         self.assertNotEqual(cursor, None)
         self.assertEqual(cursor.count_ops('PARSE'), 1)
         self.assertEqual(len(self.tracker.latest_cursors), 1)
-        self.assertEqual(len(self.tracker.statements), 1)
         self.assertEqual(len(self.tracker.cursors), 1)
 
         self.assertEqual(len(self.tracker.db.batches), 0)
@@ -42,7 +40,6 @@ class TestCallTracker(unittest.TestCase):
         self.assertNotEqual(cursor, None)
         self.assertTrue(cursor.is_set('PARSE'))
         self.assertEqual(len(self.tracker.latest_cursors), 1)
-        self.assertEqual(len(self.tracker.statements), 1)
         self.assertEqual(len(self.tracker.cursors), 1)
         self.assertEqual(len(self.tracker.db.batches), 2)
 
@@ -56,17 +53,14 @@ class TestCallTracker(unittest.TestCase):
         """ When PARSING IN CURSOR is missing in the trace file. """
         self.tracker.add_ops(test_constants.CURSOR, test_constants.TRACKED_OPS['EXEC'])
         self.assertEqual(len(self.tracker.cursors), 1)
-        self.assertEqual(len(self.tracker.statements), 0)
 
         self.tracker = CallTracker(None)
         self.tracker.add_ops(test_constants.CURSOR, test_constants.TRACKED_OPS['FETCH'])
         self.assertEqual(len(self.tracker.cursors), 1)
-        self.assertEqual(len(self.tracker.statements), 0)
 
         self.tracker = CallTracker(None)
         self.tracker.add_ops(test_constants.CURSOR, test_constants.TRACKED_OPS['WAIT'])
         self.assertEqual(len(self.tracker.cursors), 1)
-        self.assertEqual(len(self.tracker.statements), 0)
 
     def test__get_statement(self):
         self.assertEqual(self.tracker._get_statement('#123'), None)
@@ -88,7 +82,7 @@ class TestCallTracker(unittest.TestCase):
         self.tracker.add_pic(test_constants.CURSOR, test_constants.TRACKED_OPS['PIC'])
         self.tracker.add_ops(test_constants.CURSOR,  test_constants.TRACKED_OPS['EXEC'])
         self.assertEqual(len(self.tracker.latest_cursors), 1)
-        self.assertTrue(test_constants.TRACKED_OPS['PIC'].sqlid in self.tracker.statements)
+        self.assertTrue(test_constants.TRACKED_OPS['PIC'].sqlid in self.tracker.cursors.values())
 
         # Another PIC should close existing test_constants.CURSOR/interaction
         self.tracker.add_pic(test_constants.CURSOR, test_constants.TRACKED_OPS['PIC'])
@@ -101,7 +95,7 @@ class TestCallTracker(unittest.TestCase):
         self.tracker.add_pic(test_constants.CURSOR, test_constants.TRACKED_OPS['PIC'])
         self.tracker.add_ops(test_constants.CURSOR, test_constants.TRACKED_OPS['EXEC'])
         self.assertEqual(len(self.tracker.latest_cursors), 1)
-        self.assertTrue(test_constants.TRACKED_OPS['PIC'].sqlid in self.tracker.statements)
+        self.assertTrue(test_constants.TRACKED_OPS['PIC'].sqlid in self.tracker.cursors.values())
 
         # This closes existing CurrentStatement/db interaction and adds new one
         self.tracker.add_ops(test_constants.CURSOR, test_constants.TRACKED_OPS['PIC'])
