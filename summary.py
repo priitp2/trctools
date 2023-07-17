@@ -179,7 +179,7 @@ class SummaryDuckdb:
                     """)
         print(res)
 
-        res = d.sql(f"""select file_name, count(*) "rows", min(ts2) "first timestamp"
+        res = d.sql(f"""select file_name, count(*) "rows", min(ts) "first timestamp"
                         from read_parquet('{self.dbdir}')
                         group by file_name order by count(*)
                     """)
