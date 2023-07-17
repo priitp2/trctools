@@ -8,11 +8,10 @@ class CallTracker:
     def __init__(self, db):
         self.logger = logging.getLogger(__name__)
         self.db = db
+        # {cursor handle: CurrentStatement}
         self.latest_cursors = {}
-        # {cursor: sql_id}
+        # {cursor handle: sql_id}
         self.cursors = {}
-        # {statement: sql_id}
-        self.statements = {}
 
         self.dummy_counter = 0
     def _get_statement(self, cursor):
@@ -52,19 +51,21 @@ class CallTracker:
         cstat.add_ops(ops)
         # FIXME: should we have special handling for close?
     def add_pic(self, cursor, params):
+        '''Separate function to add PIC ops. It is separate b/c of extra steps with sql_id.'''
         cstat = self._get_statement(cursor)
         if cstat:
             cstat = self.add_latest_cursor(cursor)
             cstat.add_ops(params)
 
-        if params.sqlid not in self.statements:
-            self.statements[params.sqlid] = ''
+        #if params.sqlid not in self.statements:
+        #    self.statements[params.sqlid] = ''
         self.cursors[cursor] = params.sqlid
         cstat = CurrentStatement(cursor, self.db, params.sqlid)
         self.latest_cursors[cursor] = cstat
 
         cstat.add_ops(params)
     def reset(self):
+        '''Cleans the state of the tracker. Removes empty statements from latest_cursor. '''
         empty = []
         for cursor in self.latest_cursors:
             if self.latest_cursors[cursor].is_not_empty():
@@ -74,6 +75,7 @@ class CallTracker:
         for cursor in empty:
             del self.latest_cursors[cursor]
     def flush(self):
+        '''Resets the tracker and flushes the db. '''
         self.logger.debug('flush')
         if not self.db:
             return

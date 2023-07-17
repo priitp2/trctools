@@ -47,7 +47,6 @@ class TestFiler(unittest.TestCase):
         self.assertEqual(lines, 51)
 
         # There is special statement for cursor #0, so len == 2
-        self.assertEqual(len(self.tracker.statements), 1)
         self.assertEqual(len(self.tracker.cursors), 1)
 
         self.assertEqual(len(self.tracker.db.batches), 34)
@@ -64,7 +63,7 @@ class TestFiler(unittest.TestCase):
         self.assertEqual(self.get_count(self.tracker.db.batches, 3, 'BINDS'), binds)
         self.assertEqual(self.get_count(self.tracker.db.batches, 3, 'PIC'), pics)
 
-        self.assertTrue(sql_id in self.tracker.statements.keys())
+        self.assertTrue(sql_id in self.tracker.cursors.values())
     def test_process_file_simple_2x(self):
         # Calculated from the trace file
         # From 1st exec
@@ -78,8 +77,6 @@ class TestFiler(unittest.TestCase):
         lines = self.filer.process_file(self.tracker, 'tests/traces/simple_trace_2x.trc')
         self.assertEqual(lines, 59)
 
-        # There is special statement for cursor #0, so len == 2
-        self.assertEqual(len(self.tracker.statements), 1)
         self.assertEqual(len(self.tracker.cursors), 1)
 
         self.assertEqual(len(self.tracker.db.batches), 39)
@@ -104,7 +101,6 @@ class TestFiler(unittest.TestCase):
 
         # There is special statement for cursor #0, so len == 2
         # FIXME: decide if we should fix the sql_id for dummy1 or not
-        self.assertEqual(len(self.tracker.statements), 1)
         self.assertEqual(len(self.tracker.cursors), 1)
 
         self.assertEqual(len(self.tracker.db.batches), 39)
@@ -129,8 +125,6 @@ class TestFiler(unittest.TestCase):
 
         self.assertEqual(self.get_count(self.tracker.db.batches, 1, '6ssxu7vjxb51a'), 42)
         self.assertEqual(self.get_count(self.tracker.db.batches, 1, 'dummy1'), 0)
-
-        self.assertEqual(len(self.tracker.statements), 3)
 
         # Cursor #139623166535832 gets overwritten by every execution
         self.assertEqual(len(self.tracker.cursors), 1)
