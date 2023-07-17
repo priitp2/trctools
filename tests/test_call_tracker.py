@@ -68,12 +68,12 @@ class TestCallTracker(unittest.TestCase):
         self.assertEqual(len(self.tracker.cursors), 1)
         self.assertEqual(len(self.tracker.statements), 0)
 
-    def test__get_cursor(self):
-        self.assertEqual(self.tracker._get_cursor('#123'), None)
+    def test__get_statement(self):
+        self.assertEqual(self.tracker._get_statement('#123'), None)
         self.tracker.add_pic(test_constants.CURSOR, test_constants.TRACKED_OPS['PIC'])
-        self.assertEqual(self.tracker._get_cursor(test_constants.CURSOR).cursor,
+        self.assertEqual(self.tracker._get_statement(test_constants.CURSOR).cursor,
                 test_constants.CURSOR)
-        self.assertEqual(self.tracker._get_cursor('#123'), None)
+        self.assertEqual(self.tracker._get_statement('#123'), None)
 
     def test_reset(self):
         self.tracker.add_pic(test_constants.CURSOR, test_constants.TRACKED_OPS['PIC'])
