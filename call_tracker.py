@@ -24,8 +24,8 @@ class CallTracker:
             database and overwrite the latest_cursor.
         '''
         #self.logger.debug('add_latest_cursor: start')
-        cs = self._get_statement(cursor)
-        if not cs:
+        stat = self._get_statement(cursor)
+        if not stat:
             # Cursors/statements come either throug add_parsing_in() with sql_id,
             # or from here with dummy sql_id
             if cursor not in self.cursors:
@@ -36,7 +36,7 @@ class CallTracker:
             return self.latest_cursors[cursor]
         if self.db:
             #self.logger.debug('add_latest_cursor: dump to db')
-            cs.dump_to_db()
+            stat.dump_to_db()
             #self.logger.debug('add_latest_cursor: dump to db done')
         self.latest_cursors[cursor] = CurrentStatement(cursor, self.db, self.cursors[cursor])
         #self.logger.debug('add_latest_cursor: done')
