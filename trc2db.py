@@ -6,11 +6,9 @@ import time
 from filer import Filer
 from call_tracker import CallTracker
 
-max_fetch_elapsed = 500000
-max_exec_elapsed = 500000
+__doc__ = "Turn Oracle SQL trace files into Parquet, or put them into a Oracle database"
 
-parser = argparse.ArgumentParser(description='Turn Oracle SQL trace files into Parquet, or put them " \
-                                                +"into a Oracle database')
+parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('trace_files', metavar='files', type=str, nargs='+',
                             help='Trace files to process')
 parser.add_argument('--db', type=str, default = 'parquet', dest='db',
@@ -34,9 +32,6 @@ if args.loglevel:
         raise ValueError(f'Invalid log level: {log_level}')
 logging.basicConfig(filename = args.logfile, level = log_level,
         format = '%(asctime)s - %(name)s - %(levelname)s:%(message)s')
-
-#if args.logfile:
-#    logging.basicConfig(args.logfile)
 
 if args.db == 'oracle':
     logging.info('Using database: oracle')
