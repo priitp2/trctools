@@ -230,8 +230,9 @@ if args.action == 'summary':
 if args.action == 'cursor-summary':
     s.cursor_summary()
 elif args.action == 'histogram':
-    for sqlid in args.sql_id.split(','):
-        s.create_hdrh(args.sql_id)
+    if args.sql_id:
+        for sqlid in args.sql_id.split(','):
+            s.create_hdrh(args.sql_id)
 elif args.action == 'outliers':
     s.outliers(args.sql_id, args.thresold)
 elif args.action == 'waits':
