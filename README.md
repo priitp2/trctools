@@ -73,9 +73,17 @@ options:
 
 ### summary
 
-``` ```
 ![Screenshot of summary output](doc/summary.png)
 
+### histogram
+
+```$ ./summary.py histogram --sql_id 7dh01v2jgss7c --dbdir /home/pripii/parquet```
+
+`--sql_id` is mandatory parameter. This creates file `elapsed_7dh01v2jgss7c.out`.
+
+### outliers
+
+![Screenshot of outliers output](doc/outliers.png)
 
 # Data schema
 
