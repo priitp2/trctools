@@ -201,9 +201,10 @@ class SummaryDuckdb:
 parser = argparse.ArgumentParser(description='Generate summary from processed traces')
 parser.add_argument('action', type=str, choices=['summary', 'histogram', 'outliers', 'waits',
                                                     'wait_histogram', 'db', 'norm', 'cursor-summary'],
-                     help='Directory for Parquet files')
+                     help='Various subcommands')
 parser.add_argument('--sql_id', type=str, dest='sql_id',
-                     help="Comma separated list of sql_id's for which summary is produced")
+                     help="Comma separated list of sql_id's for which histogram, outliers or waits " \
+                         +"are produced")
 parser.add_argument('--thresold', type=str, dest='thresold',
                      help="Thresold in microsecond for which the outliers are displayed")
 parser.add_argument('--dbdir', metavar='dbdir', type=str,
