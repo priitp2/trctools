@@ -116,7 +116,7 @@ class SummaryDuckdb:
                             exec_id,
                             ops,
                             elapsed_time,
-                            ifnull(rows_processed, -1) "rows",
+                            rows_processed "rows",
                             tim,
                             event_name,
                             file_name,
