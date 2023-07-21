@@ -64,9 +64,8 @@ options:
 |   name        |   action                                                                                      |
 |---------------|-----------------------------------------------------------------------------------------------|
 | summary       | Prints out list of SQL queries, execution counts, median and p99 execution times, etc.        |
-| histogram     | Creates response time histogram for a sql_id. Generates file elapsed_{sql_id}.out             |
-| outliers      | Displays content of the trace files for the executions that took more than specified amount of|
-|               | time. If thresold is omitted, value at p99 is used                                            |
+| histogram     | Creates response time histogram for a sql_id. Generates file `elapsed_{sql_id}.out`           |
+| outliers      | Displays content of the trace files for the executions that took more than specified amount of time. If thresold is omitted, value at p99 is used |
 | waits         | Prints summary for the wait events.                                                           |
 | wait_histogram| Creates histogram for the elapsed time for a specific wait event                              |
 | db            | Prints some statistics about the stuff in PArquet files and recorded trace files              |
