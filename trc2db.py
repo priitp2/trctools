@@ -21,6 +21,8 @@ parser.add_argument('--logfile', type=str, default = 'trc2db.log', dest='logfile
                     help="Sends output to the logfile")
 parser.add_argument('--log-level', type=str, default = 'ERROR', dest='loglevel',
                     help="Sets logging level: from DEBUG to CRITICAL")
+parser.add_argument('--log-orphans', type=bool, default = False, dest='orphans',
+                    help="Logs lines not matched by the parser")
 
 args = parser.parse_args()
 
@@ -56,7 +58,7 @@ start_time = time.time_ns()
 for fname in args.trace_files:
     print(f"[{fcount}/{no_files}] processing file {fname}")
     start = time.time_ns()
-    lines = filer.process_file(tracker, fname)
+    lines = filer.process_file(tracker, fname, args.orphans)
     cumul_lines += lines
     fcount += 1
     print(f"   -> {lines} lines, {int((time.time_ns() - start)/1000000000)} seconds")
