@@ -27,6 +27,52 @@ $pip3.11 install pyarrow duckdb HdrHistogram scipy
 ```
 ./trc2db.py --dbdir /home/pripii/passwd_mng3 trace0*/*
 ```
+# summary.py
+
+It contains some pre-canned examples what can be done in Duckdb.
+
+```
+$ ./summary.py -h
+usage: summary.py [-h] [--sql_id SQL_ID] [--thresold THRESOLD] [--dbdir dbdir] [--wait_name WAIT_NAME] [--output FNAME]
+                  [--test TEST_TYPE] [--dist DIST] [--dist-args DIST-ARGS]
+                  {summary,histogram,outliers,waits,wait_histogram,db,norm}
+
+Generate summary from processed traces
+
+positional arguments:
+  {summary,histogram,outliers,waits,wait_histogram,db,norm}
+                        Directory for Parquet files
+
+options:
+  -h, --help            show this help message and exit
+  --sql_id SQL_ID       Comma separated list of sql_id's for which summary is produced
+  --thresold THRESOLD   Thresold in microsecond for which the outliers are displayed
+  --dbdir dbdir         Directory for Parquet files
+  --wait_name WAIT_NAME
+                        Name for the wait_histogram command
+  --output FNAME        Output for the wait_histogram command
+  --test TEST_TYPE      For the normality test, type of the test performed. Accepted values: shapiro, anderson (Anderson-Darling),
+                        kstest (Kolmogorov-Smirnov). See scipy.statistics documentation for the explanation
+  --dist DIST           For normality test, specifies cdf for Kolmogorov-Smirnov, or distribution for Anderson-Darling.
+  --dist-args DIST-ARGS
+                        Arguments for the CDF in normality/goodness-of-fit test
+
+```
+
+## Available subcommands:
+
+|   name        |   action                                                                                      |
+|---------------|-----------------------------------------------------------------------------------------------|
+| summary       | Prints out list of SQL queries, execution counts, median and p99 execution times, etc.        |
+| histogram     | Creates response time histogram for a sql_id. Generates file elapsed_{sql_id}.out             |
+| outliers      | Displays content of the trace files for the executions that took more than specified amount of|
+|               | time. If thresold is omitted, value at p99 is used                                            |
+| waits         | Prints summary for the wait events.                                                           |
+| wait_histogram| Creates histogram for the elapsed time for a specific wait event                              |
+| db            | Prints some statistics about the stuff in PArquet files and recorded trace files              |
+| norm          | Checks ow well the data fits the well know distributions. Defaults to the normal distribution. Use this before you start demanding averages and variance!|
+
+
 
 # Data schema
 
@@ -74,49 +120,4 @@ in those lines are persisted in `ts`.
 | ad             | BYTE_ARRAY | StringType()                                                                                        |
 | rlbk           | BYTE_ARRAY | StringType()                                                                                        |
 | rd_only        | BYTE_ARRAY | StringType()                                                                                        |
-
-# summary.py
-
-It contains some pre-canned examples what can be done in Duckdb.
-
-```
-$ ./summary.py -h
-usage: summary.py [-h] [--sql_id SQL_ID] [--thresold THRESOLD] [--dbdir dbdir] [--wait_name WAIT_NAME] [--output FNAME]
-                  [--test TEST_TYPE] [--dist DIST] [--dist-args DIST-ARGS]
-                  {summary,histogram,outliers,waits,wait_histogram,db,norm}
-
-Generate summary from processed traces
-
-positional arguments:
-  {summary,histogram,outliers,waits,wait_histogram,db,norm}
-                        Directory for Parquet files
-
-options:
-  -h, --help            show this help message and exit
-  --sql_id SQL_ID       Comma separated list of sql_id's for which summary is produced
-  --thresold THRESOLD   Thresold in microsecond for which the outliers are displayed
-  --dbdir dbdir         Directory for Parquet files
-  --wait_name WAIT_NAME
-                        Name for the wait_histogram command
-  --output FNAME        Output for the wait_histogram command
-  --test TEST_TYPE      For the normality test, type of the test performed. Accepted values: shapiro, anderson (Anderson-Darling),
-                        kstest (Kolmogorov-Smirnov). See scipy.statistics documentation for the explanation
-  --dist DIST           For normality test, specifies cdf for Kolmogorov-Smirnov, or distribution for Anderson-Darling.
-  --dist-args DIST-ARGS
-                        Arguments for the CDF in normality/goodness-of-fit test
-
-```
-
-Available subcommands:
-
-|   name        |   action                                                                                      |
-|---------------|-----------------------------------------------------------------------------------------------|
-| summary       | Prints out list of SQL queries, execution counts, median and p99 execution times, etc.        |
-| histogram     | Creates response time histogram for a query                                                   |
-| outliers      | Analyses wait event for the executions that took more than specified amount of time.          |
-| waits         | Prints summary for the wait events.                                                           |
-| wait_histogram| Creates histogram for the elapsed time for a specific wait event                              |
-| db            | Prints some statistics about the stuff in PArquet files and recorded trace files              |
-| norm          | Checks ow well the data fits the well know distributions. Defaults to the normal distribution. Use this before you start demanding averages and variance!|
-
 
