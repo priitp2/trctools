@@ -16,7 +16,7 @@ class Filer:
         self.call_matcher = re.compile(r'''^(PARSE|PARSING IN CURSOR|EXEC|FETCH|WAIT|CLOSE|BINDS|STAT) (#\d+)(:| )(.*)''')
         self.file_header_matcher = re.compile(r'''^(Build label|ORACLE_HOME|System name|Node name|Release|Version|Machine|Instance name|Redo thread mounted by this instance|Oracle process number|Unix process pid):\s+(.*)''')
         self.logger = logging.getLogger(__name__)
-    def process_file(self, tracker, fname):
+    def process_file(self, tracker, fname, orphans):
 
         line_count = 0
         in_binds = False
@@ -104,7 +104,8 @@ class Filer:
                                             match.group(1), None).to_list(tracker.db.get_exec_id(), None))
                     continue
 
-                #print("non-matching line: {}".format(line))
+                if orphans:
+                    print("non-matching line: {}".format(line))
 
         self.logger.info('process_file: %s done', fname)
         return line_count
