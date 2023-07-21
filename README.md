@@ -85,6 +85,10 @@ options:
 
 ![Screenshot of outliers output](doc/outliers.png)
 
+### waits
+
+![Screenshot of waits output](doc/waits.png)
+
 # Data schema
 
 trc2db tracks database client interactions with the database, and assigns `exec_id` to each interactions. `ops` is a type of
