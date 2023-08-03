@@ -24,7 +24,7 @@ class DB:
             ('opt_goal', pa.int64()),
             ('plh', pa.int64()),
             ('tim', pa.int64()),
-            ('c_type', pa.int64()),
+            ('c_type', pa.string()),
             ('event_name', pa.string()),
             ('event_raw', pa.string()),
             ('file_name', pa.string()),
