@@ -152,5 +152,12 @@ class TestFiler(unittest.TestCase):
         self.assertEqual(lines, 16)
         self.assertEqual(self.get_count(self.tracker.db.batches, 3, 'CLOSE'), 1)
 
+    def test_lobs(self):
+        lines = self.filer.process_file(self.tracker, 'tests/traces/lobs.trc')
+        self.tracker.flush()
+        self.assertEqual(lines, 65)
+        self.assertEqual(self.get_count(self.tracker.db.batches, 3, 'LOBWRITE'), 5)
+        self.assertEqual(self.get_count(self.tracker.db.batches, 3, 'LOBTMPCREATE'), 5)
+        self.assertEqual(self.get_count(self.tracker.db.batches, 3, 'LOBPGSIZE'), 4)
 if __name__ == '__main__':
     unittest.main()
