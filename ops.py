@@ -48,6 +48,16 @@ class Ops:
             self.__slots__ = (op_type, cursor, 'dep', 'tim', 'len', 'uid', 'oct', 'lid',
                                 'hv', 'ad', 'raw', fname, line, 'sqlid')
             self.__dict__['raw'] = []
+        elif op_type.startswith('LOB'):
+            for item in params.split(','):
+                if len(item):
+                    key = item.split('=')
+                    if key[0] == 'type':
+                        self.__dict__[key[0]] = key[1]
+                    else:
+                        self.__dict__[key[0]] = int(key[1])
+            self.__slots__ = ('op_type', 'cursor', 'type', 'c', 'e', 'p', 'cr', 'cu', 'tim',
+                                'bytes')
         else:
             for item in params.split(','):
                 if len(item):
@@ -89,6 +99,11 @@ class Ops:
                         None, None, None, None, None, self.tim, None, '', None, self.fname,
                         self.line, None, None, None, None, None, None, None, self.rlbk,
                         self.rd_only]
+        if self.op_type.startswith('LOB'):
+            return [exec_id, None, None, self.op_type, self.c, self.e, self.p, self.cr,
+                    self.cu, None, self.bytes, None, None, None, self.tim, self.type,
+                    '', '', self.fname, self.line, None, None, None, None, None, None, None, None,
+                    None]
         return [exec_id, sql_id, self.cursor, self.op_type, self.c, self.e, self.p, self.cr,
                     self.cu, self.mis, self.r, self.dep, self.og, self.plh, self.tim, self.type,
                     '', '', self.fname, self.line, None, None, None, None, None, None, None, None,
@@ -110,6 +125,9 @@ class Ops:
             return f"PARSING IN CURSOR len={self.len} dep={self.dep} uid={self.uid} " \
                    + f"oct={self.oct} lid={self.lid} tim={self.tim} hv={self.hv} "    \
                    + f"ad={self.ad} sqlid={self.sqlid}\n{self.raw}\nEND OF STMT"
+        if self.op_type.startswith('LOB'):
+            return f"{self.op_type}: type={self.type},bytes={self.r},c={self.c},e={self.e},"   \
+                   + f"p={self.p},cr={self.cr},cu={self.cu},tim={self.tim}"
         return str0 + f"c={self.c},e={self.e},p={self.p},cr={self.cr},cu={self.cu},"           \
                     + f"mis={self.mis},r={self.r},dep={self.dep},og={self.og},plh={self.plh}," \
                     + f"tim={self.tim},fname={self.fname},line={self.line}"
