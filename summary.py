@@ -133,16 +133,32 @@ class SummaryDuckdb:
         pred = ''
         if sql_id:
             pred = f"sql_id = '{sql_id}' and"
-        res = d.sql(f"""select event_name wait,
-                            count(*) count,
-                            sum(elapsed_time) sum,
-                            median(elapsed_time) median,
-                            percentile_disc(0.99) within group(order by elapsed_time) "99th percentile",
-                            max(elapsed_time) max
-                        from read_parquet('{self.dbdir}')
-                        where {pred}
-                             ops = 'WAIT'
-                        group by event_name order by count(*) desc
+        res = d.sql(f"""
+			SELECT
+                            event_name           wait,
+                            COUNT(*)             count,
+                            SUM(elapsed_time)    sum,
+                            MEDIAN(elapsed_time) median,
+                            PERCENTILE_DISC(0.99) WITHIN GROUP( ORDER BY elapsed_time) "99th percentile",
+                            MAX(elapsed_time)    max
+                        FROM (
+                            SELECT
+                                CASE
+                                    WHEN event_name LIKE 'SQL*Net message%' AND cursor_id = '#0' THEN
+                                        event_name || '/idle'
+                                    ELSE event_name
+                                END "event_name",
+                                elapsed_time,
+                                ops
+                            FROM
+                                read_parquet ( '{self.dbdir}' )
+                        )
+                        WHERE {pred}
+                            ops = 'WAIT'
+                        GROUP BY
+                            event_name
+                        ORDER BY
+                            COUNT(*) DESC
                     """)
         print(res)
     def wait_histogram(self, wait_name, fname):
