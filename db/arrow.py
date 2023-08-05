@@ -40,6 +40,9 @@ class DB:
             # For XCTEND
             ('rlbk', pa.string()),
             ('rd_only', pa.string()),
+            # For LOBs
+            ('lobtype', pa.string()),
+            ('bytes', pa.int64()),
             ])
         self.exec_id = 0
         self.batches = []

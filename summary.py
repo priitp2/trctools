@@ -116,7 +116,7 @@ class SummaryDuckdb:
                             exec_id,
                             ops,
                             elapsed_time,
-                            ifnull(rows_processed, -1) "rows",
+                            rows_processed "rows",
                             tim,
                             event_name,
                             file_name,
@@ -133,16 +133,32 @@ class SummaryDuckdb:
         pred = ''
         if sql_id:
             pred = f"sql_id = '{sql_id}' and"
-        res = d.sql(f"""select event_name wait,
-                            count(*) count,
-                            sum(elapsed_time) sum,
-                            median(elapsed_time) median,
-                            percentile_disc(0.99) within group(order by elapsed_time) "99th percentile",
-                            max(elapsed_time) max
-                        from read_parquet('{self.dbdir}')
-                        where {pred}
-                             ops = 'WAIT'
-                        group by event_name order by count(*) desc
+        res = d.sql(f"""
+			SELECT
+                            event_name           wait,
+                            COUNT(*)             count,
+                            SUM(elapsed_time)    sum,
+                            MEDIAN(elapsed_time) median,
+                            PERCENTILE_DISC(0.99) WITHIN GROUP( ORDER BY elapsed_time) "99th percentile",
+                            MAX(elapsed_time)    max
+                        FROM (
+                            SELECT
+                                CASE
+                                    WHEN event_name LIKE 'SQL*Net message%' AND cursor_id = '#0' THEN
+                                        event_name || '/idle'
+                                    ELSE event_name
+                                END "event_name",
+                                elapsed_time,
+                                ops
+                            FROM
+                                read_parquet ( '{self.dbdir}' )
+                        )
+                        WHERE {pred}
+                            ops = 'WAIT'
+                        GROUP BY
+                            event_name
+                        ORDER BY
+                            COUNT(*) DESC
                     """)
         print(res)
     def wait_histogram(self, wait_name, fname):
@@ -158,17 +174,6 @@ class SummaryDuckdb:
             resp_hist.record_value(ela[0])
         with open(fname, 'wb') as f:
             resp_hist.output_percentile_distribution(f, 1.0)
-    def norm(self, test, dist, sql_id, wait_name):
-        """Produces list of query response times or wait event elapsed times for goodness-of-fit
-            test."""
-        if sql_id:
-            res = d.sql(f"select ela from elapsed_time where sql_id = '{sql_id}'").fetchall()
-        elif wait_name:
-            res = d.sql(f"select elapsed_time from read_parquet('{self.dbdir}') where event_name " \
-                        +f"= '{wait_name}' and ops = 'WAIT'").fetchall()
-
-        ret = self._stat_test(test, dist, [r[0] for r in res])
-        print(ret)
 
     def db(self):
         res = d.sql(f"""select count(*) "rows",
@@ -184,23 +189,10 @@ class SummaryDuckdb:
                         group by file_name order by count(*)
                     """)
         print(res)
-    def _stat_test(self, test, dist, lst):
-        """Does goodness-of-fit test on list of numbers. Defaults to normal distribution."""
-        if test == 'shapiro' and len(lst) > 5000:
-            print('More than 5k items, switching from Shapiro to Anderson')
-            test = 'anderson'
-        if test == 'shapiro':
-            return stats.shapiro(lst)
-        if test == 'anderson':
-            return stats.anderson(lst, dist)
-        if test == 'kstest':
-            return stats.kstest(lst, dist)
-        print(f"stat_test: unknown test: {test}")
-        return None
 
 parser = argparse.ArgumentParser(description='Generate summary from processed traces')
 parser.add_argument('action', type=str, choices=['summary', 'histogram', 'outliers', 'waits',
-                                                    'wait_histogram', 'db', 'norm', 'cursor-summary'],
+                                                    'wait_histogram', 'db', 'cursor-summary'],
                      help='Various subcommands')
 parser.add_argument('--sql_id', type=str, dest='sql_id',
                      help="Comma separated list of sql_id's for which histogram, outliers or waits " \
@@ -213,15 +205,6 @@ parser.add_argument('--wait_name', dest='wait_name', type=str,
                                     help='Name for the wait_histogram command')
 parser.add_argument('--output', dest='fname', type=str,
                                     help='Output for the wait_histogram command')
-parser.add_argument('--test', dest='test_type', type=str, default='shapiro',
-                    help="For the normality test, type of the test performed. Accepted values: " \
-                        +"shapiro, anderson (Anderson-Darling), kstest (Kolmogorov-Smirnov). See " \
-                        +"scipy.statistics documentation for the explanation")
-parser.add_argument('--dist', dest='dist', type=str, default='norm', help="For normality test," \
-                    + " specifies cdf for Kolmogorov-Smirnov, or distribution for Anderson-Darling."
-                    )
-parser.add_argument('--dist-args', dest='dist-args', type=str, default=None,
-                    help="Arguments for the CDF in normality/goodness-of-fit test")
 args = parser.parse_args()
 
 s = SummaryDuckdb(args.dbdir + '/*')
@@ -242,5 +225,3 @@ elif args.action == 'wait_histogram':
     s.wait_histogram(args.wait_name, args.fname)
 elif args.action == 'db':
     s.db()
-elif args.action == 'norm':
-    s.norm(args.test_type, args.dist, args.sql_id, args.wait_name)
