@@ -1,0 +1,65 @@
+Trace file lobs.trc
+Oracle Database 19c Enterprise Edition Release 19.0.0.0.0 - Production
+Version 19.18.0.0.0
+Build label:    RDBMS_19.18.0.0.0DBRU_LINUX.X64_230111
+ORACLE_HOME:    /u01/app/oracle/product/19-db-19187
+System name:    Linux
+Node name:      ora.example.com
+Release:        5.4.17-2136.319.1.3.el7uek.x86_64
+Version:        #2 SMP Mon May 22 15:37:49 PDT 2023
+Machine:        x86_64
+Instance name: ora123
+Redo thread mounted by this instance: 3
+Oracle process number: 130
+Unix process pid: 64067, image: oracle@ora.example.com
+
+
+*** 2023-08-02T18:08:39.807666+02:00
+*** SESSION ID:(1460.49400) 2023-08-02T18:08:39.807685+02:00
+*** CLIENT ID:() 2023-08-02T18:08:39.807688+02:00
+*** SERVICE NAME:(xxx_stg) 2023-08-02T18:08:39.807692+02:00
+*** MODULE NAME:(JDBC Thin Client) 2023-08-02T18:08:39.807695+02:00
+*** ACTION NAME:() 2023-08-02T18:08:39.807698+02:00
+*** CLIENT DRIVER:(jdbcthin : 19.7.0.0.0) 2023-08-02T18:08:39.807701+02:00
+
+LOBWRITE: type=TEMPORARY LOB,bytes=5,c=169,e=169,p=0,cr=0,cu=7,tim=4696599871319
+WAIT #0: nam='SQL*Net message to client' ela= 3 driver id=1952673792 #bytes=1 p3=0 obj#=56682298 tim=4696599871859
+WAIT #0: nam='SQL*Net message from client' ela= 6295 driver id=1952673792 #bytes=1 p3=0 obj#=56682298 tim=4696599878170
+LOBTMPCREATE: type=TEMPORARY LOB,bytes=1,c=25,e=25,p=0,cr=0,cu=0,tim=4696599878243
+WAIT #0: nam='SQL*Net message to client' ela= 2 driver id=1952673792 #bytes=1 p3=0 obj#=56682298 tim=4696599878267
+WAIT #0: nam='SQL*Net message from client' ela= 6228 driver id=1952673792 #bytes=1 p3=0 obj#=56682298 tim=4696599884507
+LOBPGSIZE: type=TEMPORARY LOB,bytes=16324,c=6,e=6,p=0,cr=0,cu=0,tim=4696599884539
+WAIT #0: nam='SQL*Net message to client' ela= 2 driver id=1952673792 #bytes=1 p3=0 obj#=56682298 tim=4696599884561
+WAIT #0: nam='SQL*Net message from client' ela= 6414 driver id=1952673792 #bytes=1 p3=0 obj#=56682298 tim=4696599890984
+LOBWRITE: type=TEMPORARY LOB,bytes=23,c=145,e=145,p=0,cr=0,cu=7,tim=4696599891187
+WAIT #0: nam='SQL*Net message to client' ela= 2 driver id=1952673792 #bytes=1 p3=0 obj#=56682298 tim=4696599891223
+WAIT #0: nam='SQL*Net message from client' ela= 6276 driver id=1952673792 #bytes=1 p3=0 obj#=56682298 tim=4696599897513
+LOBTMPCREATE: type=TEMPORARY LOB,bytes=1,c=22,e=22,p=0,cr=0,cu=0,tim=4696599897567
+WAIT #0: nam='SQL*Net message to client' ela= 2 driver id=1952673792 #bytes=1 p3=0 obj#=56682298 tim=4696599897591
+WAIT #0: nam='SQL*Net message from client' ela= 6559 driver id=1952673792 #bytes=1 p3=0 obj#=56682298 tim=4696599904161
+LOBPGSIZE: type=TEMPORARY LOB,bytes=16324,c=9,e=9,p=0,cr=0,cu=0,tim=4696599904249
+WAIT #0: nam='SQL*Net message to client' ela= 3 driver id=1952673792 #bytes=1 p3=0 obj#=56682298 tim=4696599904286
+WAIT #0: nam='SQL*Net message from client' ela= 6523 driver id=1952673792 #bytes=1 p3=0 obj#=56682298 tim=4696599910823
+LOBWRITE: type=TEMPORARY LOB,bytes=24,c=171,e=171,p=0,cr=0,cu=7,tim=4696599911058
+WAIT #0: nam='SQL*Net message to client' ela= 4 driver id=1952673792 #bytes=1 p3=0 obj#=56682298 tim=4696599911095
+WAIT #0: nam='SQL*Net message from client' ela= 6310 driver id=1952673792 #bytes=1 p3=0 obj#=56682298 tim=4696599917420
+LOBTMPCREATE: type=TEMPORARY LOB,bytes=1,c=27,e=27,p=0,cr=0,cu=0,tim=4696599917493
+WAIT #0: nam='SQL*Net message to client' ela= 3 driver id=1952673792 #bytes=1 p3=0 obj#=56682298 tim=4696599917525
+WAIT #0: nam='SQL*Net message from client' ela= 6248 driver id=1952673792 #bytes=1 p3=0 obj#=56682298 tim=4696599923788
+LOBPGSIZE: type=TEMPORARY LOB,bytes=16324,c=10,e=10,p=0,cr=0,cu=0,tim=4696599923849
+WAIT #0: nam='SQL*Net message to client' ela= 3 driver id=1952673792 #bytes=1 p3=0 obj#=56682298 tim=4696599923880
+WAIT #0: nam='SQL*Net message from client' ela= 6507 driver id=1952673792 #bytes=1 p3=0 obj#=56682298 tim=4696599930400
+LOBWRITE: type=TEMPORARY LOB,bytes=36,c=174,e=173,p=0,cr=0,cu=7,tim=4696599930632
+WAIT #0: nam='SQL*Net message to client' ela= 2 driver id=1952673792 #bytes=1 p3=0 obj#=56682298 tim=4696599930668
+WAIT #0: nam='SQL*Net message from client' ela= 6395 driver id=1952673792 #bytes=1 p3=0 obj#=56682298 tim=4696599937101
+LOBTMPCREATE: type=TEMPORARY LOB,bytes=1,c=27,e=27,p=0,cr=0,cu=0,tim=4696599937179
+WAIT #0: nam='SQL*Net message to client' ela= 2 driver id=1952673792 #bytes=1 p3=0 obj#=56682298 tim=4696599937223
+WAIT #0: nam='SQL*Net message from client' ela= 6354 driver id=1952673792 #bytes=1 p3=0 obj#=56682298 tim=4696599943595
+LOBPGSIZE: type=TEMPORARY LOB,bytes=16324,c=8,e=8,p=0,cr=0,cu=0,tim=4696599943655
+WAIT #0: nam='SQL*Net message to client' ela= 2 driver id=1952673792 #bytes=1 p3=0 obj#=56682298 tim=4696599943686
+WAIT #0: nam='SQL*Net message from client' ela= 6583 driver id=1952673792 #bytes=1 p3=0 obj#=56682298 tim=4696599950284
+LOBWRITE: type=TEMPORARY LOB,bytes=6,c=191,e=192,p=0,cr=0,cu=7,tim=4696599950519
+WAIT #0: nam='SQL*Net message to client' ela= 4 driver id=1952673792 #bytes=1 p3=0 obj#=56682298 tim=4696599950561
+WAIT #0: nam='SQL*Net message from client' ela= 6538 driver id=1952673792 #bytes=1 p3=0 obj#=56682298 tim=4696599957122
+LOBTMPCREATE: type=TEMPORARY LOB,bytes=1,c=42,e=42,p=0,cr=0,cu=0,tim=4696599957222
+

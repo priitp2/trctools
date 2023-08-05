@@ -69,7 +69,6 @@ options:
 | waits         | Prints summary of the wait events for sql_id.                                                           |
 | wait_histogram| Creates histogram of the elapsed time for a specific wait event                              |
 | db            | Prints some statistics about the stuff in Parquet files and recorded trace files              |
-| norm          | Checks ow well the data fits the well know distributions. Defaults to the normal distribution. Use this before you start demanding averages and variance!|
 
 ### summary
 
@@ -84,6 +83,10 @@ options:
 ### outliers
 
 ![Screenshot of outliers output](doc/outliers.png)
+
+### waits
+
+![Screenshot of waits output](doc/waits.png)
 
 # Data schema
 
