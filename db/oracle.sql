@@ -16,13 +16,13 @@ CREATE TABLE dbcall (
     rec_call_dp    INTEGER,          -- dep
     opt_goal       INTEGER,          -- og
     plh	           INTEGER, 
-    ts             INTEGER, -- tim
+    tim            INTEGER, -- tim
     c_type 	   INTEGER,
     wait_name	   VARCHAR2(256),
     wait_raw	   VARCHAR2(4000),
     file_name	   VARCHAR2(1000) NOT NULL,
     line	   INTEGER NOT NULL,
-    ts2		   TIMESTAMP,
+    ts		   TIMESTAMP,
     len		   INTEGER,
     pic_uid	   INTEGER,
     oct		   INTEGER,
@@ -30,7 +30,9 @@ CREATE TABLE dbcall (
     hv		   INTEGER,
     ad		   VARCHAR2(64),
     rlbk	   INTEGER,
-    rd_only	   INTEGER
+    rd_only	   INTEGER,
+    lobtype	   VARCHAR2(32),
+    bytes	   INTEGER
 ) PCTFREE 0 ROW STORE COMPRESS ADVANCED;
 
 create view elapsed_time as
