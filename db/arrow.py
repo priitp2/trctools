@@ -24,7 +24,7 @@ class DB:
             ('opt_goal', pa.int64()),
             ('plh', pa.int64()),
             ('tim', pa.int64()),
-            ('c_type', pa.string()),
+            ('c_type', pa.int64()),
             ('event_name', pa.string()),
             ('event_raw', pa.string()),
             ('file_name', pa.string()),
@@ -40,6 +40,9 @@ class DB:
             # For XCTEND
             ('rlbk', pa.string()),
             ('rd_only', pa.string()),
+            # For LOBs
+            ('lobtype', pa.string()),
+            ('bytes', pa.int64()),
             ])
         self.exec_id = 0
         self.batches = []

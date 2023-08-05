@@ -75,39 +75,41 @@ class Ops:
             return [exec_id, sql_id, self.cursor, self.op_type, None, self.e, None, None,
                         None, None, None, None, None, None, self.tim, None, self.name,
                         self.raw, self.fname, self.line, None, None, None, None, None, None,
-                        None, None, None]
+                        None, None, None, None, None]
         if self.op_type in 'STAT':
             return [exec_id, sql_id, self.cursor, self.op_type, None, None, None, None, None,
                         None, None, None, None, None, None, None, None, self.raw, self.fname,
-                        self.line, None, None, None, None, None, None, None, None, None]
+                        self.line, None, None, None, None, None, None, None, None, None,
+                        None, None]
         if self.op_type in 'BINDS':
             return [exec_id, sql_id, self.cursor, self.op_type, None, None, None, None, None,
                         None, None, None, None, None, None, None, None, "".join(self.raw),
                         self.fname, self.line, None, None, None, None, None, None, None, None,
-                        None]
+                        None, None, None]
         if self.op_type in ('STAR', 'HEADER'):
             return [exec_id, sql_id, self.cursor, self.op_type, None, None, None, None, None,
                         None, None, None, None, None, None, None, self.name, self.raw, self.fname,
-                        self.line, self.ts2, None, None, None, None, None, None, None, None]
+                        self.line, self.ts2, None, None, None, None, None, None, None, None,
+                        None, None]
         if self.op_type == 'PIC':
             return [exec_id, sql_id, self.cursor, self.op_type, None, None, None, None, None,
                         None, None, self.dep, None, None, self.tim, None, '', "".join(self.raw),
                         self.fname, self.line, None, self.len, self.uid, self.oct, self.lid,
-                        self.hv, self.ad, None, None]
+                        self.hv, self.ad, None, None, None, None]
         if self.op_type == 'XCTEND':
             return [exec_id, sql_id, self.cursor, self.op_type, None, None, None, None, None,
                         None, None, None, None, None, self.tim, None, '', None, self.fname,
                         self.line, None, None, None, None, None, None, None, self.rlbk,
-                        self.rd_only]
+                        self.rd_only, None, None]
         if self.op_type.startswith('LOB'):
             return [exec_id, None, None, self.op_type, self.c, self.e, self.p, self.cr,
-                    self.cu, None, self.bytes, None, None, None, self.tim, self.type,
+                    self.cu, None, None, None, None, None, self.tim, None,
                     '', '', self.fname, self.line, None, None, None, None, None, None, None, None,
-                    None]
+                    None, self.type, self.bytes]
         return [exec_id, sql_id, self.cursor, self.op_type, self.c, self.e, self.p, self.cr,
                     self.cu, self.mis, self.r, self.dep, self.og, self.plh, self.tim, self.type,
                     '', '', self.fname, self.line, None, None, None, None, None, None, None, None,
-                    None]
+                    None, None, None]
 
     def __str__(self):
         str0 = f"{self.cursor}: {self.op_type} "
