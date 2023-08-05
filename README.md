@@ -86,6 +86,8 @@ options:
 
 ### waits
 
+´summary.py` discriminates between SQL*Net events that happen during the query processing and while waiting on the client to say something. Latter events have prefix '/idle'
+
 ![Screenshot of waits output](doc/waits.png)
 
 # Data schema
