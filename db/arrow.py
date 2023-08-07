@@ -1,11 +1,11 @@
-import logging
 import pyarrow as pa
 import pyarrow.parquet as pq
 
 class DB:
     def __init__(self, dbdir, prefix):
-        self.logger = logging.getLogger(__name__)
-        self.max_batch_size = 8000000
+        # How many rows are bufferd and flushed to the disk in one file. Bigger number means
+        # larger memory usage and less parquet files
+        self.max_batch_size = 10000000
         self.dbdir = dbdir
         self.prefix = prefix
         self.cursor_exec_schema = pa.schema([
@@ -46,8 +46,9 @@ class DB:
             ])
         self.exec_id = 0
         self.batches = []
-        self.fname = None
         self.flush_count = 0
+        self.table = None
+        self.row_count = 0
     def add_rows(self, sql_id, rt):
         pass
     def add_cursor(self, c):
@@ -55,42 +56,31 @@ class DB:
     def get_exec_id(self):
         self.exec_id += 1
         return self.exec_id
+    def _batch2table(self):
+        self.row_count += len(self.batches)
+        arrays = [pa.array(i) for i in zip(*self.batches)]
+        tbl = pa.Table.from_arrays(arrays, schema = self.cursor_exec_schema)
+        if self.table:
+            self.table = pa.concat_tables([self.table, tbl])
+        else:
+            self.table = tbl
+        self.batches = []
     def insert_ops(self, ops):
         if len(ops) == 0:
             return
         self.batches.append(ops)
-        #self.batches.append(ops)
-        #batch = pa.record_batch([i for i in zip(ops)], self.cursor_exec_schema)
-        #self.batches.append(batch)
-        if len(self.batches) > self.max_batch_size:
+        if len(self.batches) > self.max_batch_size/100:
+            self._batch2table()
+        if self.row_count > self.max_batch_size:
             self.flush_batches()
+            self.row_count = 0
     def flush_batches(self):
-        #batch = pa.record_batch([i for i in zip(*self.batches)], self.cursor_exec_schema)
-        self.logger.debug('flush_batches: flusing %d records', len(self.batches))
-
-        arrays = [pa.array(i) for i in zip(*self.batches)]
-        #batch = pa.record_batch(arrays, self.cursor_exec_schema)
-        self.logger.debug('flush_batches: arrays done')
-
-        table = pa.Table.from_arrays(arrays, schema = self.cursor_exec_schema)
-        self.logger.debug('flush_batches: table done')
-
-        pq.write_table(table, f'{self.dbdir}/{self.prefix}.{self.flush_count}',
+        pq.write_table(self.table, f'{self.dbdir}/{self.prefix}.{self.flush_count}',
                         compression='gzip')
-        self.logger.debug(f'flush_batches: table written, {len(self.batches)} rows')
-
-        self.batches = []
+        self.table = None
         self.flush_count += 1
     def flush(self):
-        if len(self.batches) == 0:
-            return
-        #table = pa.Table.from_batches(self.batches)
-        #local = fs.LocalFileSystem()
-
-        #with local.open_output_stream(fname +'.gz') as file:
-        #    with pa.RecordBatchFileWriter(file, table.schema) as writer:
-        #        writer.write_table(table)
-
-        #pq.write_table(table, '{}/trace/{}.parquet'.format(self.dbdir, fname), compression='gzip')
-        #self.batches = []
-        self.flush_batches()
+        if len(self.batches) > 0:
+            self._batch2table()
+        if self.table.num_rows > 0:
+            self.flush_batches()
