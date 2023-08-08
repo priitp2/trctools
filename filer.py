@@ -2,7 +2,7 @@ import datetime
 import logging
 import re
 
-from ops import Ops
+from ops import ops_factory
 
 class Filer:
     def __init__(self):
@@ -46,15 +46,15 @@ class Filer:
 
                     if match.group(1) == 'BINDS':
                         in_binds = True
-                        binds = Ops('BINDS', match.group(2), [], fname, line_count)
+                        binds = ops_factory('BINDS', match.group(2), [], fname, line_count)
                         tracker.add_ops(binds.cursor, binds)
                         continue
                     if match.group(1) == 'PARSING IN CURSOR':
                         in_pic = True
-                        pic = Ops('PIC', match.group(2), match.group(4), fname, line_count)
+                        pic = ops_factory('PIC', match.group(2), match.group(4), fname, line_count)
                         tracker.add_pic(pic.cursor, pic)
                         continue
-                    ops = Ops(match.group(1), match.group(2), match.group(4), fname, line_count)
+                    ops = ops_factory(match.group(1), match.group(2), match.group(4), fname, line_count)
                     tracker.add_ops(match.group(2), ops)
                     continue
 
@@ -73,13 +73,13 @@ class Filer:
 
                 match = self.lob_matcher.match(line)
                 if match:
-                    tracker.db.insert_ops(Ops(match.group(1), None, match.group(2), fname,
+                    tracker.db.insert_ops(ops_factory(match.group(1), None, match.group(2), fname,
                                         line_count).to_list(tracker.db.get_exec_id(), None))
                     continue
 
                 match = self.xctend_matcher.match(line)
                 if match:
-                    tracker.db.insert_ops(Ops('XCTEND', None, match.group(1), fname,
+                    tracker.db.insert_ops(ops_factory('XCTEND', None, match.group(1), fname,
                                         line_count).to_list(tracker.db.get_exec_id(), None))
                     continue
 
@@ -93,21 +93,21 @@ class Filer:
                 match = self.date_matcher.match(line)
                 if match:
                     ts2 = datetime.datetime.strptime(match.group(1), '%Y-%m-%dT%H:%M:%S.%f%z')
-                    tracker.db.insert_ops(Ops('STAR', None, None, fname, line_count, 'DATETIME',
+                    tracker.db.insert_ops(ops_factory('STAR', None, None, fname, line_count, 'DATETIME',
                                             ts2).to_list(tracker.db.get_exec_id(), None))
                     continue
 
                 match = self.stars_matcher.match(line)
                 if match:
                     ts2 = datetime.datetime.strptime(match.group(3), '%Y-%m-%dT%H:%M:%S.%f%z')
-                    tracker.db.insert_ops(Ops('STAR', None, match.group(2).strip('()'), fname,
+                    tracker.db.insert_ops(ops_factory('STAR', None, match.group(2).strip('()'), fname,
                                                 line_count, match.group(1).strip(':'),
                                                 ts2).to_list(tracker.db.get_exec_id(), None))
                     continue
 
                 match = self.file_header_matcher.match(line)
                 if match:
-                    tracker.db.insert_ops(Ops('HEADER', None, match.group(2), fname, line_count,
+                    tracker.db.insert_ops(ops_factory('HEADER', None, match.group(2), fname, line_count,
                                             match.group(1), None).to_list(tracker.db.get_exec_id(), None))
                     continue
 
