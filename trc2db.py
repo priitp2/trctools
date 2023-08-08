@@ -16,25 +16,21 @@ parser.add_argument('--dbdir', type=str, default = './', dest='dbdir',
                     help="Directory for the parquet files")
 parser.add_argument('--db-file-prefix', type=str, default = 'parquet', dest='file_prefix',
                     help="Parquet file name prefix")
-parser.add_argument('--logfile', type=str, default = 'trc2db.log', dest='logfile',
-                    help="Sends output to the logfile")
-parser.add_argument('--log-level', type=str, default = 'ERROR', dest='loglevel',
-                    help="Sets logging level: from DEBUG to CRITICAL")
 parser.add_argument('--log-orphans', type=bool, default = False, dest='orphans',
                     help="Logs lines not matched by the parser")
 
 args = parser.parse_args()
 
 if args.db == 'oracle':
-    logging.info('Using database: oracle')
+    print('Using database: oracle')
     from db.oracle import DB
     database = DB()
 elif args.db == 'parquet':
-    logging.info('Using database: arrow/parquet')
+    print('Using database: arrow/parquet')
     from db.arrow import DB
     database = DB(args.dbdir, args.file_prefix)
 else:
-    logging.info('Using database: None')
+    print('Using database: None')
     database = None
 
 
