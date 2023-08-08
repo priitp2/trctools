@@ -1,7 +1,6 @@
 #!/usr/bin/env python3.11
 
 import argparse
-import logging
 import time
 from filer import Filer
 from call_tracker import CallTracker
@@ -25,15 +24,6 @@ parser.add_argument('--log-orphans', type=bool, default = False, dest='orphans',
                     help="Logs lines not matched by the parser")
 
 args = parser.parse_args()
-
-log_level = logging.INFO
-
-if args.loglevel:
-    log_level = getattr(logging, args.loglevel.upper(), None)
-    if not isinstance(log_level, int):
-        raise ValueError(f'Invalid log level: {log_level}')
-logging.basicConfig(filename = args.logfile, level = log_level,
-        format = '%(asctime)s - %(name)s - %(levelname)s:%(message)s')
 
 if args.db == 'oracle':
     logging.info('Using database: oracle')

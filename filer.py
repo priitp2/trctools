@@ -1,5 +1,4 @@
 import datetime
-import logging
 import re
 
 from ops import ops_factory
@@ -16,7 +15,6 @@ class Filer:
         self.call_matcher = re.compile(r'''^(PARSE|PARSING IN CURSOR|EXEC|FETCH|WAIT|CLOSE|BINDS|STAT) (#\d+)(:| )(.*)''')
         self.lob_matcher = re.compile(r'''^(LOB[A-Z]+): (.*)''')
         self.file_header_matcher = re.compile(r'''^(Build label|ORACLE_HOME|System name|Node name|Release|Version|Machine|Instance name|Redo thread mounted by this instance|Oracle process number|Unix process pid):\s+(.*)''')
-        self.logger = logging.getLogger(__name__)
     def process_file(self, tracker, fname, orphans=False):
 
         line_count = 0
@@ -24,12 +22,11 @@ class Filer:
         in_pic = False
         binds = ()
         pic = None
-        self.logger.info('process_file: processing %s', fname)
         with open(fname, 'r') as trace:
             for line in trace:
                 line_count += 1
 
-                # Skip the first line
+                # Skip the first 3 lines
                 if line_count < 4:
                     continue
 
@@ -86,7 +83,6 @@ class Filer:
                 # FIXME: make this configurable
                 match = self.res_matcher.match(line)
                 if match:
-                    self.logger.debug('reset tracker')
                     tracker.reset()
                     continue
 
@@ -114,5 +110,4 @@ class Filer:
                 if orphans:
                     print("non-matching line: {}".format(line))
 
-        self.logger.info('process_file: %s done', fname)
         return line_count

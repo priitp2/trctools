@@ -1,4 +1,3 @@
-import logging
 from current_statement import CurrentStatement
 
 class CallTracker:
@@ -6,7 +5,6 @@ class CallTracker:
         Tracks database client interactions.
     '''
     def __init__(self, db):
-        self.logger = logging.getLogger(__name__)
         self.db = db
         # {cursor handle: CurrentStatement}
         self.latest_cursors = {}
@@ -22,7 +20,6 @@ class CallTracker:
         ''' If cursor is present then this is new execution, so dump the cursor to the
             database and overwrite the latest_cursor.
         '''
-        #self.logger.debug('add_latest_cursor: start')
         stat = self._get_statement(cursor)
         if not stat:
             # Cursors/statements come either throug add_parsing_in() with sql_id,
@@ -31,14 +28,10 @@ class CallTracker:
                 self.cursors[cursor] = None
             self.latest_cursors[cursor] = CurrentStatement(cursor, self.db, self.cursors[cursor])
             # Trace can contain cursor without matching PARSING IN CURSOR
-            #self.logger.debug('add_latest_cursor: done')
             return self.latest_cursors[cursor]
         if self.db:
-            #self.logger.debug('add_latest_cursor: dump to db')
             stat.dump_to_db()
-            #self.logger.debug('add_latest_cursor: dump to db done')
         self.latest_cursors[cursor] = CurrentStatement(cursor, self.db, self.cursors[cursor])
-        #self.logger.debug('add_latest_cursor: done')
         return self.latest_cursors[cursor]
     def add_ops(self, cursor, ops):
 
@@ -76,9 +69,7 @@ class CallTracker:
             del self.latest_cursors[cursor]
     def flush(self):
         '''Resets the tracker and flushes the db. '''
-        self.logger.debug('flush')
         if not self.db:
             return
         self.reset()
         self.db.flush()
-        self.logger.debug('flush: done')
