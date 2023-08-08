@@ -2,7 +2,7 @@
 
 import argparse
 import time
-from filer import Filer
+import filer
 from call_tracker import CallTracker
 
 __doc__ = "Turn Oracle SQL trace files into Parquet, or put them into a Oracle database"
@@ -43,7 +43,6 @@ tracker = CallTracker(database)
 no_files = len(args.trace_files)
 fcount = 1
 cumul_lines = 0
-filer = Filer()
 start_time = time.time_ns()
 for fname in args.trace_files:
     print(f"[{fcount}/{no_files}] processing file {fname}")

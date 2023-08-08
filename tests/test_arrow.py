@@ -1,7 +1,7 @@
 import tempfile
 import unittest
 import duckdb as d
-from filer import Filer
+import filer
 from db.arrow import DB
 from call_tracker import CallTracker
 
@@ -11,7 +11,6 @@ class TestArrow(unittest.TestCase):
         with tempfile.TemporaryDirectory() as db_dir:
             dbs = DB(db_dir, 'unittest')
             tracker = CallTracker(dbs)
-            filer = Filer()
             filer.process_file(tracker, 'tests/traces/lobs.trc')
             tracker.flush()
 
