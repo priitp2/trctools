@@ -47,7 +47,7 @@ class TestOps(unittest.TestCase):
         sql_id = 'abc123'
         ops = test_constants.TRACKED_OPS['EXEC']
         lst = ops.to_list(0, sql_id)
-        self.assertEqual(len(lst), len(ops.__slots__) + 13)
+        self.assertEqual(len(lst), len(ops.__slots__) + 15)
         self.assertEqual(lst[0], 0)
         self.assertEqual(lst[1], sql_id)
         self.assertEqual(lst[2], test_constants.CURSOR)
