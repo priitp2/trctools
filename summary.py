@@ -196,10 +196,11 @@ subparsers = parser.add_subparsers(dest='action', title='Available subcommands')
 parser.add_argument('--dbdir', metavar='dbdir', type=str,
                                     help='Directory for Parquet files')
 
-summary_parser = subparsers.add_parser('summary', help='''Generates summary of the executed sql_id's''')
+summary_parser = subparsers.add_parser('summary', help='Generates summary of the executed SQL '
+                        +'statements, execution counts, median and p99 execution times')
 
-hist_parser = subparsers.add_parser('histogram', help='Generates histogram for the specified '
-                                        +'sql_id or wait event name.')
+hist_parser = subparsers.add_parser('histogram', help='Generates response time histogram for the '
+                                        +'sql_id or wait event')
 hist_parser.add_argument('--sql_id', type=str, dest='sql_id',
                      help="Comma separated list of sql_id's for which histogram, outliers or waits "
                          +"are produced")
@@ -207,21 +208,24 @@ hist_parser.add_argument('--wait_name', dest='wait_name', type=str,
                                     help='Name of the wait event')
 hist_parser.add_argument('--output', dest='fname', type=str, help='Output filename')
 
-out_parser = subparsers.add_parser('outliers', help='''Prints out executions that took longer than --thresold microseconds''')
+out_parser = subparsers.add_parser('outliers', help='Displays content of the trace files for the '
+                         +'executions that took more than specified amount of time')
 out_parser.add_argument('--sql_id', type=str, dest='sql_id',
                      help="Comma separated list of sql_id's for which outliers are displayed")
 out_parser.add_argument('--thresold', type=str, dest='thresold',
                      help="Thresold in microseconds")
 
-waits_parser = subparsers.add_parser('waits', help='Shows wait events for the sql_id')
+waits_parser = subparsers.add_parser('waits', help='Prints summary of the wait events for sql_id')
 waits_parser.add_argument('--sql_id', type=str, dest='sql_id',
                      help="Comma separated list of sql_id's for which waits are displayed")
 
-whist_parser = subparsers.add_parser('wait_histogram', help='''Generates histogram for the wait event''')
+whist_parser = subparsers.add_parser('wait_histogram', help='Creates histogram of the elapsed '
+                        +'time for a specific wait event')
 whist_parser.add_argument('--wait_name', dest='wait_name', type=str, help='Name of the wait event')
 whist_parser.add_argument('--output', dest='fname', type=str, help='Output filename')
 
-dbs_parser = subparsers.add_parser('db', help='''Shows summary information about processed trace files''')
+dbs_parser = subparsers.add_parser('db', help='Prints some statistics about the stuff in Parquet '
+                        +'files and recorded trace files')
 
 args = parser.parse_args()
 
