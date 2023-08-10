@@ -191,20 +191,38 @@ class SummaryDuckdb:
         print(res)
 
 parser = argparse.ArgumentParser(description='Generate summary from processed traces')
-parser.add_argument('action', type=str, choices=['summary', 'histogram', 'outliers', 'waits',
-                                                    'wait_histogram', 'db', 'cursor-summary'],
-                     help='Various subcommands')
-parser.add_argument('--sql_id', type=str, dest='sql_id',
-                     help="Comma separated list of sql_id's for which histogram, outliers or waits " \
-                         +"are produced")
-parser.add_argument('--thresold', type=str, dest='thresold',
-                     help="Thresold in microsecond for which the outliers are displayed")
+subparsers = parser.add_subparsers(dest='action', title='Available subcommands')
+
 parser.add_argument('--dbdir', metavar='dbdir', type=str,
                                     help='Directory for Parquet files')
-parser.add_argument('--wait_name', dest='wait_name', type=str,
-                                    help='Name for the wait_histogram command')
-parser.add_argument('--output', dest='fname', type=str,
-                                    help='Output for the wait_histogram command')
+
+summary_parser = subparsers.add_parser('summary', help='''Generates summary of the executed sql_id's''')
+
+hist_parser = subparsers.add_parser('histogram', help='Generates histogram for the specified '
+                                        +'sql_id or wait event name.')
+hist_parser.add_argument('--sql_id', type=str, dest='sql_id',
+                     help="Comma separated list of sql_id's for which histogram, outliers or waits "
+                         +"are produced")
+hist_parser.add_argument('--wait_name', dest='wait_name', type=str,
+                                    help='Name of the wait event')
+hist_parser.add_argument('--output', dest='fname', type=str, help='Output filename')
+
+out_parser = subparsers.add_parser('outliers', help='''Prints out executions that took longer than --thresold microseconds''')
+out_parser.add_argument('--sql_id', type=str, dest='sql_id',
+                     help="Comma separated list of sql_id's for which outliers are displayed")
+out_parser.add_argument('--thresold', type=str, dest='thresold',
+                     help="Thresold in microseconds")
+
+waits_parser = subparsers.add_parser('waits', help='Shows wait events for the sql_id')
+waits_parser.add_argument('--sql_id', type=str, dest='sql_id',
+                     help="Comma separated list of sql_id's for which waits are displayed")
+
+whist_parser = subparsers.add_parser('wait_histogram', help='''Generates histogram for the wait event''')
+whist_parser.add_argument('--wait_name', dest='wait_name', type=str, help='Name of the wait event')
+whist_parser.add_argument('--output', dest='fname', type=str, help='Output filename')
+
+dbs_parser = subparsers.add_parser('db', help='''Shows summary information about processed trace files''')
+
 args = parser.parse_args()
 
 s = SummaryDuckdb(args.dbdir + '/*')
