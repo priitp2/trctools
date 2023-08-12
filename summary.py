@@ -1,6 +1,7 @@
 #!/usr/bin/env python3.11
 
 import argparse
+import sys
 import duckdb as d
 from hdrh.histogram import HdrHistogram
 from scipy import stats
@@ -246,6 +247,8 @@ elif args.action == 'histogram':
     if args.wait_name:
         s.wait_histogram(args.wait_name, args.fname)
 elif args.action == 'outliers':
+    if not args.sql_id:
+        sys.exit('Error: sql_io is mandatory parameter')
     s.outliers(args.sql_id, args.thresold)
 elif args.action == 'waits':
     s.waits(args.sql_id)
