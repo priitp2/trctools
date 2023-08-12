@@ -152,7 +152,8 @@ class SummaryDuckdb:
                                     ELSE event_name
                                 END "event_name",
                                 elapsed_time,
-                                ops
+                                ops,
+                                sql_id
                             FROM
                                 read_parquet ( '{self.dbdir}' )
                         )
@@ -218,7 +219,7 @@ out_parser = subparsers.add_parser('outliers', help='Displays content of the tra
 out_parser.add_argument('--sql_id', type=str, dest='sql_id',
                      help="Comma separated list of sql_id's for which outliers are displayed")
 out_parser.add_argument('--thresold', type=str, dest='thresold',
-                     help="Thresold in microseconds")
+                     help="Outlier thresold in microseconds")
 
 waits_parser = subparsers.add_parser('waits', help='Prints summary of the wait events for sql_id')
 waits_parser.add_argument('--sql_id', type=str, dest='sql_id',
