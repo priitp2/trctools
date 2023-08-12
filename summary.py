@@ -104,12 +104,14 @@ class SummaryDuckdb:
                     """)
         print(res)
 
-    def create_hdrh(self, sql_id):
+    def create_hdrh(self, sql_id, fname):
         r = d.sql(f"select ela from elapsed_time where sql_id = '{sql_id}'").fetchall()
         resp_hist = HdrHistogram(1, 1000000000, 1)
         for ela in r:
             resp_hist.record_value(ela[0])
-        with open(f"elapsed_{sql_id}.out", 'wb') as f:
+        if not fname:
+            fname = f"elapsed_{sql_id}.out"
+        with open(fname, 'wb') as f:
             resp_hist.output_percentile_distribution(f, 1.0)
     def outliers(self, sql_id, thresold):
         res = d.sql(f"""select cursor_id "cursor",
@@ -172,6 +174,8 @@ class SummaryDuckdb:
         resp_hist = HdrHistogram(1, 1000000000, 1)
         for ela in res:
             resp_hist.record_value(ela[0])
+        if not fname:
+            fname = 'wait_histogram'
         with open(fname, 'wb') as f:
             resp_hist.output_percentile_distribution(f, 1.0)
 
@@ -238,7 +242,9 @@ if args.action == 'cursor-summary':
 elif args.action == 'histogram':
     if args.sql_id:
         for sqlid in args.sql_id.split(','):
-            s.create_hdrh(args.sql_id)
+            s.create_hdrh(args.sql_id, args.fname)
+    if args.wait_name:
+        s.wait_histogram(args.wait_name, args.fname)
 elif args.action == 'outliers':
     s.outliers(args.sql_id, args.thresold)
 elif args.action == 'waits':
