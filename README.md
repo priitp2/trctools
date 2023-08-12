@@ -81,7 +81,7 @@ Either `--sql_id` or `--wait_name` is mandatory. Default filename is `histogram.
 ```
 [dev|pripii@priitp-roadkill-2-11090511 trctools]$ ./summary.py --dbdir /home/pripii/parquet histogram --sql_id 7dh01v2jgss7c
 ```
-This creates file `elapsed_7dh01v2jgss7c.out`. And as a plot (note the extreme otliers!): [Latency by percentile distribution](doc/elapsed_pdf.png)
+This creates file `elapsed_7dh01v2jgss7c.out`. And as a plot (note the extreme otliers!): ![Latency by percentile distribution](doc/elapsed_pdf.png)
 
 ### outliers
 
