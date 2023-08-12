@@ -123,8 +123,11 @@ In case of `WAIT`, `event_name` contains wait event name and `event_raw` unparse
 is the name of the header field and `event_raw` contains the value. Same goes with the lines starting with `***`. Timestamps
 in those lines are persisted in `ts`.  
 
+Alternative description of the schema is in `db/arrow.py`
+
 |      name      |    type    |                                            logical_type                                             |
 |----------------|------------|-----------------------------------------------------------------------------------------------------|
+| schema         |            |                                                                                                     |
 | exec_id        | INT64      |                                                                                                     |
 | sql_id         | BYTE_ARRAY | StringType()                                                                                        |
 | cursor_id      | BYTE_ARRAY | StringType()                                                                                        |
@@ -154,4 +157,6 @@ in those lines are persisted in `ts`.
 | ad             | BYTE_ARRAY | StringType()                                                                                        |
 | rlbk           | BYTE_ARRAY | StringType()                                                                                        |
 | rd_only        | BYTE_ARRAY | StringType()                                                                                        |
+| lobtype        | BYTE_ARRAY | StringType()                                                                                        |
+| bytes          | INT64      |                                                                                                     |
 
