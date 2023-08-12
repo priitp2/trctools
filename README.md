@@ -1,74 +1,59 @@
+This repository contains scripts that process and analyze Oracle SQL trace output.
+
 `trc2db` turns Oracle SQL trace (also known as event 10046) files into Parquet, or loads it into Oracle database.
 
- `summary.py` contains pre-canned queries and statistics about the generated Parquet file(s).
+`summary.py` contains pre-canned queries and statistics about the generated Parquet file(s).
 
 # Installation
 
-It is tested with Python 3.11, but in principle it should work with older versions as well.
+Scripts are tested with Python 3.11, but in principle it should work with older versions as well.
 
 ```
-git clone ...
+git clone https://github.com/priitp2/trctools.git
 ```
 
 For trc2db.py
 ```
 $ pip.3.11 install pyarrow oracledb
 ```
-
 If you do not intend to use Oracle as a backend, then `oracledb` can be omitted.
 
 For summary.py
 ```
-$pip3.11 install pyarrow duckdb HdrHistogram scipy
+$pip3.11 install pyarrow duckdb HdrHistogram
 ```
 
 # Usage
 
 ```
-./trc2db.py --dbdir /home/pripii/passwd_mng3 trace0*/*
+./trc2db.py --dbdir /home/pripii/parquet trace0*/*
 ```
 # summary.py
 
-It contains some pre-canned examples what can be done in Duckdb.
+It contains some pre-canned examples of what can be done in Duckdb.
 
 ```
 $ ./summary.py -h
-usage: summary.py [-h] [--sql_id SQL_ID] [--thresold THRESOLD] [--dbdir dbdir] [--wait_name WAIT_NAME] [--output FNAME]
-                  [--test TEST_TYPE] [--dist DIST] [--dist-args DIST-ARGS]
-                  {summary,histogram,outliers,waits,wait_histogram,db,norm}
+usage: summary.py [-h] [--dbdir dbdir] {summary,histogram,outliers,waits,wait_histogram,db} ...
 
 Generate summary from processed traces
 
-positional arguments:
-  {summary,histogram,outliers,waits,wait_histogram,db,norm}
-                        Directory for Parquet files
-
 options:
   -h, --help            show this help message and exit
-  --sql_id SQL_ID       Comma separated list of sql_id's for which summary is produced
-  --thresold THRESOLD   Thresold in microsecond for which the outliers are displayed
   --dbdir dbdir         Directory for Parquet files
-  --wait_name WAIT_NAME
-                        Name for the wait_histogram command
-  --output FNAME        Output for the wait_histogram command
-  --test TEST_TYPE      For the normality test, type of the test performed. Accepted values: shapiro, anderson (Anderson-Darling),
-                        kstest (Kolmogorov-Smirnov). See scipy.statistics documentation for the explanation
-  --dist DIST           For normality test, specifies cdf for Kolmogorov-Smirnov, or distribution for Anderson-Darling.
-  --dist-args DIST-ARGS
-                        Arguments for the CDF in normality/goodness-of-fit test
+
+Available subcommands:
+  {summary,histogram,outliers,waits,wait_histogram,db}
+    summary             Generates summary of the executed sql_id's
+    histogram           Generates histogram for the specified sql_id or wait event name.
+    outliers            Prints out executions that took longer than --thresold microseconds
+    waits               Shows wait events for the sql_id
+    wait_histogram      Generates histogram for the wait event
+    db                  Shows summary information about processed trace files
 
 ```
 
 ## Available subcommands:
-
-|   name        |   action                                                                                      |
-|---------------|-----------------------------------------------------------------------------------------------|
-| summary       | Prints out list of SQL queries, execution counts, median and p99 execution times, etc.        |
-| histogram     | Creates response time histogram for a sql_id. Generates file `elapsed_{sql_id}.out`           |
-| outliers      | Displays content of the trace files for the executions that took more than specified amount of time.|
-| waits         | Prints summary of the wait events for sql_id.                                                           |
-| wait_histogram| Creates histogram of the elapsed time for a specific wait event                              |
-| db            | Prints some statistics about the stuff in Parquet files and recorded trace files              |
 
 ### summary
 
@@ -76,18 +61,51 @@ options:
 
 ### histogram
 
-```$ ./summary.py histogram --sql_id 7dh01v2jgss7c --dbdir /home/pripii/parquet```
+```
+usage: summary.py histogram [-h] [--sql_id SQL_ID] [--wait_name WAIT_NAME] [--output FNAME]
 
-`--sql_id` is mandatory parameter. This creates file `elapsed_7dh01v2jgss7c.out`.
+options:
+  -h, --help            show this help message and exit
+  --sql_id SQL_ID       Comma separated list of sql_id's for which histogram, outliers or waits are produced
+  --wait_name WAIT_NAME
+                        Name of the wait event
+  --output FNAME        Output filename
+```
+
+Either `--sql_id` or `--wait_name` is mandatory. Default filename is `histogram.out`. Output is in
+[HdrHistogram](https://github.com/HdrHistogram/HdrHistogram) format, you can use
+[HdrHistogram Plotter](http://hdrhistogram.github.io/HdrHistogram/plotFiles.html) to generate a nice percentile distribution graph.
+
+#### Example
+
+```
+[dev|pripii@priitp-roadkill-2-11090511 trctools]$ ./summary.py --dbdir /home/pripii/parquet histogram --sql_id 7dh01v2jgss7c
+```
+This creates file `elapsed_7dh01v2jgss7c.out`. And as a plot (note the extreme otliers!): [Latency by percentile distribution](doc/elapsed_pdf.png)
 
 ### outliers
+
+```
+[dev|pripii@priitp-roadkill-2-11090511 trctools]$ ./summary.py --dbdir /home/pripii/parquet outliers --help
+usage: summary.py outliers [-h] [--sql_id SQL_ID] [--thresold THRESOLD]
+
+options:
+  -h, --help           show this help message and exit
+  --sql_id SQL_ID      Comma separated list of sql_id's for which outliers are displayed
+  --thresold THRESOLD  Outlier thresold in microseconds
+```
 
 ![Screenshot of outliers output](doc/outliers.png)
 
 ### waits
 
-´summary.py` discriminates between SQL*Net events that happen during the query processing and while waiting on the client to say something. Latter events have prefix '/idle'
+´summary.py` discriminates between SQL*Net events that happen during the query processing and while waiting on the client to say something. Latter events have prefix '/idle'.
 
+It shows waits either for the specific sql_id:
+
+![Screenshot of waits output](doc/waits_7dh01v2jgss7c.png)
+
+or for the whole trace:
 ![Screenshot of waits output](doc/waits.png)
 
 # Data schema
