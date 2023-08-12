@@ -4,9 +4,11 @@ import argparse
 import sys
 import duckdb as d
 from hdrh.histogram import HdrHistogram
-from scipy import stats
+
+__doc__ = """Some examples what can be done with Oracle SQL tracec using Duckdb and Parquet."""
 
 class SummaryDuckdb:
+    """ Initializes Duckdb with wiews and runs queries."""
     def __init__(self, dbdir):
         self.dbdir = dbdir
         d.sql(f"""create or replace view elapsed_time as
@@ -106,9 +108,9 @@ class SummaryDuckdb:
         print(res)
 
     def create_hdrh(self, sql_id, fname):
-        r = d.sql(f"select ela from elapsed_time where sql_id = '{sql_id}'").fetchall()
+        res = d.sql(f"select ela from elapsed_time where sql_id = '{sql_id}'").fetchall()
         resp_hist = HdrHistogram(1, 1000000000, 1)
-        for ela in r:
+        for ela in res:
             resp_hist.record_value(ela[0])
         if not fname:
             fname = f"elapsed_{sql_id}.out"
@@ -178,8 +180,8 @@ class SummaryDuckdb:
             resp_hist.record_value(ela[0])
         if not fname:
             fname = 'wait_histogram'
-        with open(fname, 'wb') as f:
-            resp_hist.output_percentile_distribution(f, 1.0)
+        with open(fname, 'wb') as fdesc:
+            resp_hist.output_percentile_distribution(fdesc, 1.0)
 
     def db(self):
         res = d.sql(f"""select count(*) "rows",
@@ -253,7 +255,5 @@ elif args.action == 'outliers':
     s.outliers(args.sql_id, args.thresold)
 elif args.action == 'waits':
     s.waits(args.sql_id)
-elif args.action == 'wait_histogram':
-    s.wait_histogram(args.wait_name, args.fname)
 elif args.action == 'db':
     s.db()
