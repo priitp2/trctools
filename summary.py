@@ -192,9 +192,12 @@ class SummaryDuckdb:
                     """)
         print(res)
 
-        res = d.sql(f"""select file_name, count(*) "rows", min(ts) "first timestamp"
+        res = d.sql(f"""select file_name, count(*) "rows",
+                            date_trunc('second', min(ts)) "first timestamp",
+                            date_trunc('second', max(ts)) "last timestamp",
+                            date_trunc('second', max(ts)) - date_trunc('second', min(ts)) "time in file"
                         from read_parquet('{self.dbdir}')
-                        group by file_name order by count(*)
+                        group by file_name order by count(*) desc
                     """)
         print(res)
 
