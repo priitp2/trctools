@@ -204,7 +204,7 @@ class SummaryDuckdb:
 parser = argparse.ArgumentParser(description='Generate summary from processed traces')
 subparsers = parser.add_subparsers(dest='action', title='Available subcommands')
 
-parser.add_argument('--dbdir', metavar='dbdir', type=str,
+parser.add_argument('--dbdir', metavar='dbdir', type=str, required=True,
                                     help='Directory for Parquet files')
 
 summary_parser = subparsers.add_parser('summary', help='Generates summary of the executed SQL '
