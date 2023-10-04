@@ -38,6 +38,7 @@ class SummaryDuckdb:
                             ela.sql_id,
                             dbc.sql_text,
                             ela.execs,
+                            ela.total,
                             ela.median,
                             ela.p99
                         FROM
@@ -45,6 +46,7 @@ class SummaryDuckdb:
                                 SELECT
                                     sql_id,
                                     COUNT(*)    execs,
+                                    sum(ela)    total,
                                     MEDIAN(ela) median,
                                     PERCENTILE_DISC(0.99) WITHIN GROUP( ORDER BY ela) p99
                                 FROM
