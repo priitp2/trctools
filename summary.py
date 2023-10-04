@@ -240,6 +240,10 @@ dbs_parser = subparsers.add_parser('db', help='Prints some statistics about the 
 
 args = parser.parse_args()
 
+if not args.action:
+    parser.print_help()
+    exit(1)
+
 s = SummaryDuckdb(args.dbdir + '/*')
 
 if args.action == 'summary':
