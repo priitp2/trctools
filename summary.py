@@ -202,7 +202,7 @@ class SummaryDuckdb:
         print(res)
 
 parser = argparse.ArgumentParser(description='Generate summary from processed traces')
-subparsers = parser.add_subparsers(dest='action', title='Available subcommands')
+subparsers = parser.add_subparsers(dest='action', title='Available subcommands', required=True)
 
 parser.add_argument('--dbdir', metavar='dbdir', type=str, required=True,
                                     help='Directory for Parquet files')
@@ -239,10 +239,6 @@ dbs_parser = subparsers.add_parser('db', help='Prints some statistics about the 
                         +'files and recorded trace files')
 
 args = parser.parse_args()
-
-if not args.action:
-    parser.print_help()
-    exit(1)
 
 s = SummaryDuckdb(args.dbdir + '/*')
 
