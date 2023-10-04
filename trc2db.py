@@ -2,7 +2,7 @@
 
 import argparse
 import time
-import parser
+import parser as trcparser
 from call_tracker import CallTracker
 
 __doc__ = "Turn Oracle SQL trace files into Parquet, or put them into a Oracle database"
@@ -43,7 +43,7 @@ start_time = time.time_ns()
 for fname in args.trace_files:
     print(f"[{fcount}/{no_files}] processing file {fname}")
     start = time.time_ns()
-    lines = parser.process_file(tracker, fname, args.orphans)
+    lines = trcparser.process_file(tracker, fname, args.orphans)
     cumul_lines += lines
     fcount += 1
     print(f"   -> {lines} lines, {int((time.time_ns() - start)/1000000000)} seconds")
