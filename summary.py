@@ -40,7 +40,8 @@ class SummaryDuckdb:
                             ela.execs,
                             ela.total,
                             ela.median,
-                            ela.p99
+                            ela.p99,
+                            ela.max
                         FROM
                             (
                                 SELECT
@@ -48,7 +49,8 @@ class SummaryDuckdb:
                                     COUNT(*)    execs,
                                     sum(ela)    total,
                                     MEDIAN(ela) median,
-                                    PERCENTILE_DISC(0.99) WITHIN GROUP( ORDER BY ela) p99
+                                    PERCENTILE_DISC(0.99) WITHIN GROUP( ORDER BY ela) p99,
+                                    max(ela)    max
                                 FROM
                                     elapsed_time
                                 GROUP BY
@@ -133,6 +135,7 @@ class SummaryDuckdb:
                         where
                             sql_id = '{sql_id}'
                             and exec_id in (select exec_id from elapsed_time where sql_id = '{sql_id}' and ela > {thresold})
+                            and ops not in ('BINDS')
                         order by exec_id, ts
                     """)
         print(res)
