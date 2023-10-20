@@ -17,10 +17,17 @@ class TimeTracker:
         ''' Gets new wall clock reading for the tim'''
         if not self.wall_clock:
             raise ValueError("wall_clock hasn't been set")
+
+        if tim is None:
+            if self.first_tim is not None:
+                return self.wall_clock + self.tim_delta
+            return self.wall_clock
+
         if not self.first_tim:
             self.first_tim = tim
             self.current_tim = tim
             return self.wall_clock
+
         self.current_tim = tim
         self.tim_delta = timedelta(microseconds = self.current_tim - self.first_tim)
         return self.wall_clock + self.tim_delta
