@@ -30,17 +30,25 @@ class TestTimeTracker(unittest.TestCase):
 
         # wall clock hasn't been set yet, so there's nothing to return
         with self.assertRaises(ValueError):
-            tracker.get_wc(None)
+            tracker.get_wc(TIM0)
 
         # 2023-05-18T13:56:18.679265+02:00
         clock = datetime(2023, 5, 18, 13, 56, 18, 679265)
         tracker.reset(clock)
+
+        # First tim hasn't been set, so expect back wall_clock
+        ret = tracker.get_wc(None)
+        self.assertEqual(clock, ret)
 
         clock0 = tracker.get_wc(TIM0)
         self.assertEqual(clock, clock0)
         self.assertEqual(tracker.first_tim, TIM0)
         self.assertEqual(tracker.current_tim, TIM0)
         self.assertEqual(tracker.tim_delta, timedelta())
+
+        # Now that first_tim is set, expect back previous wall clock
+        ret = tracker.get_wc(None)
+        self.assertEqual(clock, ret)
 
         tim1 = 7795634107865
         delta = timedelta(microseconds = tim1 - TIM0)
@@ -49,5 +57,9 @@ class TestTimeTracker(unittest.TestCase):
         self.assertEqual(tracker.first_tim, TIM0)
         self.assertEqual(tracker.current_tim, tim1)
         self.assertEqual(tracker.tim_delta, delta)
+
+        # Still expect previous wc reading
+        ret = tracker.get_wc(None)
+        self.assertEqual(clock0 + delta, ret)
 if __name__ == '__main__':
     unittest.main()
