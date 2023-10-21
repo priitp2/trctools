@@ -22,5 +22,8 @@ class TestArrow(unittest.TestCase):
 
             res = d.sql(f"select count(*) from read_parquet('{db_dir}/*');")
             self.assertEqual(res.fetchone()[0], 58)
+
+            res = d.sql(f"select count(*) from read_parquet('{db_dir}/*') where ts is null;")
+            self.assertEqual(res.fetchone()[0], 11)
 if __name__ == '__main__':
     unittest.main()

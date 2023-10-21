@@ -1,4 +1,5 @@
 from current_statement import CurrentStatement
+from time_tracker import TimeTracker
 
 class CallTracker:
     '''
@@ -12,6 +13,7 @@ class CallTracker:
         self.cursors = {}
 
         self.dummy_counter = 0
+        self.time_tracker = TimeTracker()
     def _get_statement(self, cursor):
         if cursor in self.latest_cursors:
             return self.latest_cursors[cursor]
@@ -67,6 +69,7 @@ class CallTracker:
                 empty.append(cursor)
         for cursor in empty:
             del self.latest_cursors[cursor]
+        self.time_tracker = TimeTracker()
     def flush(self):
         '''Resets the tracker and flushes the db. '''
         if not self.db:
