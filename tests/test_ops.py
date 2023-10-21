@@ -1,3 +1,4 @@
+import datetime
 import unittest
 import tests.test_constants as test_constants
 
@@ -46,6 +47,8 @@ class TestOps(unittest.TestCase):
     def test_to_list(self):
         sql_id = 'abc123'
         ops = test_constants.TRACKED_OPS['EXEC']
+        dt = datetime.datetime.today()
+        ops.ts_callback = lambda x: dt
         lst = ops.to_list(0, sql_id)
         self.assertEqual(len(lst), len(ops.__slots__) + 15)
         self.assertEqual(lst[0], 0)
@@ -69,7 +72,7 @@ class TestOps(unittest.TestCase):
         self.assertEqual(lst[18], test_constants.FNAME)
         self.assertEqual(lst[19], test_constants.LINE)
         # ts2
-        self.assertEqual(lst[20], None)
+        self.assertIs(lst[20], dt)
 
     def test_str(self):
         ops = test_constants.TRACKED_OPS['WAIT']

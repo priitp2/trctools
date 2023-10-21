@@ -1,3 +1,4 @@
+from datetime import datetime
 import re
 
 __doc__ = """
@@ -7,37 +8,38 @@ __doc__ = """
 
 wait_matcher = re.compile(r""" nam='(.*)' ela= (\d+) (.*) tim=(\d+)""")
 
-def ops_factory(op_type, cursor, params, fname, line, name=None, ts2=None):
+def ops_factory(op_type, cursor, params, fname, line, ts_callback, name=None, ts2=None):
     """
         Factory method for operations.
     """
     if op_type == 'WAIT':
-        return Wait(op_type, cursor, params, fname, line)
+        return Wait(op_type, cursor, params, fname, line, ts_callback)
     if op_type == 'STAT':
-        return Stat(op_type, cursor, params, fname, line)
+        return Stat(op_type, cursor, params, fname, line, ts_callback)
     if op_type == 'BINDS':
-        return Binds(op_type, cursor, params, fname, line)
+        return Binds(op_type, cursor, params, fname, line, ts_callback)
     if op_type in ('STAR', 'HEADER'):
         return Meta(op_type, cursor, params, fname, line, name, ts2)
     if op_type == 'XCTEND':
-        return Xctend(op_type, cursor, params, fname, line)
+        return Xctend(op_type, cursor, params, fname, line, ts_callback)
     if op_type == 'PIC':
-        return Pic(op_type, cursor, params, fname, line)
+        return Pic(op_type, cursor, params, fname, line, ts_callback)
     if op_type.startswith('LOB'):
-        return Lob(op_type, cursor, params, fname, line)
+        return Lob(op_type, cursor, params, fname, line, ts_callback)
     if op_type in ('PARSE', 'EXEC', 'CLOSE', 'FETCH'):
-        return Exec(op_type, cursor, params, fname, line)
+        return Exec(op_type, cursor, params, fname, line, ts_callback)
     raise AttributeError(f"Wrong op_type: {op_type}")
 
 class Ops:
     """
         Base class for various operations.
     """
-    def __init__(self, op_type, cursor, fname, line):
+    def __init__(self, op_type, cursor, fname, line, ts_callback):
         self.op_type = op_type
         self.cursor = cursor
         self.fname = fname
         self.line = line
+        self.ts_callback = ts_callback
     def __getattr__(self, name):
         """ In case of missing attribute returns 0 if attribute is in __slots__. This is needed in
             to_list(). """
@@ -57,8 +59,8 @@ class Ops:
 
 class Wait(Ops):
     """ Handles WAIT lines. Wait event name is parsed out, everything else is persisted as-is."""
-    def __init__(self, op_type, cursor, params, fname, line):
-        super().__init__(op_type, cursor, fname, line)
+    def __init__(self, op_type, cursor, params, fname, line, ts_callback):
+        super().__init__(op_type, cursor, fname, line, ts_callback)
         self.__dict__['raw'] = params
         match = wait_matcher.match(params)
         if match:
@@ -70,21 +72,21 @@ class Wait(Ops):
     def to_list(self, exec_id, sql_id):
         return [exec_id, sql_id, self.cursor, self.op_type, None, self.e, None, None,
                     None, None, None, None, None, None, self.tim, None, self.name,
-                    self.raw, self.fname, self.line, None, None, None, None, None, None,
+                    self.raw, self.fname, self.line, self.ts_callback(self.tim), None, None, None, None, None,
                     None, None, None, None, None]
     def __str__(self):
         return f"{self.cursor}: {self.op_type} {self.raw}"
 
 class Stat(Ops):
     """ Execuion plan and statistics(STAT). Persisted as-is."""
-    def __init__(self, op_type, cursor, params, fname, line):
-        super().__init__(op_type, cursor, fname, line)
+    def __init__(self, op_type, cursor, params, fname, line, ts_callback):
+        super().__init__(op_type, cursor, fname, line, ts_callback)
         self.__dict__['raw'] = params
         self.__slots__ = (op_type, cursor, 'raw', fname, line)
     def to_list(self, exec_id, sql_id):
         return [exec_id, sql_id, self.cursor, self.op_type, None, None, None, None, None,
                     None, None, None, None, None, None, None, None, self.raw, self.fname,
-                    self.line, None, None, None, None, None, None, None, None, None,
+                    self.line, self.ts_callback(None), None, None, None, None, None, None, None, None,
                     None, None]
     def __str__(self):
         return f"{self.cursor}: {self.op_type} {self.raw}"
@@ -93,7 +95,7 @@ class Meta(Ops):
     """ Handles trace file header lines and lines that start with stars (***). These lines contain
         wall clock readings, these are persisted in ts2."""
     def __init__(self, op_type, cursor, params, fname, line, name, ts2):
-        super().__init__(op_type, cursor, fname, line)
+        super().__init__(op_type, cursor, fname, line, None)
         self.__dict__['name'] = name
         self.__dict__['raw'] = params
         self.__dict__['ts2'] = ts2
@@ -110,22 +112,22 @@ class Meta(Ops):
 
 class Binds(Ops):
     """ Bind values. Everything is persisted as-is, in one string."""
-    def __init__(self, op_type, cursor, params, fname, line):
-        super().__init__(op_type, cursor, fname, line)
+    def __init__(self, op_type, cursor, params, fname, line, ts_callback):
+        super().__init__(op_type, cursor, fname, line, ts_callback)
         self.__dict__['raw'] = params
         self.__slots__ = (op_type, cursor, 'raw', fname, line)
     def to_list(self, exec_id, sql_id):
         return [exec_id, sql_id, self.cursor, self.op_type, None, None, None, None, None,
                     None, None, None, None, None, None, None, None, "".join(self.raw), self.fname,
-                    self.line, None, None, None, None, None, None, None, None, None,
+                    self.line, self.ts_callback(None), None, None, None, None, None, None, None, None,
                     None, None]
     def __str__(self):
         return f"{self.cursor}: {self.op_type} {self.raw}"
 
 class Xctend(Ops):
     """ Commits (XCTEND)."""
-    def __init__(self, op_type, cursor, params, fname, line):
-        super().__init__(op_type, cursor, fname, line)
+    def __init__(self, op_type, cursor, params, fname, line, ts_callback):
+        super().__init__(op_type, cursor, fname, line, ts_callback)
         for item in params.split(', '):
             key = item.split('=')
             self.__dict__[key[0]] = int(key[1])
@@ -133,15 +135,15 @@ class Xctend(Ops):
     def to_list(self, exec_id, sql_id):
         return [exec_id, sql_id, self.cursor, self.op_type, None, None, None, None, None,
                     None, None, None, None, None, self.tim, None, '', None, self.fname,
-                    self.line, None, None, None, None, None, None, None, self.rlbk,
+                    self.line, self.ts_callback(self.tim), None, None, None, None, None, None, self.rlbk,
                     self.rd_only, None, None]
     def __str__(self):
         return f"XCTEND rlbk={self.rlbk}, rd_only={self.rd_only}, tim={self.tim}"
 
 class Pic(Ops):
     """ PARSE IN CURSOR lines. SQL statement is persisted as one string, in `raw` field"""
-    def __init__(self, op_type, cursor, params, fname, line):
-        super().__init__(op_type, cursor, fname, line)
+    def __init__(self, op_type, cursor, params, fname, line, ts_callback):
+        super().__init__(op_type, cursor, fname, line, ts_callback)
         for item in params.split(' '):
             if len(item):
                 key = item.split('=')
@@ -155,7 +157,7 @@ class Pic(Ops):
     def to_list(self, exec_id, sql_id):
         return [exec_id, sql_id, self.cursor, self.op_type, None, None, None, None, None,
                     None, None, self.dep, None, None, self.tim, None, '', "".join(self.raw),
-                    self.fname, self.line, None, self.len, self.uid, self.oct, self.lid,
+                    self.fname, self.line, self.ts_callback(self.tim), self.len, self.uid, self.oct, self.lid,
                     self.hv, self.ad, None, None, None, None]
     def __str__(self):
         return f"PARSING IN CURSOR len={self.len} dep={self.dep} uid={self.uid} " \
@@ -164,8 +166,8 @@ class Pic(Ops):
 
 class Lob(Ops):
     """ Various LOB* operations."""
-    def __init__(self, op_type, cursor, params, fname, line):
-        super().__init__(op_type, cursor, fname, line)
+    def __init__(self, op_type, cursor, params, fname, line, ts_callback):
+        super().__init__(op_type, cursor, fname, line, ts_callback)
         for item in params.split(','):
             if len(item):
                 key = item.split('=')
@@ -177,7 +179,7 @@ class Lob(Ops):
     def to_list(self, exec_id, sql_id):
         return [exec_id, None, None, self.op_type, self.c, self.e, self.p, self.cr,
                 self.cu, None, None, None, None, None, self.tim, None,
-                '', '', self.fname, self.line, None, None, None, None, None, None, None, None,
+                '', '', self.fname, self.line, self.ts_callback(self.tim), None, None, None, None, None, None, None,
                 None, self.type, self.bytes]
     def __str__(self):
         return f"{self.op_type}: type={self.type},bytes={self.r},c={self.c},e={self.e},"   \
@@ -186,8 +188,8 @@ class Lob(Ops):
 class Exec(Ops):
     """ Events related to the database client calls (EXEC, FETCH, PARSE, CLOSE). These have similar
         enough properties."""
-    def __init__(self, op_type, cursor, params, fname, line):
-        super().__init__(op_type, cursor, fname, line)
+    def __init__(self, op_type, cursor, params, fname, line, ts_callback):
+        super().__init__(op_type, cursor, fname, line, ts_callback)
         for item in params.split(','):
             if len(item):
                 key = item.split('=')
@@ -197,7 +199,7 @@ class Exec(Ops):
     def to_list(self, exec_id, sql_id):
         return [exec_id, sql_id, self.cursor, self.op_type, self.c, self.e, self.p, self.cr,
                     self.cu, self.mis, self.r, self.dep, self.og, self.plh, self.tim, self.type,
-                    '', '', self.fname, self.line, None, None, None, None, None, None, None, None,
+                    '', '', self.fname, self.line, self.ts_callback(self.tim), None, None, None, None, None, None, None,
                     None, None, None]
     def __str__(self):
         str0 = f"{self.cursor}: {self.op_type} "

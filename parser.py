@@ -51,16 +51,16 @@ def process_file(tracker, fname, orphans=False):
 
                 if match.group(1) == 'BINDS':
                     in_binds = True
-                    binds = ops_factory('BINDS', match.group(2), [], fname, line_count)
+                    binds = ops_factory('BINDS', match.group(2), [], fname, line_count, tracker.time_tracker.get_wc)
                     tracker.add_ops(binds.cursor, binds)
                     continue
                 if match.group(1) == 'PARSING IN CURSOR':
                     in_pic = True
-                    pic = ops_factory('PIC', match.group(2), match.group(4), fname, line_count)
+                    pic = ops_factory('PIC', match.group(2), match.group(4), fname, line_count, tracker.time_tracker.get_wc)
                     tracker.add_pic(pic.cursor, pic)
                     continue
                 ops = ops_factory(match.group(1), match.group(2), match.group(4), fname,
-                                    line_count)
+                                    line_count, tracker.time_tracker.get_wc)
                 tracker.add_ops(match.group(2), ops)
                 continue
 
@@ -80,13 +80,13 @@ def process_file(tracker, fname, orphans=False):
             match = LOB_MATCHER.match(line)
             if match:
                 tracker.db.insert_ops(ops_factory(match.group(1), None, match.group(2), fname,
-                                    line_count).to_list(tracker.db.get_exec_id(), None))
+                                    line_count, tracker.time_tracker.get_wc).to_list(tracker.db.get_exec_id(), None))
                 continue
 
             match = XCTEND_MATCHER.match(line)
             if match:
                 tracker.db.insert_ops(ops_factory('XCTEND', None, match.group(1), fname,
-                                    line_count).to_list(tracker.db.get_exec_id(), None))
+                                    line_count, tracker.time_tracker.get_wc).to_list(tracker.db.get_exec_id(), None))
                 continue
 
             # FIXME: make this configurable
@@ -98,7 +98,8 @@ def process_file(tracker, fname, orphans=False):
             match = DATE_MATCHER.match(line)
             if match:
                 ts2 = datetime.datetime.strptime(match.group(1), '%Y-%m-%dT%H:%M:%S.%f%z')
-                tracker.db.insert_ops(ops_factory('STAR', None, None, fname, line_count,
+                tracker.time_tracker.reset(ts2)
+                tracker.db.insert_ops(ops_factory('STAR', None, None, fname, line_count, lambda x: None,
                                         'DATETIME', ts2).to_list(tracker.db.get_exec_id(),
                                                                     None))
                 continue
@@ -106,14 +107,15 @@ def process_file(tracker, fname, orphans=False):
             match = STARS_MATCHER.match(line)
             if match:
                 ts2 = datetime.datetime.strptime(match.group(3), '%Y-%m-%dT%H:%M:%S.%f%z')
-                star = ops_factory('STAR', None, match.group(2).strip('()'), fname, line_count,
+                tracker.time_tracker.reset(ts2)
+                star = ops_factory('STAR', None, match.group(2).strip('()'), fname, line_count, lambda x: None,
                                     match.group(1).strip(':'), ts2)
                 tracker.db.insert_ops(star.to_list(tracker.db.get_exec_id(), None))
                 continue
 
             match = FILE_HEADER_MATCHER.match(line)
             if match:
-                header = ops_factory('HEADER', None, match.group(2), fname, line_count,
+                header = ops_factory('HEADER', None, match.group(2), fname, line_count, lambda x: None,
                                         match.group(1), None)
                 tracker.db.insert_ops(header.to_list(tracker.db.get_exec_id(), None))
                 continue
