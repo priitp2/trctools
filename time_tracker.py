@@ -16,7 +16,7 @@ class TimeTracker:
     def get_wc(self, tim):
         ''' Gets new wall clock reading for the tim'''
         if not self.wall_clock:
-            raise ValueError("wall_clock hasn't been set")
+            raise ValueError(f"wall_clock hasn't been set, tim = {tim}")
 
         if tim is None:
             if self.first_tim is not None:
