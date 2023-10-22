@@ -46,6 +46,7 @@ for fname in args.trace_files:
     lines = trcparser.process_file(tracker, fname, args.orphans)
     cumul_lines += lines
     fcount += 1
+    tracker.time_tracker.reset(None)
     print(f"   -> {lines} lines, {int((time.time_ns() - start)/1000000000)} seconds")
 
 tracker.flush()

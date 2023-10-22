@@ -69,7 +69,6 @@ class CallTracker:
                 empty.append(cursor)
         for cursor in empty:
             del self.latest_cursors[cursor]
-        self.time_tracker = TimeTracker()
     def flush(self):
         '''Resets the tracker and flushes the db. '''
         if not self.db:
