@@ -120,8 +120,13 @@ ones come as they are in the trace files.
 ### `event_name` and `event_raw`
 
 In case of `WAIT`, `event_name` contains wait event name and `event_raw` unparsed text. In case of file headers, `event_name`
-is the name of the header field and `event_raw` contains the value. Same goes with the lines starting with `***`. Timestamps
-in those lines are persisted in `ts`.  
+is the name of the header field and `event_raw` contains the value. Same goes with the lines starting with `***`.
+
+### Wall clock in `ts`
+
+Lines starting with `***` have timestamps, these are persisted in `ts` as is. For timed events, wall clock readings are extrapolated.
+Assumption is that from `***` to next timed event takes 0us, which is way too optimistic. OTOH timestamps in
+`V$DIAG_SQL_TRACE_RECORDS` and `V$DIAG_SESS_SQL_TRACE_RECORDS` are not entirely correct either in 21c.
 
 Alternative description of the schema is in `db/arrow.py`
 
