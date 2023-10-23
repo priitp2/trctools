@@ -75,3 +75,4 @@ class CallTracker:
             return
         self.reset()
         self.db.flush()
+        self.time_tracker.reset(None)
