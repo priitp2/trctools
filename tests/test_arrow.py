@@ -2,6 +2,8 @@ import tempfile
 import unittest
 import duckdb as d
 import parser
+import datetime
+from datetime import tzinfo
 from db.arrow import DB
 from call_tracker import CallTracker
 
@@ -25,5 +27,11 @@ class TestArrow(unittest.TestCase):
 
             res = d.sql(f"select count(*) from read_parquet('{db_dir}/*') where ts is null;")
             self.assertEqual(res.fetchone()[0], 11)
+
+            res = d.sql(f"select ts from read_parquet('{db_dir}/*') where ops = 'STAR' "
+                            +"and event_name = 'CLIENT DRIVER';")
+            # Time zones are mangled, Duckdb returns
+            # 2023-08-02T18:08:39.807701, which should be 2023-08-02T16:08:39.807701+02:00
+            self.assertEqual(res.fetchone()[0], datetime.datetime(2023, 8, 2, 16, 8, 39, 807701))
 if __name__ == '__main__':
     unittest.main()
