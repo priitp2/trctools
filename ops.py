@@ -40,6 +40,7 @@ class Ops:
         self.fname = fmeta['FILE_NAME']
         self.line = fmeta['LINE_COUNT']
         self.ts_callback = ts_callback
+        self.fmeta = fmeta
     def __getattr__(self, name):
         """ In case of missing attribute returns 0 if attribute is in __slots__. This is needed in
             to_list(). """
@@ -52,7 +53,8 @@ class Ops:
         return [exec_id, sql_id, None, self.op_type, None, None, None, None,
                     None, None, None, None, None, None, None, None, None,
                     None, None, None, None, None, None, None, None, None,
-                    None, None, None, None, None]
+                    None, None, None, None, None, None, None, None, None,
+                    None, None, None]
 
     def __str__(self):
         return ''
@@ -73,7 +75,10 @@ class Wait(Ops):
         return [exec_id, sql_id, self.cursor, self.op_type, None, self.e, None, None,
                     None, None, None, None, None, None, self.tim, None, self.name,
                     self.raw, self.fname, self.line, self.ts_callback(self.tim), None,
-                    None, None, None, None, None, None, None, None, None]
+                    None, None, None, None, None, None, None, None, None,
+                    self.fmeta['SESSION ID'], self.fmeta['CLIENT ID'], self.fmeta['SERVICE NAME'],
+                    self.fmeta['MODULE NAME'], self.fmeta['ACTION NAME'],
+                    self.fmeta['CONTAINER ID']]
     def __str__(self):
         return f"{self.cursor}: {self.op_type} {self.raw}"
 
@@ -87,7 +92,10 @@ class Stat(Ops):
         return [exec_id, sql_id, self.cursor, self.op_type, None, None, None, None, None,
                     None, None, None, None, None, None, None, None, self.raw, self.fname,
                     self.line, self.ts_callback(None), None, None, None, None, None, None,
-                    None, None, None, None]
+                    None, None, None, None,
+                    self.fmeta['SESSION ID'], self.fmeta['CLIENT ID'], self.fmeta['SERVICE NAME'],
+                    self.fmeta['MODULE NAME'], self.fmeta['ACTION NAME'],
+                    self.fmeta['CONTAINER ID']]
     def __str__(self):
         return f"{self.cursor}: {self.op_type} {self.raw}"
 
@@ -104,7 +112,9 @@ class Meta(Ops):
         return [exec_id, sql_id, self.cursor, self.op_type, None, None, None, None, None,
                     None, None, None, None, None, None, None, self.name, self.raw, self.fname,
                     self.line, self.ts2, None, None, None, None, None, None, None, None,
-                    None, None]
+                    None, None, self.fmeta['SESSION ID'], self.fmeta['CLIENT ID'],
+                    self.fmeta['SERVICE NAME'], self.fmeta['MODULE NAME'],
+                    self.fmeta['ACTION NAME'], self.fmeta['CONTAINER ID']]
     def __str__(self):
         if self.op_type == 'HEADER':
             return f"{self.name}: {self.raw}"
@@ -120,7 +130,10 @@ class Binds(Ops):
         return [exec_id, sql_id, self.cursor, self.op_type, None, None, None, None, None,
                     None, None, None, None, None, None, None, None, "".join(self.raw), self.fname,
                     self.line, self.ts_callback(None), None, None, None, None, None, None, None,
-                    None, None, None]
+                    None, None, None,
+                    self.fmeta['SESSION ID'], self.fmeta['CLIENT ID'], self.fmeta['SERVICE NAME'],
+                    self.fmeta['MODULE NAME'], self.fmeta['ACTION NAME'],
+                    self.fmeta['CONTAINER ID']]
     def __str__(self):
         return f"{self.cursor}: {self.op_type} {self.raw}"
 
@@ -136,7 +149,10 @@ class Xctend(Ops):
         return [exec_id, sql_id, self.cursor, self.op_type, None, None, None, None, None,
                     None, None, None, None, None, self.tim, None, '', None, self.fname,
                     self.line, self.ts_callback(self.tim), None, None, None, None, None, None,
-                    self.rlbk, self.rd_only, None, None]
+                    self.rlbk, self.rd_only, None, None,
+                    self.fmeta['SESSION ID'], self.fmeta['CLIENT ID'], self.fmeta['SERVICE NAME'],
+                    self.fmeta['MODULE NAME'], self.fmeta['ACTION NAME'],
+                    self.fmeta['CONTAINER ID']]
     def __str__(self):
         return f"XCTEND rlbk={self.rlbk}, rd_only={self.rd_only}, tim={self.tim}"
 
@@ -158,7 +174,10 @@ class Pic(Ops):
         return [exec_id, sql_id, self.cursor, self.op_type, None, None, None, None, None,
                     None, None, self.dep, None, None, self.tim, None, '', "".join(self.raw),
                     self.fname, self.line, self.ts_callback(self.tim), self.len, self.uid,
-                    self.oct, self.lid, self.hv, self.ad, None, None, None, None]
+                    self.oct, self.lid, self.hv, self.ad, None, None, None, None,
+                    self.fmeta['SESSION ID'], self.fmeta['CLIENT ID'], self.fmeta['SERVICE NAME'],
+                    self.fmeta['MODULE NAME'], self.fmeta['ACTION NAME'],
+                    self.fmeta['CONTAINER ID']]
     def __str__(self):
         return f"PARSING IN CURSOR len={self.len} dep={self.dep} uid={self.uid} " \
                + f"oct={self.oct} lid={self.lid} tim={self.tim} hv={self.hv} "    \
@@ -180,7 +199,10 @@ class Lob(Ops):
         return [exec_id, None, None, self.op_type, self.c, self.e, self.p, self.cr,
                 self.cu, None, None, None, None, None, self.tim, None,
                 '', '', self.fname, self.line, self.ts_callback(self.tim), None, None, None, None,
-                None, None, None, None, self.type, self.bytes]
+                None, None, None, None, self.type, self.bytes,
+                self.fmeta['SESSION ID'], self.fmeta['CLIENT ID'], self.fmeta['SERVICE NAME'],
+                self.fmeta['MODULE NAME'], self.fmeta['ACTION NAME'],
+                self.fmeta['CONTAINER ID']]
     def __str__(self):
         return f"{self.op_type}: type={self.type},bytes={self.r},c={self.c},e={self.e},"   \
                + f"p={self.p},cr={self.cr},cu={self.cu},tim={self.tim}"
@@ -200,7 +222,10 @@ class Exec(Ops):
         return [exec_id, sql_id, self.cursor, self.op_type, self.c, self.e, self.p, self.cr,
                     self.cu, self.mis, self.r, self.dep, self.og, self.plh, self.tim, self.type,
                     '', '', self.fname, self.line, self.ts_callback(self.tim), None, None, None,
-                    None, None, None, None, None, None, None]
+                    None, None, None, None, None, None, None,
+                    self.fmeta['SESSION ID'], self.fmeta['CLIENT ID'], self.fmeta['SERVICE NAME'],
+                    self.fmeta['MODULE NAME'], self.fmeta['ACTION NAME'],
+                    self.fmeta['CONTAINER ID']]
     def __str__(self):
         str0 = f"{self.cursor}: {self.op_type} "
         return str0 + f"c={self.c},e={self.e},p={self.p},cr={self.cr},cu={self.cu},"           \
