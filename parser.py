@@ -26,17 +26,19 @@ FILE_HEADER_MATCHER = re.compile(r'''^(Build label|ORACLE_HOME|System name'''
 
 def process_file(tracker, fname, orphans=False):
 
-    line_count = 0
     in_binds = False
     in_pic = False
     binds = ()
     pic = None
+    file_meta = dict()
+    file_meta['FILE_NAME'] = fname
+    file_meta['LINE_COUNT'] = 0
     with open(fname, 'r', encoding='utf_8') as trace:
         for line in trace:
-            line_count += 1
+            file_meta['LINE_COUNT'] += 1
 
             # Skip the first 3 lines
-            if line_count < 4:
+            if file_meta['LINE_COUNT'] < 4:
                 continue
 
             # FIXME: skip lines with CR
@@ -51,18 +53,18 @@ def process_file(tracker, fname, orphans=False):
 
                 if match.group(1) == 'BINDS':
                     in_binds = True
-                    binds = ops_factory('BINDS', match.group(2), [], fname, line_count,
+                    binds = ops_factory('BINDS', match.group(2), [], fname, file_meta['LINE_COUNT'],
                                         tracker.time_tracker.get_wc)
                     tracker.add_ops(binds.cursor, binds)
                     continue
                 if match.group(1) == 'PARSING IN CURSOR':
                     in_pic = True
-                    pic = ops_factory('PIC', match.group(2), match.group(4), fname, line_count,
+                    pic = ops_factory('PIC', match.group(2), match.group(4), fname, file_meta['LINE_COUNT'],
                                         tracker.time_tracker.get_wc)
                     tracker.add_pic(pic.cursor, pic)
                     continue
                 ops = ops_factory(match.group(1), match.group(2), match.group(4), fname,
-                                    line_count, tracker.time_tracker.get_wc)
+                                    file_meta['LINE_COUNT'], tracker.time_tracker.get_wc)
                 tracker.add_ops(match.group(2), ops)
                 continue
 
@@ -81,14 +83,14 @@ def process_file(tracker, fname, orphans=False):
 
             match = LOB_MATCHER.match(line)
             if match:
-                ops = ops_factory(match.group(1), None, match.group(2), fname,line_count,
+                ops = ops_factory(match.group(1), None, match.group(2), fname,file_meta['LINE_COUNT'],
                                     tracker.time_tracker.get_wc)
                 tracker.db.insert_ops(ops.to_list(tracker.db.get_exec_id(), None))
                 continue
 
             match = XCTEND_MATCHER.match(line)
             if match:
-                ops = ops_factory('XCTEND', None, match.group(1), fname, line_count,
+                ops = ops_factory('XCTEND', None, match.group(1), fname, file_meta['LINE_COUNT'],
                                     tracker.time_tracker.get_wc)
                 tracker.db.insert_ops(ops.to_list(tracker.db.get_exec_id(), None))
                 continue
@@ -103,7 +105,7 @@ def process_file(tracker, fname, orphans=False):
             if match:
                 ts2 = datetime.datetime.strptime(match.group(1), '%Y-%m-%dT%H:%M:%S.%f%z')
                 tracker.time_tracker.reset(ts2)
-                ops = ops_factory('STAR', None, None, fname, line_count, lambda x: None,
+                ops = ops_factory('STAR', None, None, fname, file_meta['LINE_COUNT'], lambda x: None,
                                     'DATETIME', ts2)
                 tracker.db.insert_ops(ops.to_list(tracker.db.get_exec_id(), None))
                 continue
@@ -111,15 +113,18 @@ def process_file(tracker, fname, orphans=False):
             match = STARS_MATCHER.match(line)
             if match:
                 ts2 = datetime.datetime.strptime(match.group(3), '%Y-%m-%dT%H:%M:%S.%f%z')
+                name = match.group(1).strip(':')
+                value = match.group(2).strip('()')
+                file_meta[name] = value
                 tracker.time_tracker.reset(ts2)
-                star = ops_factory('STAR', None, match.group(2).strip('()'), fname, line_count,
-                                    lambda x: None, match.group(1).strip(':'), ts2)
+                star = ops_factory('STAR', None, value, fname, file_meta['LINE_COUNT'],
+                                    lambda x: None, name, ts2)
                 tracker.db.insert_ops(star.to_list(tracker.db.get_exec_id(), None))
                 continue
 
             match = FILE_HEADER_MATCHER.match(line)
             if match:
-                header = ops_factory('HEADER', None, match.group(2), fname, line_count,
+                header = ops_factory('HEADER', None, match.group(2), fname, file_meta['LINE_COUNT'],
                                         lambda x: None, match.group(1), None)
                 tracker.db.insert_ops(header.to_list(tracker.db.get_exec_id(), None))
                 continue
@@ -127,4 +132,4 @@ def process_file(tracker, fname, orphans=False):
             if orphans:
                 print(f"non-matching line: {line}")
 
-    return line_count
+    return file_meta['LINE_COUNT']
