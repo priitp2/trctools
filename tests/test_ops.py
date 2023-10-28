@@ -50,7 +50,7 @@ class TestOps(unittest.TestCase):
         dt = datetime.datetime.today()
         ops.ts_callback = lambda x: dt
         lst = ops.to_list(0, sql_id)
-        self.assertEqual(len(lst), len(ops.__slots__) + 15)
+        self.assertEqual(len(lst), len(ops.__slots__) + 17)
         self.assertEqual(lst[0], 0)
         self.assertEqual(lst[1], sql_id)
         self.assertEqual(lst[2], test_constants.CURSOR)
@@ -69,8 +69,8 @@ class TestOps(unittest.TestCase):
         self.assertEqual(lst[15], 0) # type will be 0
         self.assertEqual(lst[16], '')
         self.assertEqual(lst[17], '')
-        self.assertEqual(lst[18], test_constants.FNAME)
-        self.assertEqual(lst[19], test_constants.LINE)
+        self.assertEqual(lst[18], test_constants.FMETA['FILE_NAME'])
+        self.assertEqual(lst[19], test_constants.FMETA['LINE_COUNT'])
         # ts2
         self.assertIs(lst[20], dt)
 
