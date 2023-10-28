@@ -46,7 +46,7 @@ PARQUET_SCHEMA = pa.schema([
     ('service_name', pa.string()),
     ('module', pa.string()),
     ('action', pa.string()),
-    ('container', pa.int16()),
+    ('container_id', pa.int16()),
 ])
 
 class DB:
