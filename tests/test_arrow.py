@@ -33,5 +33,9 @@ class TestArrow(unittest.TestCase):
             # Time zones are mangled, Duckdb returns
             # 2023-08-02T18:08:39.807701, which should be 2023-08-02T16:08:39.807701+02:00
             self.assertEqual(res.fetchone()[0], datetime.datetime(2023, 8, 2, 16, 8, 39, 807701))
+
+            res = d.sql(f"select count(*) from read_parquet('{db_dir}/*') where ops = 'WAIT' "
+                        "and service_name = 'xxx_stg';")
+            self.assertEqual(res.fetchone()[0], 26)
 if __name__ == '__main__':
     unittest.main()
