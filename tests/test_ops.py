@@ -1,4 +1,5 @@
 import datetime
+import db.arrow as arrow
 import unittest
 import tests.test_constants as test_constants
 
@@ -50,7 +51,7 @@ class TestOps(unittest.TestCase):
         dt = datetime.datetime.today()
         ops.ts_callback = lambda x: dt
         lst = ops.to_list(0, sql_id)
-        self.assertEqual(len(lst), len(ops.__slots__) + 17)
+        self.assertEqual(len(lst), len(arrow.PARQUET_SCHEMA))
         self.assertEqual(lst[0], 0)
         self.assertEqual(lst[1], sql_id)
         self.assertEqual(lst[2], test_constants.CURSOR)

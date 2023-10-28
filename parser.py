@@ -1,3 +1,4 @@
+import collections
 import datetime
 import re
 
@@ -31,7 +32,7 @@ def process_file(tracker, fname, orphans=False):
     binds = ()
     pic = None
 
-    file_meta = dict()
+    file_meta = collections.defaultdict(lambda: None)
     file_meta['FILE_NAME'] = fname
     file_meta['LINE_COUNT'] = 0
 

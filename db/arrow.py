@@ -41,6 +41,12 @@ PARQUET_SCHEMA = pa.schema([
     # For LOBs
     ('lobtype', pa.string()),
     ('bytes', pa.int64()),
+    ('sid', pa.string()),
+    ('client_id', pa.string()),
+    ('service_name', pa.string()),
+    ('module', pa.string()),
+    ('action', pa.string()),
+    ('container', pa.int16()),
 ])
 
 class DB:
