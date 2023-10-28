@@ -30,9 +30,11 @@ def process_file(tracker, fname, orphans=False):
     in_pic = False
     binds = ()
     pic = None
+
     file_meta = dict()
     file_meta['FILE_NAME'] = fname
     file_meta['LINE_COUNT'] = 0
+
     with open(fname, 'r', encoding='utf_8') as trace:
         for line in trace:
             file_meta['LINE_COUNT'] += 1
@@ -53,18 +55,18 @@ def process_file(tracker, fname, orphans=False):
 
                 if match.group(1) == 'BINDS':
                     in_binds = True
-                    binds = ops_factory('BINDS', match.group(2), [], fname, file_meta['LINE_COUNT'],
+                    binds = ops_factory('BINDS', match.group(2), [], file_meta,
                                         tracker.time_tracker.get_wc)
                     tracker.add_ops(binds.cursor, binds)
                     continue
                 if match.group(1) == 'PARSING IN CURSOR':
                     in_pic = True
-                    pic = ops_factory('PIC', match.group(2), match.group(4), fname, file_meta['LINE_COUNT'],
+                    pic = ops_factory('PIC', match.group(2), match.group(4), file_meta,
                                         tracker.time_tracker.get_wc)
                     tracker.add_pic(pic.cursor, pic)
                     continue
-                ops = ops_factory(match.group(1), match.group(2), match.group(4), fname,
-                                    file_meta['LINE_COUNT'], tracker.time_tracker.get_wc)
+                ops = ops_factory(match.group(1), match.group(2), match.group(4), file_meta,
+                                        tracker.time_tracker.get_wc)
                 tracker.add_ops(match.group(2), ops)
                 continue
 
@@ -83,14 +85,14 @@ def process_file(tracker, fname, orphans=False):
 
             match = LOB_MATCHER.match(line)
             if match:
-                ops = ops_factory(match.group(1), None, match.group(2), fname,file_meta['LINE_COUNT'],
+                ops = ops_factory(match.group(1), None, match.group(2), file_meta,
                                     tracker.time_tracker.get_wc)
                 tracker.db.insert_ops(ops.to_list(tracker.db.get_exec_id(), None))
                 continue
 
             match = XCTEND_MATCHER.match(line)
             if match:
-                ops = ops_factory('XCTEND', None, match.group(1), fname, file_meta['LINE_COUNT'],
+                ops = ops_factory('XCTEND', None, match.group(1), file_meta,
                                     tracker.time_tracker.get_wc)
                 tracker.db.insert_ops(ops.to_list(tracker.db.get_exec_id(), None))
                 continue
@@ -105,7 +107,7 @@ def process_file(tracker, fname, orphans=False):
             if match:
                 ts2 = datetime.datetime.strptime(match.group(1), '%Y-%m-%dT%H:%M:%S.%f%z')
                 tracker.time_tracker.reset(ts2)
-                ops = ops_factory('STAR', None, None, fname, file_meta['LINE_COUNT'], lambda x: None,
+                ops = ops_factory('STAR', None, None, file_meta, lambda x: None,
                                     'DATETIME', ts2)
                 tracker.db.insert_ops(ops.to_list(tracker.db.get_exec_id(), None))
                 continue
@@ -117,14 +119,13 @@ def process_file(tracker, fname, orphans=False):
                 value = match.group(2).strip('()')
                 file_meta[name] = value
                 tracker.time_tracker.reset(ts2)
-                star = ops_factory('STAR', None, value, fname, file_meta['LINE_COUNT'],
-                                    lambda x: None, name, ts2)
+                star = ops_factory('STAR', None, value, file_meta, lambda x: None, name, ts2)
                 tracker.db.insert_ops(star.to_list(tracker.db.get_exec_id(), None))
                 continue
 
             match = FILE_HEADER_MATCHER.match(line)
             if match:
-                header = ops_factory('HEADER', None, match.group(2), fname, file_meta['LINE_COUNT'],
+                header = ops_factory('HEADER', None, match.group(2), file_meta,
                                         lambda x: None, match.group(1), None)
                 tracker.db.insert_ops(header.to_list(tracker.db.get_exec_id(), None))
                 continue
