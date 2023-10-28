@@ -164,4 +164,10 @@ Alternative description of the schema is in `db/arrow.py`
 | rd_only        | BYTE_ARRAY | StringType()                                                                                        |
 | lobtype        | BYTE_ARRAY | StringType()                                                                                        |
 | bytes          | INT64      |                                                                                                     |
+| sid            | BYTE_ARRAY | StringType()                                                                                        |
+| client_id      | BYTE_ARRAY | StringType()                                                                                        |
+| service_name   | BYTE_ARRAY | StringType()                                                                                        |
+| module         | BYTE_ARRAY | StringType()                                                                                        |
+| action         | BYTE_ARRAY | StringType()                                                                                        |
+| container_id   | INT16      | StringType()                                                                                        |
 
