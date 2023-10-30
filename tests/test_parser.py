@@ -1,5 +1,5 @@
 import unittest
-import parser
+import parser as trcparser
 from call_tracker import CallTracker
 from tests.mock_db import DB
 
@@ -7,31 +7,30 @@ class TestParser(unittest.TestCase):
     def setUp(self):
         dbs = DB()
         self.tracker = CallTracker(dbs)
-    def get_aggregates(self, batches, pos=None, op=None):
+    def get_aggregates(self, batches, pos=None, ops=None):
         cpu = 0
         elapsed = 0
         nowait = 0
-        for s in batches:
-            if pos and s[pos] != op:
+        for item in batches:
+            if pos and item[pos] != ops:
                 continue
-            if s[4]:
-                cpu += s[4]
-            if s[5]:
-                elapsed += s[5]
-            if s[5] and s[3] != 'WAIT':
-                nowait += s[5]
+            if item[4]:
+                cpu += item[4]
+            if item[5]:
+                elapsed += item[5]
+            if item[5] and item[3] != 'WAIT':
+                nowait += item[5]
         return (cpu, elapsed, nowait)
-    def get_count(self, batches, pos, op):
-        c = 0
-        for s in batches:
-            if s[pos] == op:
-                c += 1
-        return c
+    def get_count(self, batches, pos, ops):
+        count = 0
+        for item in batches:
+            if item[pos] == ops:
+                count += 1
+        return count
     def test_process_file_simple(self):
         # Calculated from the trace file
         cpu = 553
         elapsed = 1353
-        ela_diff = 1221
         ela_nowait = 598
         waits = 5
         fetches = 2
@@ -41,7 +40,7 @@ class TestParser(unittest.TestCase):
         pics = 1
         sql_id = 'atxg62s17nkj4'
 
-        lines = parser.process_file(self.tracker, 'tests/traces/simple_trace.trc')
+        lines = trcparser.process_file(self.tracker, 'tests/traces/simple_trace.trc')
         self.assertEqual(lines, 51)
 
         # There is special statement for cursor #0, so len == 2
@@ -72,7 +71,7 @@ class TestParser(unittest.TestCase):
         waits = 12
         fetches = 4
 
-        lines = parser.process_file(self.tracker, 'tests/traces/simple_trace_2x.trc')
+        lines = trcparser.process_file(self.tracker, 'tests/traces/simple_trace_2x.trc')
         self.assertEqual(lines, 69)
 
         self.assertEqual(len(self.tracker.cursors), 1)
@@ -94,11 +93,9 @@ class TestParser(unittest.TestCase):
         # Elapsed is for both executions
         elapsed_both = 3710
 
-        lines = parser.process_file(self.tracker, 'tests/traces/simple_trace_missing_parse.trc')
+        lines = trcparser.process_file(self.tracker, 'tests/traces/simple_trace_missing_parse.trc')
         self.assertEqual(lines, 71)
 
-        # There is special statement for cursor #0, so len == 2
-        # FIXME: decide if we should fix the sql_id for dummy1 or not
         self.assertEqual(len(self.tracker.cursors), 1)
 
         self.assertEqual(len(self.tracker.db.batches), 48)
@@ -114,7 +111,7 @@ class TestParser(unittest.TestCase):
         self.assertEqual(self.get_count(self.tracker.db.batches, 3, 'XCTEND'), 2)
 
     def test_process_file_2_statements_1_cursor(self):
-        lines = parser.process_file(self.tracker, 'tests/traces/two_statements_one_cursor.trc')
+        lines = trcparser.process_file(self.tracker, 'tests/traces/two_statements_one_cursor.trc')
         self.tracker.flush()
         self.assertEqual(lines, 119)
 
@@ -140,20 +137,20 @@ class TestParser(unittest.TestCase):
            Suspicion is that these are stray events and shouldn't be experienced by the db client.
            Add them as a different exec_id.
            """
-        lines = parser.process_file(tracker, 'tests/traces/mixed_execs.trc')
+        lines = trcparser.process_file(self.tracker, 'tests/traces/mixed_execs.trc')
         self.assertEqual(lines, 107)
         # 3 EXEC calls + 1 dummy for the stray WAITs
         self.assertEqual(self.tracker.statements['6v48b7j2tc4a0'].execs, 3)
 
     def test_stray_close(self):
         # PARSE/PIC happened before start of the trace. Just add the call to the database w/o sql_id
-        lines = parser.process_file(self.tracker, 'tests/traces/stray_close.trc')
+        lines = trcparser.process_file(self.tracker, 'tests/traces/stray_close.trc')
         self.tracker.flush()
         self.assertEqual(lines, 26)
         self.assertEqual(self.get_count(self.tracker.db.batches, 3, 'CLOSE'), 1)
 
     def test_lobs(self):
-        lines = parser.process_file(self.tracker, 'tests/traces/lobs.trc')
+        lines = trcparser.process_file(self.tracker, 'tests/traces/lobs.trc')
         self.tracker.flush()
         self.assertEqual(lines, 65)
         self.assertEqual(self.get_count(self.tracker.db.batches, 3, 'LOBWRITE'), 5)
