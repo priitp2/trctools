@@ -118,7 +118,7 @@ class Meta(Ops):
     def __str__(self):
         if self.op_type == 'HEADER':
             return f"{self.name}: {self.raw}"
-        return f"*** {self.name}: ({self.raw}) {self.ts2}"
+        return f"*** {self.name}:({self.raw}) {self.ts2}"
 
 class Binds(Ops):
     """ Bind values. Everything is persisted as-is, in one string."""
