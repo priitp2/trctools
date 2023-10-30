@@ -29,7 +29,7 @@ TRACKED_OPS = {
         + "tim=5793511831594", FMETA, TS_CALLBACK)
 }
 UNTRACKED_OPS = {
-    'STAR':ops.ops_factory('STAR', None, 'jdbcthin : 21.5.0.0.0', FMETA, 'CLIENT DRIVER', datetime.datetime.now()),
+        'STAR':ops.ops_factory('STAR', None, 'jdbcthin : 21.5.0.0.0', FMETA, None, 'CLIENT DRIVER', datetime.datetime.today()),
     'XCTEND':ops.ops_factory('XCTEND', None, 'rlbk=0, rd_only=1, tim=5793512315347', FMETA, TS_CALLBACK),
     'HEADER':ops.ops_factory('HEADER', None, 'Build label', FMETA, 'RDBMS_19.16.0.0.0DBRUR_LINUX.X64_230111'),
     'LOB':ops.ops_factory('LOBWRITE', None, "type=TEMPORARY LOB,bytes=5,c=169,e=169,p=0,cr=0,cu=7,tim=4696599871319", FMETA,
