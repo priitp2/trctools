@@ -130,18 +130,6 @@ class TestParser(unittest.TestCase):
             if batch[3] == 'BINDS' and len(batch[17]) < 5:
                 self.fail(f'BINDS not set, wait_raw is {batch[17]}')
 
-    @unittest.skip("Decide if this test is needed or not")
-    def test_mixed_execs(self):
-        # FIXME: is this test needed?
-        """There are stray wait events for cursor #140386304541280, after '*** <date>'.
-           Suspicion is that these are stray events and shouldn't be experienced by the db client.
-           Add them as a different exec_id.
-           """
-        lines = trcparser.process_file(self.tracker, 'tests/traces/mixed_execs.trc')
-        self.assertEqual(lines, 107)
-        # 3 EXEC calls + 1 dummy for the stray WAITs
-        self.assertEqual(self.tracker.statements['6v48b7j2tc4a0'].execs, 3)
-
     def test_stray_close(self):
         # PARSE/PIC happened before start of the trace. Just add the call to the database w/o sql_id
         lines = trcparser.process_file(self.tracker, 'tests/traces/stray_close.trc')
