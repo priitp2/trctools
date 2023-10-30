@@ -1,7 +1,7 @@
 import datetime
-import db.arrow as arrow
 import unittest
-import tests.test_constants as test_constants
+from db import arrow
+from tests import test_constants
 
 class TestOps(unittest.TestCase):
     def test_init(self):
@@ -48,8 +48,8 @@ class TestOps(unittest.TestCase):
     def test_to_list(self):
         sql_id = 'abc123'
         ops = test_constants.TRACKED_OPS['EXEC']
-        dt = datetime.datetime.today()
-        ops.ts_callback = lambda x: dt
+        today = datetime.datetime.today()
+        ops.ts_callback = lambda x: today
         lst = ops.to_list(0, sql_id)
         self.assertEqual(len(lst), len(arrow.PARQUET_SCHEMA))
         self.assertEqual(lst[0], 0)
@@ -73,7 +73,7 @@ class TestOps(unittest.TestCase):
         self.assertEqual(lst[18], test_constants.FMETA['FILE_NAME'])
         self.assertEqual(lst[19], test_constants.FMETA['LINE_COUNT'])
         # ts2
-        self.assertIs(lst[20], dt)
+        self.assertIs(lst[20], today)
 
     def test_str(self):
         ops = test_constants.TRACKED_OPS['WAIT']
