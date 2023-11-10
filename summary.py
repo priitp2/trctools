@@ -14,7 +14,8 @@ class SummaryDuckdb:
         d.sql(f"""create or replace view elapsed_time as
                 select sql_id,
                     exec_id,
-                    max(tim) - min(tim) as ela
+                    max(tim) - min(tim) as ela,
+                    first(ts order by ts) ts
                 from
                     read_parquet('{dbdir}')
                 where
@@ -24,7 +25,8 @@ class SummaryDuckdb:
         d.sql(f"""create or replace view cursor_elapsed_time as
                 select cursor_id,
                     exec_id,
-                    max(tim) - min(tim) as ela
+                    max(tim) - min(tim) as ela,
+                    first(ts order by ts) ts
                 from
                     read_parquet('{dbdir}')
                 where
@@ -124,10 +126,9 @@ class SummaryDuckdb:
         res = d.sql(f"""select cursor_id "cursor",
                             exec_id,
                             ops,
-                            elapsed_time,
+                            elapsed_time ela,
                             rows_processed "rows",
-                            tim,
-                            event_name,
+                            event_name "event",
                             file_name,
                             line
                         from
