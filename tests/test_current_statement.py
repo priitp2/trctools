@@ -50,11 +50,11 @@ class TestCurrentStatement(unittest.TestCase):
         self.assertFalse(self.cstat.is_set('BINDS'))
 
         wrong_cs = ops_factory('WAIT', test_constants.WRONG_CURSOR, " nam='db file sequential read' " \
-                + "ela= 403 file#=414 block#=2682927 ", test_constants.FNAME, 3, FAKE_TIME_TRACKER)
+                + "ela= 403 file#=414 block#=2682927 ", test_constants.FMETA, 3, FAKE_TIME_TRACKER)
         with self.assertRaisesRegex(BaseException, 'add_ops: wrong cursor *'):
             self.cstat.add_ops(wrong_cs)
 
-        wrong_ops = ops_factory('STAR', test_constants.CURSOR, " ", test_constants.FNAME, 3,
+        wrong_ops = ops_factory('STAR', test_constants.CURSOR, " ", test_constants.FMETA, 3,
                 FAKE_TIME_TRACKER)
         with self.assertRaisesRegex(BaseException, 'add_ops: unknown ops type:*'):
             self.cstat.add_ops(wrong_ops)
