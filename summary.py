@@ -223,67 +223,68 @@ class SummaryDuckdb:
                         group by file_name order by count(*) desc
                     """)
         print(res)
+if __name__ == '__main__':
 
-parser = argparse.ArgumentParser(description='Generate summary from processed traces')
-subparsers = parser.add_subparsers(dest='action', title='Available subcommands', required=True)
+    parser = argparse.ArgumentParser(description='Generate summary from processed traces')
+    subparsers = parser.add_subparsers(dest='action', title='Available subcommands', required=True)
 
-parser.add_argument('--dbdir', metavar='dbdir', type=str, required=True,
+    parser.add_argument('--dbdir', metavar='dbdir', type=str, required=True,
                                     help='Directory for Parquet files')
 
-summary_parser = subparsers.add_parser('summary', help='Generates summary of the executed SQL '
+    summary_parser = subparsers.add_parser('summary', help='Generates summary of the executed SQL '
                         +'statements, execution counts, median and p99 execution times')
-summary_parser.add_argument('--start', metavar='start', type=datetime.datetime.fromisoformat, default=None,
+    summary_parser.add_argument('--start', metavar='start', type=datetime.datetime.fromisoformat, default=None,
                             help='Start timestamp in ISO 8601 format')
-summary_parser.add_argument('--end', metavar='end', type=datetime.datetime.fromisoformat, default=None,
+    summary_parser.add_argument('--end', metavar='end', type=datetime.datetime.fromisoformat, default=None,
                             help='End timestamp in ISO 8601 format')
 
-hist_parser = subparsers.add_parser('histogram', help='Generates response time histogram for the '
+    hist_parser = subparsers.add_parser('histogram', help='Generates response time histogram for the '
                                         +'sql_id or wait event')
-hist_parser.add_argument('--sql_id', type=str, dest='sql_id',
+    hist_parser.add_argument('--sql_id', type=str, dest='sql_id',
                      help="Comma separated list of sql_id's for which histogram, outliers or waits "
                          +"are produced")
-hist_parser.add_argument('--wait_name', dest='wait_name', type=str,
+    hist_parser.add_argument('--wait_name', dest='wait_name', type=str,
                                     help='Name of the wait event')
-hist_parser.add_argument('--output', dest='fname', type=str, help='Output filename')
+    hist_parser.add_argument('--output', dest='fname', type=str, help='Output filename')
 
-out_parser = subparsers.add_parser('outliers', help='Displays content of the trace files for the '
+    out_parser = subparsers.add_parser('outliers', help='Displays content of the trace files for the '
                          +'executions that took more than specified amount of time')
-out_parser.add_argument('--sql_id', type=str, dest='sql_id',
+    out_parser.add_argument('--sql_id', type=str, dest='sql_id',
                      help="Comma separated list of sql_id's for which outliers are displayed")
-out_parser.add_argument('--thresold', type=str, dest='thresold',
+    out_parser.add_argument('--thresold', type=str, dest='thresold',
                      help="Outlier thresold in microseconds")
 
-waits_parser = subparsers.add_parser('waits', help='Prints summary of the wait events for sql_id')
-waits_parser.add_argument('--sql_id', type=str, dest='sql_id',
+    waits_parser = subparsers.add_parser('waits', help='Prints summary of the wait events for sql_id')
+    waits_parser.add_argument('--sql_id', type=str, dest='sql_id',
                      help="Comma separated list of sql_id's for which waits are displayed")
 
-whist_parser = subparsers.add_parser('wait_histogram', help='Creates histogram of the elapsed '
+    whist_parser = subparsers.add_parser('wait_histogram', help='Creates histogram of the elapsed '
                         +'time for a specific wait event')
-whist_parser.add_argument('--wait_name', dest='wait_name', type=str, help='Name of the wait event')
-whist_parser.add_argument('--output', dest='fname', type=str, help='Output filename')
+    whist_parser.add_argument('--wait_name', dest='wait_name', type=str, help='Name of the wait event')
+    whist_parser.add_argument('--output', dest='fname', type=str, help='Output filename')
 
-dbs_parser = subparsers.add_parser('db', help='Prints some statistics about the stuff in Parquet '
+    dbs_parser = subparsers.add_parser('db', help='Prints some statistics about the stuff in Parquet '
                         +'files and recorded trace files')
 
-args = parser.parse_args()
+    args = parser.parse_args()
 
-s = SummaryDuckdb(args.dbdir + '/*')
+    s = SummaryDuckdb(args.dbdir + '/*')
 
-if args.action == 'summary':
-    s.summary(args.start, args.end)
-if args.action == 'cursor-summary':
-    s.cursor_summary()
-elif args.action == 'histogram':
-    if args.sql_id:
-        for sqlid in args.sql_id.split(','):
-            s.create_hdrh(args.sql_id, args.fname)
-    if args.wait_name:
-        s.wait_histogram(args.wait_name, args.fname)
-elif args.action == 'outliers':
-    if not args.sql_id:
-        sys.exit('Error: sql_io is mandatory parameter')
-    s.outliers(args.sql_id, args.thresold)
-elif args.action == 'waits':
-    s.waits(args.sql_id)
-elif args.action == 'db':
-    s.db()
+    if args.action == 'summary':
+        s.summary(args.start, args.end)
+    if args.action == 'cursor-summary':
+        s.cursor_summary()
+    elif args.action == 'histogram':
+        if args.sql_id:
+            for sqlid in args.sql_id.split(','):
+                s.create_hdrh(args.sql_id, args.fname)
+        if args.wait_name:
+            s.wait_histogram(args.wait_name, args.fname)
+    elif args.action == 'outliers':
+        if not args.sql_id:
+            sys.exit('Error: sql_io is mandatory parameter')
+        s.outliers(args.sql_id, args.thresold)
+    elif args.action == 'waits':
+        s.waits(args.sql_id)
+    elif args.action == 'db':
+        s.db()
