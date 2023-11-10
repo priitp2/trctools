@@ -2,6 +2,7 @@
 
 import argparse
 import sys
+import datetime
 import duckdb as d
 from hdrh.histogram import HdrHistogram
 
@@ -34,7 +35,14 @@ class SummaryDuckdb:
                 group by cursor_id, exec_id;
               """)
 
-    def summary(self):
+    def summary(self, start, end):
+        time_pred = f"{'WHERE ' if start or end else ''}"
+
+        if start:
+            time_pred = time_pred + f"ts >= TIMESTAMP'{start}'"
+        if end:
+            time_pred = time_pred + f"{'and ' if start else ''} ts < TIMESTAMP'{end}'"
+
         res = d.sql(f"""
 			SELECT
                             ela.sql_id,
@@ -55,6 +63,7 @@ class SummaryDuckdb:
                                     max(ela)    max
                                 FROM
                                     elapsed_time
+                                {time_pred}
                                 GROUP BY
                                     sql_id
                                 ORDER BY
@@ -218,6 +227,10 @@ parser.add_argument('--dbdir', metavar='dbdir', type=str, required=True,
 
 summary_parser = subparsers.add_parser('summary', help='Generates summary of the executed SQL '
                         +'statements, execution counts, median and p99 execution times')
+summary_parser.add_argument('--start', metavar='start', type=datetime.datetime.fromisoformat, default=None,
+                            help='Start timestamp in ISO 8601 format')
+summary_parser.add_argument('--end', metavar='end', type=datetime.datetime.fromisoformat, default=None,
+                            help='End timestamp in ISO 8601 format')
 
 hist_parser = subparsers.add_parser('histogram', help='Generates response time histogram for the '
                                         +'sql_id or wait event')
@@ -252,7 +265,7 @@ args = parser.parse_args()
 s = SummaryDuckdb(args.dbdir + '/*')
 
 if args.action == 'summary':
-    s.summary()
+    s.summary(args.start, args.end)
 if args.action == 'cursor-summary':
     s.cursor_summary()
 elif args.action == 'histogram':
