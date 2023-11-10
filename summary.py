@@ -193,7 +193,9 @@ class SummaryDuckdb:
         res = d.sql(f"""select count(*) "rows",
                             count(distinct file_name) files,
                             count(distinct sql_id) "sql_id's",
-                            count(distinct cursor_id) cursors
+                            count(distinct cursor_id) cursors,
+                            first(ts order by ts) "first timestamp",
+                            last(ts order by ts) filter(ts is not null) "last timestamp"
                         from read_parquet('{self.dbdir}')
                     """)
         print(res)
@@ -201,7 +203,8 @@ class SummaryDuckdb:
         res = d.sql(f"""select file_name, count(*) "rows",
                             date_trunc('second', min(ts)) "first timestamp",
                             date_trunc('second', max(ts)) "last timestamp",
-                            date_trunc('second', max(ts)) - date_trunc('second', min(ts)) "time in file"
+                            date_trunc('second', max(ts)) - date_trunc('second', min(ts)) "wallclock time in file",
+                            cast(round((max(tim) - min(tim))/1000000) as integer) "elapsed(s)" 
                         from read_parquet('{self.dbdir}')
                         group by file_name order by count(*) desc
                     """)
