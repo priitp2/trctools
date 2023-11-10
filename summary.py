@@ -35,13 +35,18 @@ class SummaryDuckdb:
                 group by cursor_id, exec_id;
               """)
 
-    def summary(self, start, end):
-        time_pred = f"{'WHERE ' if start or end else ''}"
-
+    def create_time_predicate(self, start, end):
+        time_pred = ""
         if start:
             time_pred = time_pred + f"ts >= TIMESTAMP'{start}'"
         if end:
             time_pred = time_pred + f"{'and ' if start else ''} ts < TIMESTAMP'{end}'"
+
+        return time_pred
+
+    def summary(self, start, end):
+        pred = self.create_time_predicate(start, end)
+        time_pred = f"{'WHERE ' if pred else ''} {pred}"
 
         res = d.sql(f"""
 			SELECT
