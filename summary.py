@@ -8,6 +8,16 @@ from hdrh.histogram import HdrHistogram
 
 __doc__ = """Some examples what can be done with Oracle SQL tracec using Duckdb and Parquet."""
 
+def create_time_predicate(start, end):
+    """ Turns datetime intervals into SQL predicates"""
+    time_pred = ""
+    if start:
+        time_pred = time_pred + f"ts >= TIMESTAMP'{start}'"
+    if end:
+        time_pred = time_pred + f"{'and ' if start else ''} ts < TIMESTAMP'{end}'"
+
+    return time_pred
+
 class SummaryDuckdb:
     """ Initializes Duckdb with wiews and runs queries."""
     def __init__(self, dbdir):
@@ -35,17 +45,8 @@ class SummaryDuckdb:
                 group by cursor_id, exec_id;
               """)
 
-    def create_time_predicate(self, start, end):
-        time_pred = ""
-        if start:
-            time_pred = time_pred + f"ts >= TIMESTAMP'{start}'"
-        if end:
-            time_pred = time_pred + f"{'and ' if start else ''} ts < TIMESTAMP'{end}'"
-
-        return time_pred
-
     def summary(self, start, end):
-        pred = self.create_time_predicate(start, end)
+        pred = create_time_predicate(start, end)
         time_pred = f"{'WHERE ' if pred else ''} {pred}"
 
         res = d.sql(f"""
