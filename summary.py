@@ -239,11 +239,11 @@ if __name__ == '__main__':
 
     summary_parser = subparsers.add_parser('summary', help='Generates summary of the executed SQL '
                         +'statements, execution counts, median and p99 execution times')
-    summary_parser.add_argument('--start', metavar='start', type=lambda x: filters.__setitem__('start', x), default=None,
+    summary_parser.add_argument('--start', metavar='start', type=lambda x: filters.__setitem__('start', x),
                             help='Start timestamp in ISO 8601 format')
-    summary_parser.add_argument('--end', metavar='end', type=lambda x: filters.__setitem__('end', x), default=None,
+    summary_parser.add_argument('--end', metavar='end', type=lambda x: filters.__setitem__('end', x),
                             help='End timestamp in ISO 8601 format')
-    summary_parser.add_argument('--client_id', type= lambda x: filters.__setitem__('client_id', x), default='',
+    summary_parser.add_argument('--client_id', type= lambda x: filters.__setitem__('client_id', x),
                             help='Filter by CLIENT ID')
 
     hist_parser = subparsers.add_parser('histogram', help='Generates response time histogram for the '
@@ -276,7 +276,6 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    print(filters)
     s = SummaryDuckdb(args.dbdir + '/*')
 
     if args.action == 'summary':
