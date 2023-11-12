@@ -34,7 +34,7 @@ It contains some pre-canned examples of what can be done in Duckdb.
 
 ```
 $ ./summary.py -h
-usage: summary.py [-h] [--dbdir dbdir] {summary,histogram,outliers,waits,wait_histogram,db} ...
+usage: summary.py [-h] [--dbdir dbdir] {summary,histogram,outliers,waits,db} ...
 
 Generate summary from processed traces
 
@@ -43,12 +43,11 @@ options:
   --dbdir dbdir         Directory for Parquet files
 
 Available subcommands:
-  {summary,histogram,outliers,waits,wait_histogram,db}
+  {summary,histogram,outliers,waits,db}
     summary             Generates summary of the executed sql_id's
     histogram           Generates histogram for the specified sql_id or wait event name.
     outliers            Prints out executions that took longer than --thresold microseconds
     waits               Shows wait events for the sql_id
-    wait_histogram      Generates histogram for the wait event
     db                  Shows summary information about processed trace files
 
 ```

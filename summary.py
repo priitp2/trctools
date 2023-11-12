@@ -266,11 +266,6 @@ if __name__ == '__main__':
     waits_parser.add_argument('--sql_id', type=str, dest='sql_id',
                      help="Comma separated list of sql_id's for which waits are displayed")
 
-    whist_parser = subparsers.add_parser('wait_histogram', help='Creates histogram of the elapsed '
-                        +'time for a specific wait event')
-    whist_parser.add_argument('--wait_name', dest='wait_name', type=str, help='Name of the wait event')
-    whist_parser.add_argument('--output', dest='fname', type=str, help='Output filename')
-
     dbs_parser = subparsers.add_parser('db', help='Prints some statistics about the stuff in Parquet '
                         +'files and recorded trace files')
 
