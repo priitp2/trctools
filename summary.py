@@ -50,7 +50,6 @@ class SummaryDuckdb:
     def summary(self, filters):
         preds = create_preds(filters)
         filter_pred = f"""{'WHERE ' if preds else ''} {preds}""" 
-        print(filter_pred)
 
         query = f"""
 			SELECT
@@ -92,7 +91,6 @@ class SummaryDuckdb:
                         ORDER BY
                         ela.execs;
                     """
-        print(query)
         res = d.sql(query)
         print(res)
     def cursor_summary(self):
