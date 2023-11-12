@@ -197,7 +197,7 @@ class SummaryDuckdb:
                             read_parquet('{self.dbdir}')
                         where
                             ops = 'WAIT'
-                            and wait_name = '{wait_name}'
+                            and event_name = '{wait_name}'
                     """).fetchall()
         resp_hist = HdrHistogram(1, 1000000000, 1)
         for ela in res:
