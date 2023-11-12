@@ -8,15 +8,16 @@ from hdrh.histogram import HdrHistogram
 
 __doc__ = """Some examples what can be done with Oracle SQL tracec using Duckdb and Parquet."""
 
-def create_time_predicate(start, end):
-    """ Turns datetime intervals into SQL predicates"""
-    time_pred = ""
-    if start:
-        time_pred = time_pred + f"ts >= TIMESTAMP'{start}'"
-    if end:
-        time_pred = time_pred + f"{'and ' if start else ''} ts < TIMESTAMP'{end}'"
+def create_preds(filters):
+    preds = set()
+    if 'start' in filters:
+        preds.add(f"ts >= TIMESTAMP '{filters['start']}'")
+    if 'end' in filters:
+        preds.add(f"ts < TIMESTAMP '{filters['end']}'")
+    if 'client_id' in filters:
+        preds.add(f"client_id = '{filters['client_id']}'")
 
-    return time_pred
+    return ' and '.join(preds)
 
 class SummaryDuckdb:
     """ Initializes Duckdb with wiews and runs queries."""
@@ -26,7 +27,8 @@ class SummaryDuckdb:
                 select sql_id,
                     exec_id,
                     max(tim) - min(tim) as ela,
-                    first(ts order by ts) ts
+                    first(ts order by ts) ts,
+                    first(client_id) client_id
                 from
                     read_parquet('{dbdir}')
                 where
@@ -45,11 +47,12 @@ class SummaryDuckdb:
                 group by cursor_id, exec_id;
               """)
 
-    def summary(self, start, end):
-        pred = create_time_predicate(start, end)
-        time_pred = f"{'WHERE ' if pred else ''} {pred}"
+    def summary(self, filters):
+        preds = create_preds(filters)
+        filter_pred = f"""{'WHERE ' if preds else ''} {preds}""" 
+        print(filter_pred)
 
-        res = d.sql(f"""
+        query = f"""
 			SELECT
                             ela.sql_id,
                             dbc.sql_text,
@@ -69,7 +72,7 @@ class SummaryDuckdb:
                                     max(ela)    max
                                 FROM
                                     elapsed_time
-                                {time_pred}
+                                {filter_pred}
                                 GROUP BY
                                     sql_id
                                 ORDER BY
@@ -88,7 +91,9 @@ class SummaryDuckdb:
                         ) dbc ON ( ela.sql_id = dbc.sql_id )
                         ORDER BY
                         ela.execs;
-                    """)
+                    """
+        print(query)
+        res = d.sql(query)
         print(res)
     def cursor_summary(self):
         res = d.sql(f"""
@@ -226,6 +231,8 @@ class SummaryDuckdb:
         print(res)
 if __name__ == '__main__':
 
+    filters = {}
+
     parser = argparse.ArgumentParser(description='Generate summary from processed traces')
     subparsers = parser.add_subparsers(dest='action', title='Available subcommands', required=True)
 
@@ -234,10 +241,12 @@ if __name__ == '__main__':
 
     summary_parser = subparsers.add_parser('summary', help='Generates summary of the executed SQL '
                         +'statements, execution counts, median and p99 execution times')
-    summary_parser.add_argument('--start', metavar='start', type=datetime.datetime.fromisoformat, default=None,
+    summary_parser.add_argument('--start', metavar='start', type=lambda x: filters.__setitem__('start', x), default=None,
                             help='Start timestamp in ISO 8601 format')
-    summary_parser.add_argument('--end', metavar='end', type=datetime.datetime.fromisoformat, default=None,
+    summary_parser.add_argument('--end', metavar='end', type=lambda x: filters.__setitem__('end', x), default=None,
                             help='End timestamp in ISO 8601 format')
+    summary_parser.add_argument('--client_id', type= lambda x: filters.__setitem__('client_id', x), default='',
+                            help='Filter by CLIENT ID')
 
     hist_parser = subparsers.add_parser('histogram', help='Generates response time histogram for the '
                                         +'sql_id or wait event')
@@ -269,10 +278,11 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
+    print(filters)
     s = SummaryDuckdb(args.dbdir + '/*')
 
     if args.action == 'summary':
-        s.summary(args.start, args.end)
+        s.summary(filters)
     if args.action == 'cursor-summary':
         s.cursor_summary()
     elif args.action == 'histogram':
