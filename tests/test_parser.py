@@ -144,5 +144,12 @@ class TestParser(unittest.TestCase):
         self.assertEqual(self.get_count(self.tracker.db.batches, 3, 'LOBWRITE'), 5)
         self.assertEqual(self.get_count(self.tracker.db.batches, 3, 'LOBTMPCREATE'), 5)
         self.assertEqual(self.get_count(self.tracker.db.batches, 3, 'LOBPGSIZE'), 4)
+
+    def test_error(self):
+        lines = trcparser.process_file(self.tracker, 'tests/traces/error.trc')
+        self.tracker.flush()
+        self.assertEqual(lines, 35)
+        self.assertEqual(self.get_count(self.tracker.db.batches, 3, 'ERROR'), 2)
+
 if __name__ == '__main__':
     unittest.main()
