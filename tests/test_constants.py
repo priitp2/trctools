@@ -26,7 +26,8 @@ TRACKED_OPS = {
     'WAIT': ops.ops_factory('WAIT', CURSOR, " nam='db file sequential read' ela= 403 file#=414 block#=2682927" \
         + " blocks=1 obj#=89440 tim=5793512314261", FMETA, TS_CALLBACK),
     'FETCH':ops.ops_factory('FETCH', CURSOR, "c=0,e=45,p=0,cr=1,cu=0,mis=0,r=4,dep=0,og=1,plh=2725028981," \
-        + "tim=5793511831594", FMETA, TS_CALLBACK)
+        + "tim=5793511831594", FMETA, TS_CALLBACK),
+    'ERROR':ops.ops_factory('ERROR', CURSOR, "err=27403 tim=3034700189155", FMETA, TS_CALLBACK)
 }
 UNTRACKED_OPS = {
         'STAR':ops.ops_factory('STAR', None, 'jdbcthin : 21.5.0.0.0', FMETA, None, 'CLIENT DRIVER', datetime.datetime.today()),
