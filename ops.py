@@ -54,7 +54,7 @@ class Ops:
                     None, None, None, None, None, None, None, None, None,
                     None, None, None, None, None, None, None, None, None,
                     None, None, None, None, None, None, None, None, None,
-                    None, None, None]
+                    None, None, None, None]
 
     def __str__(self):
         return ''
@@ -78,7 +78,7 @@ class Wait(Ops):
                     None, None, None, None, None, None, None, None, None,
                     self.fmeta['SESSION ID'], self.fmeta['CLIENT ID'], self.fmeta['SERVICE NAME'],
                     self.fmeta['MODULE NAME'], self.fmeta['ACTION NAME'],
-                    self.fmeta['CONTAINER ID']]
+                    self.fmeta['CONTAINER ID'], None]
     def __str__(self):
         return f"{self.cursor}: {self.op_type} {self.raw}"
 
@@ -95,7 +95,7 @@ class Stat(Ops):
                     None, None, None, None,
                     self.fmeta['SESSION ID'], self.fmeta['CLIENT ID'], self.fmeta['SERVICE NAME'],
                     self.fmeta['MODULE NAME'], self.fmeta['ACTION NAME'],
-                    self.fmeta['CONTAINER ID']]
+                    self.fmeta['CONTAINER ID'], None]
     def __str__(self):
         return f"{self.cursor}: {self.op_type} {self.raw}"
 
@@ -114,7 +114,7 @@ class Meta(Ops):
                     self.line, self.ts2, None, None, None, None, None, None, None, None,
                     None, None, self.fmeta['SESSION ID'], self.fmeta['CLIENT ID'],
                     self.fmeta['SERVICE NAME'], self.fmeta['MODULE NAME'],
-                    self.fmeta['ACTION NAME'], self.fmeta['CONTAINER ID']]
+                    self.fmeta['ACTION NAME'], self.fmeta['CONTAINER ID'], None]
     def __str__(self):
         if self.op_type == 'HEADER':
             return f"{self.name}: {self.raw}"
@@ -133,7 +133,7 @@ class Binds(Ops):
                     None, None, None,
                     self.fmeta['SESSION ID'], self.fmeta['CLIENT ID'], self.fmeta['SERVICE NAME'],
                     self.fmeta['MODULE NAME'], self.fmeta['ACTION NAME'],
-                    self.fmeta['CONTAINER ID']]
+                    self.fmeta['CONTAINER ID'], None]
     def __str__(self):
         return f"{self.cursor}: {self.op_type} {self.raw}"
 
@@ -152,7 +152,7 @@ class Xctend(Ops):
                     self.rlbk, self.rd_only, None, None,
                     self.fmeta['SESSION ID'], self.fmeta['CLIENT ID'], self.fmeta['SERVICE NAME'],
                     self.fmeta['MODULE NAME'], self.fmeta['ACTION NAME'],
-                    self.fmeta['CONTAINER ID']]
+                    self.fmeta['CONTAINER ID'], None]
     def __str__(self):
         return f"XCTEND rlbk={self.rlbk}, rd_only={self.rd_only}, tim={self.tim}"
 
@@ -177,7 +177,7 @@ class Pic(Ops):
                     self.oct, self.lid, self.hv, self.ad, None, None, None, None,
                     self.fmeta['SESSION ID'], self.fmeta['CLIENT ID'], self.fmeta['SERVICE NAME'],
                     self.fmeta['MODULE NAME'], self.fmeta['ACTION NAME'],
-                    self.fmeta['CONTAINER ID']]
+                    self.fmeta['CONTAINER ID'], None]
     def __str__(self):
         return f"PARSING IN CURSOR len={self.len} dep={self.dep} uid={self.uid} " \
                + f"oct={self.oct} lid={self.lid} tim={self.tim} hv={self.hv} "    \
@@ -202,7 +202,7 @@ class Lob(Ops):
                 None, None, None, None, self.type, self.bytes,
                 self.fmeta['SESSION ID'], self.fmeta['CLIENT ID'], self.fmeta['SERVICE NAME'],
                 self.fmeta['MODULE NAME'], self.fmeta['ACTION NAME'],
-                self.fmeta['CONTAINER ID']]
+                self.fmeta['CONTAINER ID'], None]
     def __str__(self):
         return f"{self.op_type}: type={self.type},bytes={self.r},c={self.c},e={self.e},"   \
                + f"p={self.p},cr={self.cr},cu={self.cu},tim={self.tim}"
@@ -225,7 +225,7 @@ class Exec(Ops):
                     None, None, None, None, None, None, None,
                     self.fmeta['SESSION ID'], self.fmeta['CLIENT ID'], self.fmeta['SERVICE NAME'],
                     self.fmeta['MODULE NAME'], self.fmeta['ACTION NAME'],
-                    self.fmeta['CONTAINER ID']]
+                    self.fmeta['CONTAINER ID'], None]
     def __str__(self):
         str0 = f"{self.cursor}: {self.op_type} "
         return str0 + f"c={self.c},e={self.e},p={self.p},cr={self.cr},cu={self.cu},"           \

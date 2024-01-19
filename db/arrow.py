@@ -47,6 +47,7 @@ PARQUET_SCHEMA = pa.schema([
     ('module', pa.string()),
     ('action', pa.string()),
     ('container_id', pa.int16()),
+    ('error_code', pa.int16()), # Populated for the ERROR call
 ])
 
 class DB:
