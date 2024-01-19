@@ -1,0 +1,35 @@
+Trace file /u01/app/oracle/diag/rdbms/testdb/testdb/trace/testdb_j003_50122.trc
+Oracle Database 19c Enterprise Edition Release 19.0.0.0.0 - Production
+Version 19.19.0.0.0
+Build label:    RDBMS_19.19.0.0.0DBRU_LINUX.X64_230321.1
+ORACLE_HOME:    /u01/app/oracle/product/19-db-19194
+System name:    Linux
+Node name:      testdb.example.com
+Release:        5.4.17-2136.325.5.1.el7uek.x86_64
+Version:        #2 SMP Wed Nov 22 15:49:53 PST 2023
+Machine:        x86_64
+Instance name: testdb11
+Redo thread mounted by this instance: 1
+Oracle process number: 360
+Unix process pid: 50122, image: oracle@testdb.example.com (J003)
+
+
+*** 2024-01-18T10:25:42.126598+01:00
+*** SESSION ID:(1174.370) 2024-01-18T10:25:42.126614+01:00
+*** CLIENT ID:() 2024-01-18T10:25:42.126618+01:00
+*** SERVICE NAME:(SYS$USERS) 2024-01-18T10:25:42.126622+01:00
+*** MODULE NAME:(DBMS_SCHEDULER) 2024-01-18T10:25:42.126626+01:00
+*** ACTION NAME:(ORA$AT_OS_OPT_SY_3540348) 2024-01-18T10:25:42.126630+01:00
+*** CLIENT DRIVER:(SERVER) 2024-01-18T10:25:42.126634+01:00
+
+WAIT #139637903883184: nam='db flash cache single block physical read' ela= 188 p1=0 p2=0 p3=0 obj#=44274383 tim=3029042223114
+
+*** 2024-01-18T10:26:08.838342+01:00
+
+WAIT #139637903883184: nam='db flash cache single block physical read' ela= 188 p1=0 p2=0 p3=0 obj#=44274383 tim=3034621271932
+ERROR #139637903883184:err=27403 tim=3034700188655
+
+*** 2024-01-18T12:00:00.092238+01:00
+CLOSE #139637903883184:c=0,e=0,dep=2,type=3,tim=3034700189085
+ERROR #139637915541432:err=27403 tim=3034700189155
+
