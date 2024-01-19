@@ -28,6 +28,8 @@ def ops_factory(op_type, cursor, params, fmeta, ts_callback, name=None, ts2=None
         return Lob(op_type, cursor, params, fmeta, ts_callback)
     if op_type in ('PARSE', 'EXEC', 'CLOSE', 'FETCH'):
         return Exec(op_type, cursor, params, fmeta, ts_callback)
+    if op_type == 'ERROR':
+        return Error(op_type, cursor, params, fmeta, ts_callback)
     raise AttributeError(f"Wrong op_type: {op_type}")
 
 class Ops:
@@ -231,3 +233,24 @@ class Exec(Ops):
         return str0 + f"c={self.c},e={self.e},p={self.p},cr={self.cr},cu={self.cu},"           \
                     + f"mis={self.mis},r={self.r},dep={self.dep},og={self.og},plh={self.plh}," \
                     + f"tim={self.tim},fname={self.fname},line={self.line}"
+
+class Error(Ops):
+    """Covers ERROR call. Has two attributes, error code and tim. """
+    def __init__(self, op_type, cursor, params, fmeta, ts_callback):
+        super().__init__(op_type, cursor, fmeta, ts_callback)
+        for item in params.split(' '):
+            if len(item):
+                key = item.split('=')
+                self.__dict__[key[0]] = int(key[1])
+        self.__slots__ = ('op_type', 'cursor', 'err', 'tim')
+    def to_list(self, exec_id, sql_id):
+        return [exec_id, sql_id, self.cursor, self.op_type, None, None, None, None,
+                    None, None, None, None, None, None, self.tim, None,
+                    '', '', self.fname, self.line, self.ts_callback(self.tim), None, None, None,
+                    None, None, None, None, None, None, None,
+                    self.fmeta['SESSION ID'], self.fmeta['CLIENT ID'], self.fmeta['SERVICE NAME'],
+                    self.fmeta['MODULE NAME'], self.fmeta['ACTION NAME'],
+                    self.fmeta['CONTAINER ID'], self.err]
+    def __str__(self):
+        str0 = f"{self.op_type} {self.cursor}:"
+        return str0 + f"err={self.err} tim={self.p}"

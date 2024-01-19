@@ -93,5 +93,10 @@ class TestOps(unittest.TestCase):
 
         ops = test_constants.UNTRACKED_OPS['XCTEND']
         self.assertRegex(str(ops), '^XCTEND rlbk=0,*')
+
+    def test_error(self):
+        ops = test_constants.TRACKED_OPS['ERROR']
+        self.assertEqual(ops.err, 27403)
+        self.assertEqual(ops.tim, 3034700189155)
 if __name__ == '__main__':
     unittest.main()
