@@ -17,7 +17,7 @@ DATE_MATCHER = re.compile(r'''^\*{3} (\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\.\d{6}\+\d\
 STARS_MATCHER = re.compile(r'''^\*\*\* (SESSION ID:|CLIENT ID:|SERVICE NAME:|MODULE NAME:'''
         +r'''|ACTION NAME:|CLIENT DRIVER:|CONTAINER ID:|CLIENT IP:|CONNECTION ID:)(\(.*\)) (.*)''')
 CALL_MATCHER = re.compile(r'''^(PARSE|PARSING IN CURSOR|EXEC|FETCH|WAIT|CLOSE'''
-                        +r'''|BINDS|STAT) (#\d+)(:| )(.*)''')
+                        +r'''|BINDS|STAT|ERROR) (#\d+)(:| )(.*)''')
 LOB_MATCHER = re.compile(r'''^(LOB[A-Z]+): (.*)''')
 
 FILE_HEADER_MATCHER = re.compile(r'''^(Build label|ORACLE_HOME|System name'''
