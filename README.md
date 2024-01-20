@@ -14,7 +14,7 @@ git clone https://github.com/priitp2/trctools.git
 
 For trc2db.py
 ```
-$ pip.3.11 install pyarrow oracledb
+$ pip.3.11 install pyarrow oracledb tzdata
 ```
 If you do not intend to use Oracle as a backend, then `oracledb` can be omitted.
 
