@@ -1,6 +1,7 @@
 import collections
 import datetime
 import re
+from zoneinfo import ZoneInfo
 
 from ops import ops_factory
 
@@ -12,7 +13,7 @@ XCTEND_MATCHER = re.compile(r'''^XCTEND (.*)''')
 
 # 2023-05-19T05:28:00.339263+02:00
 DATE_MATCHER = re.compile(r'''^\*{3} (\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\.\d{6}\+\d\d:\d\d)''')
-#TIMEZONE_MATCHER = re.compile(r'''(?:.*)\+(\d\d:\d\d)''')
+TIMEZONE_MATCHER = re.compile(r'''(?:.*)\+(\d\d:\d\d)''')
 
 STARS_MATCHER = re.compile(r'''^\*\*\* (SESSION ID:|CLIENT ID:|SERVICE NAME:|MODULE NAME:'''
         +r'''|ACTION NAME:|CLIENT DRIVER:|CONTAINER ID:|CLIENT IP:|CONNECTION ID:)(\(.*\)) (.*)''')
@@ -25,7 +26,17 @@ FILE_HEADER_MATCHER = re.compile(r'''^(Build label|ORACLE_HOME|System name'''
                         +r'''|Redo thread mounted by this instance|Oracle process number'''
                         +r'''|Unix process pid):\s+(.*)''')
 
+def get_timestamp(instr):
+    """Checks if input has a time zone or not, and adjusts the format accordingly."""
+    tz_match = TIMEZONE_MATCHER.match(instr)
+    if tz_match:
+        date_format = '%Y-%m-%dT%H:%M:%S.%f%z'
+    else:
+        date_format = '%Y-%m-%dT%H:%M:%S.%f'
+    return datetime.datetime.strptime(instr, date_format).astimezone(tz=ZoneInfo('UTC'))
+
 def process_file(tracker, fname, orphans=False):
+    """The god function. Does everything: reads the input file and parses the lines. """
 
     in_binds = False
     in_pic = False
@@ -106,7 +117,7 @@ def process_file(tracker, fname, orphans=False):
 
             match = DATE_MATCHER.match(line)
             if match:
-                ts2 = datetime.datetime.strptime(match.group(1), '%Y-%m-%dT%H:%M:%S.%f%z')
+                ts2 = get_timestamp(match.group(1))
                 tracker.time_tracker.reset(ts2)
                 ops = ops_factory('STAR', None, None, file_meta, lambda x: None,
                                     'DATETIME', ts2)
@@ -115,7 +126,7 @@ def process_file(tracker, fname, orphans=False):
 
             match = STARS_MATCHER.match(line)
             if match:
-                ts2 = datetime.datetime.strptime(match.group(3), '%Y-%m-%dT%H:%M:%S.%f%z')
+                ts2 = get_timestamp(match.group(3))
                 name = match.group(1).strip(':')
                 value = match.group(2).strip('()')
                 file_meta[name] = value

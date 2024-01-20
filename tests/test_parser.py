@@ -2,6 +2,8 @@ import unittest
 import parser as trcparser
 from call_tracker import CallTracker
 from tests.mock_db import DB
+from datetime import timedelta
+from zoneinfo import ZoneInfo
 
 class TestParser(unittest.TestCase):
     def setUp(self):
@@ -150,6 +152,19 @@ class TestParser(unittest.TestCase):
         self.tracker.flush()
         self.assertEqual(lines, 35)
         self.assertEqual(self.get_count(self.tracker.db.batches, 3, 'ERROR'), 2)
+
+    def test_get_timestamp(self):
+        instr1 = '2023-05-19T03:28:00.339309'
+        ts1 = trcparser.get_timestamp(instr1)
+        instr2 = '2023-05-19T05:28:00.339309+02:00'
+        ts2 = trcparser.get_timestamp(instr2)
+
+        self.assertEqual(ts1.astimezone(tz=ZoneInfo('UTC')), ts2.astimezone(tz=ZoneInfo('UTC')))
+
+    def test_broken_date(self):
+        lines = trcparser.process_file(self.tracker, 'tests/traces/no_timezone.trc')
+        self.tracker.flush()
+        self.assertEqual(lines, 51)
 
 if __name__ == '__main__':
     unittest.main()

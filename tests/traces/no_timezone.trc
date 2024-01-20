@@ -1,0 +1,51 @@
+Trace file /u01/app/oracle/diag/rdbms/xxx/yyy/trace/xxx_ora_613102_TESTAPP.trc
+Oracle Database 19c Enterprise Edition Release 19.0.0.0.0 - Production
+Version 19.14.2.0.0
+Build label:    RDBMS_19.14.0.0.0DBRUR_LINUX.X64_220707
+ORACLE_HOME:    /u01/app/oracle/product/19-clean-19142
+System name:    Linux
+Node name:      testserver.example.com
+Release:        5.4.17-2136.309.5.el8uek.x86_64
+Version:        #2 SMP Sat Jul 16 13:06:22 PDT 2022
+Machine:        x86_64
+Instance name: yyy
+Redo thread mounted by this instance: 4
+Oracle process number: 871
+Unix process pid: 613102, image: oracle@testserver.example.com
+
+
+
+*** 2023-05-19T05:28:00.339263 (TESTPDB(11))
+*** SESSION ID:(2773.37935) 2023-05-19T05:28:00.339309
+*** CLIENT ID:() 2023-05-19T05:28:00.339315
+*** SERVICE NAME:(testservice.example.com) 2023-05-19T05:28:00.339319
+*** MODULE NAME:(JDBC Thin Client) 2023-05-19T05:28:00.339325
+*** ACTION NAME:() 2023-05-19T05:28:00.339329
+*** CLIENT DRIVER:() 2023-05-19T05:28:00.339332
+*** CONTAINER ID:(11) 2023-05-19T05:28:00.339336
+*** CLIENT DRIVER:(jdbcthin : 19.3.0.0.0) 2023-05-19T05:28:00.350106
+
+=====================
+PARSING IN CURSOR #140641987987624 len=123 dep=0 uid=127 oct=3 lid=127 tim=5793511830707 hv=41568804 ad='b3cba2e50' sqlid='atxg62s17nkj4'
+select something from some_table;
+END OF STMT
+PARSE #140641987987624:c=33,e=33,p=0,cr=0,cu=0,mis=0,r=0,dep=0,og=1,plh=2725028981,tim=5793511830706
+BINDS #140641987987624:
+
+ Bind#0
+  oacdty=02 mxl=22(22) mxlc=00 mal=00 scl=00 pre=00
+  oacflg=03 fl2=1000000 frm=01 csi=873 siz=24 off=0
+  kxsbbbfp=7fe9c3cf3450  bln=22  avl=06  flg=05
+  value=111242892
+EXEC #140641987987624:c=73,e=73,p=0,cr=0,cu=0,mis=0,r=0,dep=0,og=1,plh=2725028981,tim=5793511830834
+WAIT #140641987987624: nam='SQL*Net message to client' ela= 2 driver id=675562835 #bytes=1 p3=0 obj#=89440 tim=5793511830853
+WAIT #140641987987624: nam='db file sequential read' ela= 343 file#=414 block#=2090520 blocks=1 obj#=89440 tim=5793511831255
+FETCH #140641987987624:c=444,e=444,p=1,cr=4,cu=0,mis=0,r=10,dep=0,og=1,plh=2725028981,tim=5793511831311
+WAIT #140641987987624: nam='SQL*Net message from client' ela= 186 driver id=675562835 #bytes=1 p3=0 obj#=89440 tim=5793511831524
+WAIT #140641987987624: nam='SQL*Net message to client' ela= 1 driver id=675562835 #bytes=1 p3=0 obj#=89440 tim=5793511831582
+FETCH #140641987987624:c=0,e=45,p=0,cr=1,cu=0,mis=0,r=4,dep=0,og=1,plh=2725028981,tim=5793511831594
+STAT #140641987987624 id=1 cnt=14 pid=0 pos=1 obj=89440 op='INDEX RANGE SCAN UGH_IDX (cr=5 pr=1 pw=0 str=1 time=439 us cost=4 size=246 card=6)'
+WAIT #140641987987624: nam='SQL*Net message from client' ela= 223 driver id=675562835 #bytes=1 p3=0 obj#=89440 tim=5793511831891
+CLOSE #140641987987624:c=3,e=3,dep=0,type=1,tim=5793511831927
+XCTEND rlbk=0, rd_only=1, tim=5793511831940
+=====================
