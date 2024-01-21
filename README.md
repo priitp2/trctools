@@ -125,7 +125,8 @@ is the name of the header field and `event_raw` contains the value. Same goes wi
 
 Lines starting with `***` have timestamps, these are persisted in `ts` as is. For timed events, wall clock readings are extrapolated.
 Assumption is that from `***` to next timed event takes 0us, which is way too optimistic. OTOH timestamps in
-`V$DIAG_SQL_TRACE_RECORDS` and `V$DIAG_SESS_SQL_TRACE_RECORDS` are not entirely correct either in 21c.
+`V$DIAG_SQL_TRACE_RECORDS` and `V$DIAG_SESS_SQL_TRACE_RECORDS` are not entirely correct either in 21c. All timestamps are persisted
+as UTC.
 
 Alternative description of the schema is in `db/arrow.py`
 
@@ -168,5 +169,6 @@ Alternative description of the schema is in `db/arrow.py`
 | service_name   | BYTE_ARRAY | StringType()                                                                                        |
 | module         | BYTE_ARRAY | StringType()                                                                                        |
 | action         | BYTE_ARRAY | StringType()                                                                                        |
-| container_id   | INT16      | StringType()                                                                                        |
+| container_id   | INT16      |                                                                                                     |
+| error_code     | INT16      |                                                                                                     |
 
