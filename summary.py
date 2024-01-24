@@ -49,7 +49,7 @@ class SummaryDuckdb:
 
     def summary(self, filters):
         preds = create_preds(filters)
-        filter_pred = f"""{'WHERE ' if preds else ''} {preds}""" 
+        filter_pred = f"""{'WHERE ' if preds else ''} {preds}"""
 
         query = f"""
 			SELECT
@@ -239,15 +239,17 @@ if __name__ == '__main__':
 
     summary_parser = subparsers.add_parser('summary', help='Generates summary of the executed SQL '
                         +'statements, execution counts, median and p99 execution times')
-    summary_parser.add_argument('--start', metavar='start', type=lambda x: filters.__setitem__('start', x),
+    summary_parser.add_argument('--start', metavar='start',
+                            type=lambda x: filters.__setitem__('start', x),
                             help='Start timestamp in ISO 8601 format')
-    summary_parser.add_argument('--end', metavar='end', type=lambda x: filters.__setitem__('end', x),
+    summary_parser.add_argument('--end', metavar='end',
+                            type=lambda x: filters.__setitem__('end', x),
                             help='End timestamp in ISO 8601 format')
     summary_parser.add_argument('--client_id', type= lambda x: filters.__setitem__('client_id', x),
                             help='Filter by CLIENT ID')
 
-    hist_parser = subparsers.add_parser('histogram', help='Generates response time histogram for the '
-                                        +'sql_id or wait event')
+    hist_parser = subparsers.add_parser('histogram', help='Generates response time histogram for '
+                                        +'the sql_id or wait event')
     hist_parser.add_argument('--sql_id', type=str, dest='sql_id',
                      help="Comma separated list of sql_id's for which histogram, outliers or waits "
                          +"are produced")
@@ -255,19 +257,20 @@ if __name__ == '__main__':
                                     help='Name of the wait event')
     hist_parser.add_argument('--output', dest='fname', type=str, help='Output filename')
 
-    out_parser = subparsers.add_parser('outliers', help='Displays content of the trace files for the '
-                         +'executions that took more than specified amount of time')
+    out_parser = subparsers.add_parser('outliers', help='Displays content of the trace files for '
+                         +'the executions that took more than specified amount of time')
     out_parser.add_argument('--sql_id', type=str, dest='sql_id',
                      help="Comma separated list of sql_id's for which outliers are displayed")
     out_parser.add_argument('--thresold', type=str, dest='thresold',
                      help="Outlier thresold in microseconds")
 
-    waits_parser = subparsers.add_parser('waits', help='Prints summary of the wait events for sql_id')
+    waits_parser = subparsers.add_parser('waits', help='Prints summary of the wait events for '
+                    +'sql_id')
     waits_parser.add_argument('--sql_id', type=str, dest='sql_id',
                      help="Comma separated list of sql_id's for which waits are displayed")
 
-    dbs_parser = subparsers.add_parser('db', help='Prints some statistics about the stuff in Parquet '
-                        +'files and recorded trace files')
+    dbs_parser = subparsers.add_parser('db', help='Prints some statistics about the stuff in'
+                        +'Parquet files and recorded trace files')
 
     args = parser.parse_args()
 
