@@ -161,7 +161,8 @@ class SummaryDuckdb:
     def waits(self, sql_id):
         pred = ''
         if sql_id:
-            pred = f"sql_id = '{sql_id}' and"
+            ids = [f"'{s}'" for s in sql_id.split(',')]
+            pred = f"sql_id in ({','.join(ids)}) and"
         res = d.sql(f"""
 			SELECT
                             event_name           wait,
