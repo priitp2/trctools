@@ -16,5 +16,12 @@ class TestSummary(unittest.TestCase):
         preds = summary.create_preds(filters)
         self.assertRegex(preds, "client_id = 'superdry'")
 
+        filters['sql_id'] = 'xxx'
+        preds = summary.create_preds(filters)
+        self.assertRegex(preds, "sql_id in \('xxx'\)")
+
+        filters['sql_id'] = 'xxx,yyy'
+        preds = summary.create_preds(filters)
+        self.assertRegex(preds, "sql_id in \('xxx','yyy'\)")
 if __name__ == '__main__':
     unittest.main()
