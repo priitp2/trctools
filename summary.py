@@ -8,6 +8,10 @@ from hdrh.histogram import HdrHistogram
 
 __doc__ = """Some examples what can be done with Oracle SQL tracec using Duckdb and Parquet."""
 
+def sqlid2pred(sql_id):
+    ids = [f"'{s}'" for s in sql_id.split(',')]
+    return f"sql_id in ({','.join(ids)})"
+
 def create_preds(filters):
     preds = set()
     if 'start' in filters:
@@ -16,6 +20,8 @@ def create_preds(filters):
         preds.add(f"ts < TIMESTAMP '{filters['end']}'")
     if 'client_id' in filters:
         preds.add(f"client_id = '{filters['client_id']}'")
+    if 'sql_id' in filters:
+        preds.add(sqlid2pred(filters['sql_id']))
 
     return ' and '.join(preds)
 
@@ -161,8 +167,7 @@ class SummaryDuckdb:
     def waits(self, sql_id):
         pred = ''
         if sql_id:
-            ids = [f"'{s}'" for s in sql_id.split(',')]
-            pred = f"sql_id in ({','.join(ids)}) and"
+            pred = f"{sqlid2pred(sql_id)} and"
         res = d.sql(f"""
 			SELECT
                             event_name           wait,
@@ -248,6 +253,8 @@ if __name__ == '__main__':
                             help='End timestamp in ISO 8601 format')
     summary_parser.add_argument('--client_id', type= lambda x: filters.__setitem__('client_id', x),
                             help='Filter by CLIENT ID')
+    summary_parser.add_argument('--sql_id', type= lambda x: filters.__setitem__('sql_id', x),
+                            help="Filter by comma separated list of sql_id's")
 
     hist_parser = subparsers.add_parser('histogram', help='Generates response time histogram for '
                                         +'the sql_id or wait event')
