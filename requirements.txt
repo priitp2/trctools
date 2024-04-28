@@ -1,0 +1,10 @@
+# For trc2db.py
+
+pyarrow
+oracledb
+tzdata
+oracledb
+
+# Additional packages for summary.py
+duckdb
+HdrHistogram

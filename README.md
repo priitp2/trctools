@@ -9,19 +9,11 @@ This repository contains scripts that process and analyze Oracle SQL trace outpu
 Scripts are tested with Python 3.11, but in principle it should work with older versions as well.
 
 ```
-git clone https://github.com/priitp2/trctools.git
-```
-
-For trc2db.py
-```
-$ pip.3.11 install pyarrow oracledb tzdata
+$ git clone https://github.com/priitp2/trctools.git
+$ pip install -r requirements.txt
 ```
 If you do not intend to use Oracle as a backend, then `oracledb` can be omitted.
 
-For summary.py
-```
-$pip3.11 install pyarrow duckdb HdrHistogram
-```
 
 # Usage
 
