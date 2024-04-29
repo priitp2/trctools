@@ -32,7 +32,14 @@ CREATE TABLE dbcall (
     rlbk	   INTEGER,
     rd_only	   INTEGER,
     lobtype	   VARCHAR2(32),
-    bytes	   INTEGER
+    bytes	   INTEGER,
+    sid		   VARCHAR2(128),
+    client_id	   VARCHAR2(128),
+    service_name   VARCHAR2(128),
+    module	   VARCHAR2(128),
+    action	   VARCHAR2(128),
+    container_id   INTEGER,
+    error_code	   INTEGER
 ) PCTFREE 0 ROW STORE COMPRESS ADVANCED;
 
 create view elapsed_time as
