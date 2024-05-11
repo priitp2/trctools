@@ -47,11 +47,12 @@ class CurrentStatement:
         if not self.dbs:
             raise TypeError("dump_to_db: database not set!")
         exec_id = self.dbs.get_exec_id()
+        out = []
 
         for ops in self.ops.values():
             if ops:
                 if isinstance(ops, list):
-                    for listy_op in ops:
-                        self.dbs.insert_ops(listy_op.to_list(exec_id, self.sql_id))
-                    continue
-                self.dbs.insert_ops(ops.to_list(exec_id, self.sql_id))
+                    out += [o.to_list(exec_id, self.sql_id) for o in ops]
+                else:
+                    out += [ops.to_list(exec_id, self.sql_id)]
+        self.dbs.insert_ops(out)

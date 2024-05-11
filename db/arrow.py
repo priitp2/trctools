@@ -73,11 +73,17 @@ class DB:
         else:
             self._table = tbl
         self._ops_list = []
-    def insert_ops(self, ops):
-        ''' Adds ops to the list. Checks the size of the _ops_list and _table.'''
+    def insert_single_ops(self, ops):
+        '''Adds single ops.'''
         if len(ops) == 0:
             return
-        self._ops_list.append(ops)
+        self.insert_ops([ops])
+    def insert_ops(self, ops):
+        ''' Adds list of ops to the batch. Checks the size of the _ops_list and _table and
+            triggers flush if needed.'''
+        if len(ops) == 0:
+            return
+        self._ops_list += ops
         if len(self._ops_list) > BATCH_SIZE/100:
             self._batch2table()
         if self._row_count > BATCH_SIZE:
