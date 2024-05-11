@@ -99,14 +99,14 @@ def process_file(tracker, fname, orphans=False):
             if match:
                 ops = ops_factory(match.group(1), None, match.group(2), file_meta,
                                     tracker.time_tracker.get_wc)
-                tracker.db.insert_ops(ops.to_list(tracker.db.get_exec_id(), None))
+                tracker.db.insert_single_ops(ops.to_list(tracker.db.get_exec_id(), None))
                 continue
 
             match = XCTEND_MATCHER.match(line)
             if match:
                 ops = ops_factory('XCTEND', None, match.group(1), file_meta,
                                     tracker.time_tracker.get_wc)
-                tracker.db.insert_ops(ops.to_list(tracker.db.get_exec_id(), None))
+                tracker.db.insert_single_ops(ops.to_list(tracker.db.get_exec_id(), None))
                 continue
 
             # FIXME: make this configurable
@@ -121,7 +121,7 @@ def process_file(tracker, fname, orphans=False):
                 tracker.time_tracker.reset(ts2)
                 ops = ops_factory('STAR', None, None, file_meta, lambda x: None,
                                     'DATETIME', ts2)
-                tracker.db.insert_ops(ops.to_list(tracker.db.get_exec_id(), None))
+                tracker.db.insert_single_ops(ops.to_list(tracker.db.get_exec_id(), None))
                 continue
 
             match = STARS_MATCHER.match(line)
@@ -132,14 +132,14 @@ def process_file(tracker, fname, orphans=False):
                 file_meta[name] = value
                 tracker.time_tracker.reset(ts2)
                 star = ops_factory('STAR', None, value, file_meta, lambda x: None, name, ts2)
-                tracker.db.insert_ops(star.to_list(tracker.db.get_exec_id(), None))
+                tracker.db.insert_single_ops(star.to_list(tracker.db.get_exec_id(), None))
                 continue
 
             match = FILE_HEADER_MATCHER.match(line)
             if match:
                 header = ops_factory('HEADER', None, match.group(2), file_meta,
                                         lambda x: None, match.group(1), None)
-                tracker.db.insert_ops(header.to_list(tracker.db.get_exec_id(), None))
+                tracker.db.insert_single_ops(header.to_list(tracker.db.get_exec_id(), None))
                 continue
 
             if orphans:

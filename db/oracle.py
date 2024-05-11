@@ -20,10 +20,14 @@ class DB:
             nextval = out.fetchone()[0]
             self.exec_ids = [i for i in range(nextval - self.seq_batch_size + 1, nextval)]
         return self.exec_ids.pop()
+    def insert_single_ops(self, ops):
+        if len(ops) == 0:
+            return
+        insert_ops([ops])
     def insert_ops(self, ops):
         if len(ops) == 0:
             return
-        self.batches.append(ops)
+        self.batches += ops
         if len(self.batches) > self.max_batch_size:
             self.flush_batches()
     def flush_batches(self):
