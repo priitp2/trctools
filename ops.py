@@ -56,7 +56,21 @@ class Ops:
                     None, None, None, None, None, None, None, None, None,
                     None, None, None, None, None, None, None, None, None,
                     None, None, None, None]
-
+    def to_dict(self, exec_id, sql_id):
+        out = {}
+        out['sql_id'] = sql_id
+        out['exec_id'] = exec_id
+        if self.op_type == 'PIC':
+            out['op_type'] = 'PARSING IN CURSOR'
+        else:
+            out['op_type'] = self.op_type
+        out['cursor'] = self.cursor
+        for i in self.__dict__.keys():
+            if i in self.__slots__:
+                if i == 'tim':
+                    out['ts'] = self.ts_callback(self.__dict__[i])
+                out[i] = self.__dict__[i]
+        return out | dict(self.fmeta)
     def __str__(self):
         return ''
 
@@ -252,4 +266,4 @@ class Error(Ops):
                     self.fmeta['CONTAINER ID'], self.err]
     def __str__(self):
         str0 = f"{self.op_type} {self.cursor}:"
-        return str0 + f"err={self.err} tim={self.p}"
+        return str0 + f"err={self.err} tim={self.tim}"
