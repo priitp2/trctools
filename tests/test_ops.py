@@ -98,5 +98,16 @@ class TestOps(unittest.TestCase):
         ops = test_constants.TRACKED_OPS['ERROR']
         self.assertEqual(ops.err, 27403)
         self.assertEqual(ops.tim, 3034700189155)
+
+    def test_to_dict(self):
+        ops = test_constants.TRACKED_OPS['FETCH']
+        exec_id = 666
+        d = ops.to_dict(exec_id, test_constants.CURSOR)
+        self.assertTrue(isinstance(d, dict))
+        self.assertEqual(exec_id, d['exec_id'])
+        self.assertEqual(test_constants.CURSOR, d['cursor'])
+        self.assertEqual(ops.e, d['e'])
+        self.assertEqual(ops.r, d['r'])
+
 if __name__ == '__main__':
     unittest.main()
