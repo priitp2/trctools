@@ -49,10 +49,11 @@ class CurrentStatement:
         exec_id = self.dbs.get_exec_id()
         out = []
 
+
         for ops in self.ops.values():
             if ops:
                 if isinstance(ops, list):
-                    out += [o.to_list(exec_id, self.sql_id) for o in ops]
+                    out += ops
                 else:
-                    out += [ops.to_list(exec_id, self.sql_id)]
-        self.dbs.insert_ops(out)
+                    out.append(ops)
+        self.dbs.add_ops(exec_id, self.sql_id, out)
