@@ -73,6 +73,13 @@ class DB:
         else:
             self._table = tbl
         self._ops_list = []
+    def add_ops(self, exec_id, sql_id, ops):
+        self._ops_list += [o.to_list(exec_id, sql_id) for o in ops]
+        if len(self._ops_list) > BATCH_SIZE/100:
+            self._batch2table()
+        if self._row_count > BATCH_SIZE:
+            self.flush_batches()
+            self._row_count = 0
     def insert_single_ops(self, ops):
         '''Adds single ops.'''
         if len(ops) == 0:
