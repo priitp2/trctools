@@ -149,19 +149,20 @@ class SummaryDuckdb:
     def outliers(self, sql_id, thresold):
         res = d.sql(f"""select cursor_id "cursor",
                             exec_id,
-                            ops,
-                            elapsed_time ela,
-                            rows_processed "rows",
-                            event_name "event",
-                            file_name,
-                            line
+                            sum(elapsed_time) elapsed_time,
+                            sum(rows_processed) "rows processed",
+                            first(ts),
+                            first(file_name) file_name,
+                            first(line) "first line"
                         from
                             read_parquet('{self.dbdir}')
                         where
                             sql_id = '{sql_id}'
                             and exec_id in (select exec_id from elapsed_time where sql_id = '{sql_id}' and ela > {thresold})
-                            and ops not in ('BINDS')
-                        order by exec_id, ts
+                        group by
+                            cursor_id, exec_id
+                        having sum(elapsed_time) > {thresold}
+                        order by sum(elapsed_time) desc
                     """)
         print(res)
     def waits(self, sql_id):
