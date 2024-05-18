@@ -278,7 +278,8 @@ class SummaryDuckdb:
                         from ops_stats
                     """)
         print(res)
-        res = d.sql(f"""select ops, count(*) "count", sum(cpu_time), median(cpu_time), 
+        res = d.sql(f"""select case when ops = 'PIC' then 'PARSING IN CURSOR' else ops end "ops",
+                            count(*) "count", sum(cpu_time), median(cpu_time), 
                             sum(elapsed_time), median(elapsed_time),
                             case when ops = 'PIC' then 1 when ops = 'PARSE' then 2 when ops = 'EXEC' then 3
                             when ops = 'WAIT' then 4 when ops = 'FETCH' then 5 else 6 end dummy
