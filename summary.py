@@ -233,6 +233,63 @@ class SummaryDuckdb:
                         group by file_name order by count(*) desc
                     """)
         print(res)
+    def sql(self, sql_id):
+        res = d.sql(f"""create or replace view ops_stats as
+                            select sum(cpu_time) cpu,
+                                sum(elapsed_time) elapsed,
+                                sum(ph_reads) ph_reads,
+                                sum(cr_reads) cr_reads,
+                                sum(current_reads) current_reads,
+                                sum(rows_processed) rows_processed,
+                            from read_parquet('{self.dbdir}')
+                            where
+                                sql_id = '{sql_id}'
+                            group by exec_id
+                    """)
+        res = d.sql(f"""select 'cpu' "stats", sum(cpu) "sum", median(cpu) "median", 
+                            PERCENTILE_DISC(0.99) WITHIN GROUP( ORDER BY cpu) "99th percentile",
+                            max(cpu) "max"
+                        from ops_stats
+                        union all
+                        select 'elapsed', sum(elapsed) "sum", median(elapsed) "median",
+                            PERCENTILE_DISC(0.99) WITHIN GROUP( ORDER BY elapsed) "99th percentile",
+                            max(elapsed) "max"
+                        from ops_stats
+                        union all
+                        select 'physical_reads', sum(ph_reads) "sum", median(ph_reads) "median",
+                            PERCENTILE_DISC(0.99) WITHIN GROUP( ORDER BY ph_reads) "99th percentile",
+                            max(ph_reads) "max"
+                        from ops_stats
+                        union all
+                        select 'consistent_reads', sum(cr_reads) "sum", median(cr_reads) "median",
+                            PERCENTILE_DISC(0.99) WITHIN GROUP( ORDER BY cr_reads) "99th percentile",
+                            max(cr_reads) "max"
+                        from ops_stats
+                        union all
+                        select 'current_reads', sum(current_reads) "sum", median(current_reads) "median",
+                            PERCENTILE_DISC(0.99) WITHIN GROUP( ORDER BY current_reads) "99th percentile",
+                            max(current_reads) "max"
+                        from ops_stats
+                        union all
+                        select 'rows_processed', sum(rows_processed) "sum", median(rows_processed) "median",
+                            PERCENTILE_DISC(0.99) WITHIN GROUP( ORDER BY rows_processed) "99th percentile",
+                            max(rows_processed) "max"
+                        from ops_stats
+                    """)
+        print(res)
+        res = d.sql(f"""select ops, count(*) "count", sum(cpu_time), median(cpu_time), 
+                            sum(elapsed_time), median(elapsed_time),
+                            case when ops = 'PIC' then 1 when ops = 'PARSE' then 2 when ops = 'EXEC' then 3
+                            when ops = 'WAIT' then 4 when ops = 'FETCH' then 5 else 6 end dummy
+                        from read_parquet('{self.dbdir}')
+                        where
+                            sql_id = '{sql_id}'
+                            and ops in ('PIC', 'PARSE', 'EXEC', 'CLOSE', 'WAIT', 'FETCH', 'ERROR')
+                        group by ops
+                        order by dummy
+        """)
+        print(res)
+
 if __name__ == '__main__':
 
     filters = {}
@@ -280,6 +337,10 @@ if __name__ == '__main__':
     dbs_parser = subparsers.add_parser('db', help='Prints some statistics about the stuff in'
                         +'Parquet files and recorded trace files')
 
+    sql_parser = subparsers.add_parser('sql', help='Summary for specific sql_id ')
+    sql_parser.add_argument('--sql_id', type=str, dest='sql_id')
+
+
     args = parser.parse_args()
 
     s = SummaryDuckdb(args.dbdir + '/*')
@@ -302,3 +363,5 @@ if __name__ == '__main__':
         s.waits(args.sql_id)
     elif args.action == 'db':
         s.db()
+    elif args.action == 'sql':
+        s.sql(args.sql_id)
