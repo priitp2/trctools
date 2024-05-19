@@ -46,21 +46,18 @@ class Backend:
         self._exec_id += 1
         return self._exec_id
     def add_ops(self, exec_id, sql_id, ops):
-        dummy = ops[0].to_dict(exec_id, sql_id)
-        try:
-            if dummy[self.trace_id_name]:
-                self.id_gen.set_trace_id(int(dummy[self.trace_id_name]))
-            else:
-                return
-        except KeyError as ex:
-            print(f"received, exception, dummy = {dummy}")
-            raise ex
-        self.id_gen.set_span_id(dummy['exec_id'])
+        dops = [o.to_dict(exec_id, sql_id) for o in ops if o.op_type not in OTEL_IGNORED_OPS]
+        if len(dops) == 0:
+            return
+        trace_id = dops[0][self.trace_id_name]
+        cursor = dops[0]['cursor']
+        ts = dops[0]['ts']
+        self.id_gen.set_trace_id(int(trace_id))
+        self.id_gen.set_span_id(exec_id)
         tracer = trace.get_tracer(self.service, self.version)
-        sp = tracer.start_span(dummy['cursor'], start_time=int(dummy['ts'].timestamp()*1000000000))
+        sp = tracer.start_span(str(exec_id), start_time=int(ts.timestamp()*1000000000))
         last_ts = int()
-        for it in ops:
-            o = it.to_dict(exec_id, sql_id)
+        for o in dops:
             if 'ts' in o.keys():
                 ts = int(o['ts'].timestamp()*1000000000)
                 o['ts'] = ts
