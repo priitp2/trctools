@@ -274,11 +274,18 @@ class SummaryDuckdb:
                         from ops_stats
                     """)
         print(res)
-        res = d.sql(f"""select ops, cnt "count", sum_cpu "sum of cpu time", median_cpu "median cpu time",
-                        sum_ela "sum of elapsed time", median_ela "median elapsed time" from (
+        res = d.sql(f"""select ops, cnt "count", sum_cpu "sum(cpu)", median_cpu "median cpu",
+                            p99_cpu "p99 cpu", max_cpu "max cpu",
+                            sum_ela "sum(elapsed)", median_ela "median elapsed",
+                            p99_ela "p99 elapsed", max_ela "max elapsed"
+                        from (
                             select case when ops = 'PIC' then 'PARSING IN CURSOR' else ops end "ops",
                                 count(*) cnt, sum(cpu_time) sum_cpu, median(cpu_time) median_cpu, 
+                                PERCENTILE_DISC(0.99) WITHIN GROUP( ORDER BY cpu_time) p99_cpu,
+                                max(cpu_time) max_cpu,
                                 sum(elapsed_time) sum_ela, median(elapsed_time) median_ela,
+                                PERCENTILE_DISC(0.99) WITHIN GROUP( ORDER BY elapsed_time) p99_ela,
+                                max(elapsed_time) max_ela,
                                 case when ops = 'PIC' then 1 when ops = 'PARSE' then 2 when ops = 'EXEC' then 3
                                 when ops = 'WAIT' then 4 when ops = 'FETCH' then 5 else 6 end dummy
                             from read_parquet('{self.dbdir}')
