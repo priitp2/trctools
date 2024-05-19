@@ -9,6 +9,9 @@ from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
 from opentelemetry.sdk.resources import Resource
 
+otel_backend_name='trc2db'
+otel_backend_version='0.2'
+
 OTEL_IGNORED_OPS = ('STAR', 'HEADER')
 
 class OraId(IdGenerator):
@@ -29,10 +32,9 @@ class OraId(IdGenerator):
         #return super().generate_span_id()
 
 class Backend:
-    def __init__(self, trace_id_name, service, version):
+    def __init__(self, trace_id_name, service):
         self.trace_id_name = trace_id_name
         self.service = service
-        self.version = version
         self._exec_id = 0
         self.id_gen = OraId()
         self.resources = Resource(attributes={
@@ -54,7 +56,7 @@ class Backend:
         ts = dops[0]['ts']
         self.id_gen.set_trace_id(int(trace_id))
         self.id_gen.set_span_id(exec_id)
-        tracer = trace.get_tracer(self.service, self.version)
+        tracer = trace.get_tracer(otel_backend_name, otel_backend_version)
         sp = tracer.start_span(str(exec_id), start_time=int(ts.timestamp()*1000000000))
         last_ts = int()
         for o in dops:
