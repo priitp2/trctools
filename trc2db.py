@@ -5,8 +5,8 @@ import time
 import parser as trcparser
 from call_tracker import CallTracker
 
-__doc__ = "Turn Oracle SQL trace files into Parquet, or inserts them into a Oracle database,
-            or sends them to the OTEL-capable tracing aggregator."
+__doc__ = """Turn Oracle SQL trace files into Parquet, or inserts them into a Oracle database,
+            or sends them to the OTEL-capable tracing aggregator."""
 
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('trace_files', metavar='files', type=str, nargs='+',
