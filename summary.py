@@ -2,7 +2,6 @@
 
 import argparse
 import sys
-import datetime
 import duckdb as d
 from hdrh.histogram import HdrHistogram
 
@@ -12,16 +11,16 @@ def sqlid2pred(sql_id):
     ids = [f"'{s}'" for s in sql_id.split(',')]
     return f"sql_id in ({','.join(ids)})"
 
-def create_preds(filters):
+def create_preds(fis):
     preds = set()
-    if 'start' in filters:
-        preds.add(f"ts >= TIMESTAMP '{filters['start']}'")
-    if 'end' in filters:
-        preds.add(f"ts < TIMESTAMP '{filters['end']}'")
-    if 'client_id' in filters:
-        preds.add(f"client_id = '{filters['client_id']}'")
-    if 'sql_id' in filters:
-        preds.add(sqlid2pred(filters['sql_id']))
+    if 'start' in fis:
+        preds.add(f"ts >= TIMESTAMP '{fis['start']}'")
+    if 'end' in fis:
+        preds.add(f"ts < TIMESTAMP '{fis['end']}'")
+    if 'client_id' in fis:
+        preds.add(f"client_id = '{fis['client_id']}'")
+    if 'sql_id' in fis:
+        preds.add(sqlid2pred(fis['sql_id']))
 
     return ' and '.join(preds)
 
@@ -53,8 +52,8 @@ class SummaryDuckdb:
                 group by cursor_id, exec_id;
               """)
 
-    def summary(self, filters):
-        preds = create_preds(filters)
+    def summary(self, fis):
+        preds = create_preds(fis)
         filter_pred = f"""{'WHERE ' if preds else ''} {preds}"""
 
         query = f"""
@@ -146,11 +145,9 @@ class SummaryDuckdb:
             fname = f"elapsed_{sql_id}.out"
         with open(fname, 'wb') as f:
             resp_hist.output_percentile_distribution(f, 1.0)
-    def outliers(self, sql_id, thresold):
+    def outliers(self, sql_id, thresold, statistic='elapsed_time'):
         res = d.sql(f"""select cursor_id "cursor",
-                            exec_id,
-                            sum(elapsed_time) elapsed_time,
-                            sum(rows_processed) "rows processed",
+                            sum({statistic}) "{statistic}",
                             first(ts),
                             first(file_name) file_name,
                             first(line) "first line"
@@ -158,11 +155,10 @@ class SummaryDuckdb:
                             read_parquet('{self.dbdir}')
                         where
                             sql_id = '{sql_id}'
-                            and exec_id in (select exec_id from elapsed_time where sql_id = '{sql_id}' and ela > {thresold})
                         group by
                             cursor_id, exec_id
-                        having sum(elapsed_time) > {thresold}
-                        order by sum(elapsed_time) desc
+                        having sum({statistic}) > {thresold}
+                        order by sum({statistic}) desc
                     """)
         print(res)
     def waits(self, sql_id):
@@ -247,7 +243,7 @@ class SummaryDuckdb:
                                 sql_id = '{sql_id}'
                             group by exec_id
                     """)
-        res = d.sql(f"""select 'cpu' "stats", sum(cpu) "sum", median(cpu) "median", 
+        res = d.sql("""select 'cpu' "stats", sum(cpu) "sum", median(cpu) "median",
                             PERCENTILE_DISC(0.99) WITHIN GROUP( ORDER BY cpu) "99th percentile",
                             max(cpu) "max"
                         from ops_stats
@@ -330,6 +326,10 @@ if __name__ == '__main__':
                      help="Comma separated list of sql_id's for which outliers are displayed")
     out_parser.add_argument('--thresold', type=str, dest='thresold',
                      help="Outlier thresold in microseconds")
+    out_parser.add_argument('--statistic', type=str, dest='stat', default='elapsed_time',
+                     help="Parameter for which thresold is applied. More useful parameters are"
+                        +" elapsed_time, cpu, rows_processed, ph_reads, cr_reads, current_reads."
+                        +" For the full list see the schema definition in db/arrow.py")
 
     waits_parser = subparsers.add_parser('waits', help='Prints summary of the wait events for '
                     +'sql_id')
@@ -360,7 +360,7 @@ if __name__ == '__main__':
     elif args.action == 'outliers':
         if not args.sql_id:
             sys.exit('Error: sql_io is mandatory parameter')
-        s.outliers(args.sql_id, args.thresold)
+        s.outliers(args.sql_id, args.thresold, args.stat)
     elif args.action == 'waits':
         s.waits(args.sql_id)
     elif args.action == 'db':
