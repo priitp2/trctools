@@ -5,17 +5,24 @@ import time
 import parser as trcparser
 from call_tracker import CallTracker
 
-__doc__ = "Turn Oracle SQL trace files into Parquet, or put them into a Oracle database"
+__doc__ = "Turn Oracle SQL trace files into Parquet, or inserts them into a Oracle database,
+            or sends them to the OTEL-capable tracing aggregator."
 
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('trace_files', metavar='files', type=str, nargs='+',
                             help='Trace files to process')
 parser.add_argument('--db', type=str, default = 'parquet', dest='db',
-                    help="Persists raw data in the db, supported implementations: oracle, parquet")
+                    help="Persists raw data in the db, supported implementations: oracle, parquet, otel")
 parser.add_argument('--dbdir', type=str, default = './', dest='dbdir',
                     help="Directory for the parquet files")
 parser.add_argument('--db-file-prefix', type=str, default = 'parquet', dest='file_prefix',
                     help="Parquet file name prefix")
+parser.add_argument('--service-name', type=str, default = 'trctools', dest='service',
+                    help="Service name for the OTEL backend")
+parser.add_argument('--service-version', type=str, default = '0.1', dest='version',
+                    help="Version for the OTEL backend")
+parser.add_argument('--traceid-parameter', type=str, default = 'CLIENT ID', dest='traceid',
+                    help="Parameter that service uses to pass the trace_id to the database")
 parser.add_argument('--log-orphans', type=bool, default = False, dest='orphans',
                     help="Logs lines not matched by the parser")
 
@@ -29,6 +36,10 @@ elif args.db == 'parquet':
     print('Using database: arrow/parquet')
     from db.arrow import DB
     database = DB(args.dbdir, args.file_prefix)
+elif args.db == 'otel':
+    print('Using OTel exporter')
+    from db.otel import DB
+    database = DB(args.traceid, args.service, args.version)
 else:
     print('Using database: None')
     database = None
