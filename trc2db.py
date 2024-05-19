@@ -17,10 +17,6 @@ parser.add_argument('--dbdir', type=str, default = './', dest='dbdir',
                     help="Directory for the parquet files")
 parser.add_argument('--db-file-prefix', type=str, default = 'parquet', dest='file_prefix',
                     help="Parquet file name prefix")
-parser.add_argument('--service-name', type=str, default = 'trctools', dest='service',
-                    help="Service name for the OTEL backend")
-parser.add_argument('--service-version', type=str, default = '0.1', dest='version',
-                    help="Version for the OTEL backend")
 parser.add_argument('--traceid-parameter', type=str, default = 'CLIENT ID', dest='traceid',
                     help="Parameter that service uses to pass the trace_id to the database")
 parser.add_argument('--log-orphans', type=bool, default = False, dest='orphans',
@@ -39,7 +35,7 @@ elif args.db == 'parquet':
 elif args.db == 'otel':
     print('Using OTel exporter')
     from backend.otel import Backend
-    backend = Backend(args.traceid, args.service, args.version)
+    backend = Backend(args.traceid)
 else:
     print('Using database: None')
     backend = None
