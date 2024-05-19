@@ -29,23 +29,23 @@ parser.add_argument('--log-orphans', type=bool, default = False, dest='orphans',
 args = parser.parse_args()
 
 if args.db == 'oracle':
-    print('Using database: oracle')
-    from db.oracle import DB
-    database = DB()
+    print('Using backend: oracle')
+    from backend.oracle import Backend
+    backend = Backend()
 elif args.db == 'parquet':
-    print('Using database: arrow/parquet')
-    from db.arrow import DB
-    database = DB(args.dbdir, args.file_prefix)
+    print('Using backend: arrow/parquet')
+    from backend.arrow import Backend
+    backend = Backend(args.dbdir, args.file_prefix)
 elif args.db == 'otel':
     print('Using OTel exporter')
-    from db.otel import DB
-    database = DB(args.traceid, args.service, args.version)
+    from backend.otel import Backend
+    backend = Backend(args.traceid, args.service, args.version)
 else:
     print('Using database: None')
-    database = None
+    backend = None
 
 
-tracker = CallTracker(database)
+tracker = CallTracker(backend)
 
 no_files = len(args.trace_files)
 fcount = 1

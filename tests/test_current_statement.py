@@ -1,7 +1,7 @@
 import unittest
 from current_statement import CurrentStatement
 from ops import ops_factory 
-from tests.mock_db import DB
+from tests.mock_backend import Backend
 import tests.test_constants as test_constants
 
 FAKE_TIME_TRACKER = lambda x: None
@@ -13,7 +13,7 @@ class TestCurrentStatement(unittest.TestCase):
         with self.assertRaisesRegex(BaseException, 'dump_to_db: database not set!'):
             self.cstat.dump_to_db()
 
-        self.cstat.dbs = DB()
+        self.cstat.dbs = Backend()
         for ops in test_constants.TRACKED_OPS.values():
             self.cstat.add_ops(ops)
         self.cstat.dump_to_db()

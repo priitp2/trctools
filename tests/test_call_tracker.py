@@ -1,11 +1,11 @@
 import unittest
 from call_tracker import CallTracker
-from tests.mock_db import DB
+from tests.mock_backend import Backend
 import tests.test_constants as test_constants
 
 class TestCallTracker(unittest.TestCase):
     def setUp(self):
-        dbs = DB()
+        dbs = Backend()
         self.tracker = CallTracker(dbs)
     def test_add_cursor(self):
         self.tracker.add_pic(test_constants.CURSOR, test_constants.TRACKED_OPS['PIC'])

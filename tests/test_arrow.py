@@ -4,14 +4,14 @@ import duckdb as d
 import parser
 import datetime
 from datetime import tzinfo
-from db.arrow import DB
+from backend.arrow import Backend
 from call_tracker import CallTracker
 
 class TestArrow(unittest.TestCase):
     def test_lobs(self):
         """ Checks that we have correct number of rows in the parquet file."""
         with tempfile.TemporaryDirectory() as db_dir:
-            dbs = DB(db_dir, 'unittest')
+            dbs = Backend(db_dir, 'unittest')
             tracker = CallTracker(dbs)
             parser.process_file(tracker, 'tests/traces/lobs.trc')
             tracker.flush()
