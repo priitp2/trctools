@@ -274,17 +274,19 @@ class SummaryDuckdb:
                         from ops_stats
                     """)
         print(res)
-        res = d.sql(f"""select case when ops = 'PIC' then 'PARSING IN CURSOR' else ops end "ops",
-                            count(*) "count", sum(cpu_time), median(cpu_time), 
-                            sum(elapsed_time), median(elapsed_time),
-                            case when ops = 'PIC' then 1 when ops = 'PARSE' then 2 when ops = 'EXEC' then 3
-                            when ops = 'WAIT' then 4 when ops = 'FETCH' then 5 else 6 end dummy
-                        from read_parquet('{self.dbdir}')
-                        where
-                            sql_id = '{sql_id}'
-                            and ops in ('PIC', 'PARSE', 'EXEC', 'CLOSE', 'WAIT', 'FETCH', 'ERROR')
-                        group by ops
-                        order by dummy
+        res = d.sql(f"""select ops, cnt "count", sum_cpu "sum of cpu time", median_cpu "median cpu time",
+                        sum_ela "sum of elapsed time", median_ela "median elapsed time" from (
+                            select case when ops = 'PIC' then 'PARSING IN CURSOR' else ops end "ops",
+                                count(*) cnt, sum(cpu_time) sum_cpu, median(cpu_time) median_cpu, 
+                                sum(elapsed_time) sum_ela, median(elapsed_time) median_ela,
+                                case when ops = 'PIC' then 1 when ops = 'PARSE' then 2 when ops = 'EXEC' then 3
+                                when ops = 'WAIT' then 4 when ops = 'FETCH' then 5 else 6 end dummy
+                            from read_parquet('{self.dbdir}')
+                            where
+                                sql_id = '{sql_id}'
+                                and ops in ('PIC', 'PARSE', 'EXEC', 'CLOSE', 'WAIT', 'FETCH', 'ERROR')
+                            group by ops
+                            order by dummy)
         """)
         print(res)
 
