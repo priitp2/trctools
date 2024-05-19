@@ -8,10 +8,12 @@ from hdrh.histogram import HdrHistogram
 __doc__ = """Some examples what can be done with Oracle SQL tracec using Duckdb and Parquet."""
 
 def sqlid2pred(sql_id):
+    """Turns a list of sql_id's into IN expression"""
     ids = [f"'{s}'" for s in sql_id.split(',')]
     return f"sql_id in ({','.join(ids)})"
 
 def create_preds(fis):
+    """Turns parameters into SQL expressions."""
     preds = set()
     if 'start' in fis:
         preds.add(f"ts >= TIMESTAMP '{fis['start']}'")
@@ -53,6 +55,7 @@ class SummaryDuckdb:
               """)
 
     def summary(self, fis):
+        """Prints out list of SQL queries executed and some summary statistics."""
         preds = create_preds(fis)
         filter_pred = f"""{'WHERE ' if preds else ''} {preds}"""
 
@@ -99,6 +102,9 @@ class SummaryDuckdb:
         res = d.sql(query)
         print(res)
     def cursor_summary(self):
+        """Prints out list of cursors queries executed and some summary statistics. Difference
+            with method summary() is that not all of the PARSING IN CURSOR events might be in the
+            trace files, in that case we will miss the sql_id and cursor is all we have."""
         res = d.sql(f"""
 			SELECT
                             ela.cursor_id,
