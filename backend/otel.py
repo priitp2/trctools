@@ -32,13 +32,12 @@ class OraId(IdGenerator):
         #return super().generate_span_id()
 
 class Backend:
-    def __init__(self, trace_id_name, service):
+    def __init__(self, trace_id_name):
         self.trace_id_name = trace_id_name
-        self.service = service
         self._exec_id = 0
         self.id_gen = OraId()
         self.resources = Resource(attributes={
-            "service.name": "trc2db"
+            "service.name": otel_backend_name
         })
         self.provider = TracerProvider(resource=self.resources, id_generator=self.id_gen)
         self.processor = BatchSpanProcessor(OTLPSpanExporter())
