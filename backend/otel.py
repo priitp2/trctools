@@ -28,7 +28,7 @@ class OraId(IdGenerator):
         return self.trace_id
         #return super().generate_span_id()
 
-class DB:
+class Backend:
     def __init__(self, trace_id_name, service, version):
         self.trace_id_name = trace_id_name
         self.service = service

@@ -1,7 +1,7 @@
 import oracledb
 import sys
 
-class DB:
+class Backend:
     def __init__(self):
         self.connection = oracledb.connect(
             user="",

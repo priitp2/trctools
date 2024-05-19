@@ -1,13 +1,13 @@
 import unittest
 import parser as trcparser
 from call_tracker import CallTracker
-from tests.mock_db import DB
+from tests.mock_backend import Backend
 from datetime import timedelta
 from zoneinfo import ZoneInfo
 
 class TestParser(unittest.TestCase):
     def setUp(self):
-        dbs = DB()
+        dbs = Backend()
         self.tracker = CallTracker(dbs)
     def get_aggregates(self, batches, pos=None, ops=None):
         cpu = 0

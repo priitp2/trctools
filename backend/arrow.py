@@ -50,7 +50,7 @@ PARQUET_SCHEMA = pa.schema([
     ('error_code', pa.int16()), # Populated for the ERROR call
 ])
 
-class DB:
+class Backend:
     def __init__(self, dbdir, prefix):
         self.dbdir = dbdir
         self.prefix = prefix
