@@ -70,7 +70,7 @@ class Ops:
                 if i == 'tim':
                     out['ts'] = self.ts_callback(self.__dict__[i])
                 out[i] = self.__dict__[i]
-        return out | dict(self.fmeta)
+        return out | {k:v  for (k, v) in self.fmeta.items() if v }
     def __str__(self):
         return ''
 
