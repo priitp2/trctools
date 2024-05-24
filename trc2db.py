@@ -32,9 +32,9 @@ elif args.db == 'parquet':
     print('Using backend: arrow/parquet')
     from backend.arrow import Backend
     backend = Backend(args.dbdir, args.file_prefix)
-elif args.db == 'otel':
-    print('Using OTel exporter')
-    from backend.otel import Backend
+elif args.db == 'otlp':
+    print('Using OTLP exporter')
+    from backend.otlp import Backend
     backend = Backend(args.traceid)
 else:
     print('Using database: None')
