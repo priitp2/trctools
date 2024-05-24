@@ -1,6 +1,7 @@
 This repository contains scripts that process and analyze Oracle SQL trace output.
 
-`trc2db` turns Oracle SQL trace (also known as event 10046) files into Parquet, or loads it into Oracle database.
+`trc2db` processes Oracle SQL trace (also known as event 10046) files and turns them into queryable data. Possible
+backends are Parquet files, Oracle database, or anything that speaks OTLP.
 
 `summary.py` contains pre-canned queries and statistics about the generated Parquet file(s).
 
@@ -12,14 +13,25 @@ Scripts are tested with Python 3.11, but in principle it should work with older 
 $ git clone https://github.com/priitp2/trctools.git
 $ pip install -r requirements.txt
 ```
-If you do not intend to use Oracle as a backend, then `oracledb` can be omitted.
+If you do not intend to use Oracle as a backend, then `oracledb` can be omitted from `requirements.txt`.
 
+To add OTLP backend:
+```
+$ pip install -r requirements_otel.txt
+```
 
 # Usage
 
+To turn SQL trace into Parquet files:
 ```
 ./trc2db.py --dbdir /home/pripii/parquet trace0*/*
 ```
+
+To send traces to the OTLP compatible backend:
+```
+$ ./trc2db.py --db otlp --traceid-parameter 'CLIENT ID' two_statements_one_cursor.trc
+```
+
 # summary.py
 
 It contains some pre-canned examples of what can be done in Duckdb.
