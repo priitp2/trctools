@@ -29,7 +29,7 @@ To turn SQL trace into Parquet files:
 
 To send traces to the OTLP compatible backend:
 ```
-$ ./trc2db.py --db otlp --traceid-parameter 'CLIENT ID' two_statements_one_cursor.trc
+$ ./trc2db.py --db otlp --traceid-parameter 'CLIENT ID' tracefile.trc
 ```
 
 # summary.py
