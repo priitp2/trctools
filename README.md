@@ -17,7 +17,7 @@ If you do not intend to use Oracle as a backend, then `oracledb` can be omitted 
 
 To add OTLP backend:
 ```
-$ pip install -r requirements_otel.txt
+$ pip install -r requirements_otlp.txt
 ```
 
 # Usage
@@ -29,8 +29,17 @@ To turn SQL trace into Parquet files:
 
 To send traces to the OTLP compatible backend:
 ```
-$ ./trc2db.py --db otlp --traceid-parameter 'CLIENT ID' tracefile.trc
+$ ./trc2db.py --backend otlp --traceid-parameter 'CLIENT ID' tracefile.trc
 ```
+
+`--traceid-parameter` is something that database client passes to the database through [Connection.setClientInfo](https://docs.oracle.com/en%2Fjava%2Fjavase%2F21%2Fdocs%2Fapi%2F%2F/java.sql/java/sql/Connection.html#setClientInfo(java.lang.String,java.lang.String)) method, or using the package [DBMS_APPLICATION_INFO](https://docs.oracle.com/en/database/oracle/oracle-database/19/arpls/DBMS_APPLICATION_INFO.html#GUID-64A4766A-8037-4AF8-BD28-ACBF4A532BE6). Possible options are
+
+* MODULE
+* ACTION
+* CLIENT ID
+* ECID
+
+OTLP exporter is configured through [environment variables](https://opentelemetry-python.readthedocs.io/en/latest/exporter/otlp/otlp.html).
 
 # summary.py
 
