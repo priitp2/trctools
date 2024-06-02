@@ -11,8 +11,9 @@ __doc__ = """Turn Oracle SQL trace files into Parquet, or inserts them into a Or
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('trace_files', metavar='files', type=str, nargs='+',
                             help='Trace files to process')
-parser.add_argument('--db', type=str, default = 'parquet', dest='db',
-                    help="Persists raw data in the db, supported implementations: oracle, parquet, otel")
+parser.add_argument('--backend', type=str, default = 'parquet', dest='db',
+                    help="Persists raw data in the some kind of storage, supported"
+                    +" implementations: oracle, parquet, otlp")
 parser.add_argument('--dbdir', type=str, default = './', dest='dbdir',
                     help="Directory for the parquet files")
 parser.add_argument('--db-file-prefix', type=str, default = 'parquet', dest='file_prefix',
