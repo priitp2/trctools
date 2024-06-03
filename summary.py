@@ -30,7 +30,7 @@ class SummaryDuckdb:
     """ Initializes Duckdb with wiews and runs queries."""
     def __init__(self, dbdir):
         self.dbdir = dbdir
-        d.sql(f"""create or replace view elapsed_time as
+        d.sql(f"""create or replace view v_elapsed_time as
                 select sql_id,
                     exec_id,
                     max(tim) - min(tim) as ela,
@@ -78,7 +78,7 @@ class SummaryDuckdb:
                                     PERCENTILE_DISC(0.99) WITHIN GROUP( ORDER BY ela) p99,
                                     max(ela)    max
                                 FROM
-                                    elapsed_time
+                                    v_elapsed_time
                                 {filter_pred}
                                 GROUP BY
                                     sql_id
@@ -143,7 +143,7 @@ class SummaryDuckdb:
         print(res)
 
     def create_hdrh(self, sql_id, fname):
-        res = d.sql(f"select ela from elapsed_time where sql_id = '{sql_id}'").fetchall()
+        res = d.sql(f"select ela from v_elapsed_time where sql_id = '{sql_id}'").fetchall()
         resp_hist = HdrHistogram(1, 1000000000, 1)
         for ela in res:
             resp_hist.record_value(ela[0])
