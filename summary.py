@@ -167,10 +167,13 @@ class SummaryDuckdb:
                         order by sum({statistic}) desc
                     """)
         print(res)
-    def waits(self, sql_id):
+    def waits(self, sql_id, thresold):
         pred = ''
+        inner_where = ''
         if sql_id:
             pred = f"{sqlid2pred(sql_id)} and"
+        if thresold:
+            inner_where = f" WHERE exec_id in (select exec_id from v_elapsed_time where ela > {thresold})"
         res = d.sql(f"""
 			SELECT
                             event_name           wait,
@@ -191,6 +194,8 @@ class SummaryDuckdb:
                                 sql_id
                             FROM
                                 read_parquet ( '{self.dbdir}' )
+                            WHERE
+                            {inner_where}
                         )
                         WHERE {pred}
                             ops = 'WAIT'
@@ -350,6 +355,9 @@ if __name__ == '__main__':
                     +'sql_id')
     waits_parser.add_argument('--sql_id', type=str, dest='sql_id',
                      help="Comma separated list of sql_id's for which waits are displayed")
+    waits_parser.add_argument('--thresold', type=str, dest='thresold',
+                     help="Outlier thresold in microseconds. Minimum query response time from "
+                        +"which the wait events are included")
 
     dbs_parser = subparsers.add_parser('db', help='Prints some statistics about the stuff in'
                         +'Parquet files and recorded trace files')
@@ -377,7 +385,7 @@ if __name__ == '__main__':
             sys.exit('Error: sql_io is mandatory parameter')
         s.outliers(args.sql_id, args.thresold, args.stat)
     elif args.action == 'waits':
-        s.waits(args.sql_id)
+        s.waits(args.sql_id, args.thresold)
     elif args.action == 'db':
         s.db()
     elif args.action == 'sql':
