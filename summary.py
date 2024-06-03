@@ -171,9 +171,9 @@ class SummaryDuckdb:
         pred = ''
         inner_where = ''
         if sql_id:
-            pred = f"{sqlid2pred(sql_id)} and"
+            pred = f"AND {sqlid2pred(sql_id)}"
         if thresold:
-            inner_where = f" WHERE exec_id in (select exec_id from v_elapsed_time where ela > {thresold})"
+            inner_where = f" AND exec_id in (select exec_id from v_elapsed_time where ela > {thresold})"
         res = d.sql(f"""
 			SELECT
                             event_name           wait,
@@ -195,10 +195,10 @@ class SummaryDuckdb:
                             FROM
                                 read_parquet ( '{self.dbdir}' )
                             WHERE
-                            {inner_where}
+                                ops = 'WAIT'
+                                {pred}
+                                {inner_where}
                         )
-                        WHERE {pred}
-                            ops = 'WAIT'
                         GROUP BY
                             event_name
                         ORDER BY
