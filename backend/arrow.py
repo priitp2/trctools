@@ -5,6 +5,7 @@ __doc__ = ''' Adapter for pyarrow: turns stuff into Parquet files.'''
 # How many rows are bufferd and flushed to the disk in one file. Bigger number means
 # larger memory usage and less parquet files
 BATCH_SIZE = 10000000
+PARQUET_SCHEMA_VERSION = '0.2'
 
 PARQUET_SCHEMA = pa.schema([
     ('exec_id', pa.int64()),
@@ -73,6 +74,17 @@ class Backend:
         else:
             self._table = tbl
         self._ops_list = []
+    def _inject_schema_version(self):
+        '''Adds Parquet schema version record to the generated file.'''
+        schema_record = [[self.get_exec_id()], [None], [None], ['HEADER'], [None], [None], [None],
+                         [None], [None], [None], [None], [None], [None], [None], [None], [None],
+                         ['PARQUET_SCHEMA'], [PARQUET_SCHEMA_VERSION], [None], [None], [None],
+                         [None], [None], [None], [None], [None], [None], [None], [None], [None],
+                         [None], [None], [None], [None], [None], [None], [None], [None]]
+        #a = pa.array(zip(*schema_record))
+        tbl = pa.Table.from_arrays(schema_record, schema = PARQUET_SCHEMA)
+        if self._table:
+            self._table = pa.concat_tables([self._table, tbl])
     def add_ops(self, exec_id, sql_id, ops):
         ''' Adds list of ops to the batch. Checks the size of the _ops_list and _table and
             triggers flush if needed.'''
@@ -84,6 +96,7 @@ class Backend:
             self._row_count = 0
     def flush_batches(self):
         '''Flushes everything to the disk.'''
+        self._inject_schema_version()
         pq.write_table(self._table, f'{self.dbdir}/{self.prefix}.{self._flush_count}',
                         compression='gzip')
         self._table = None

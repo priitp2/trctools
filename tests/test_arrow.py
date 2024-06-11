@@ -1,10 +1,9 @@
 import tempfile
 import unittest
-import duckdb as d
 import parser
 import datetime
-from datetime import tzinfo
-from backend.arrow import Backend
+import duckdb as d
+from backend.arrow import Backend, PARQUET_SCHEMA_VERSION
 from call_tracker import CallTracker
 
 class TestArrow(unittest.TestCase):
@@ -23,10 +22,10 @@ class TestArrow(unittest.TestCase):
             self.assertEqual(res.fetchone()[0], 26)
 
             res = d.sql(f"select count(*) from read_parquet('{db_dir}/*');")
-            self.assertEqual(res.fetchone()[0], 58)
+            self.assertEqual(res.fetchone()[0], 59)
 
             res = d.sql(f"select count(*) from read_parquet('{db_dir}/*') where ts is null;")
-            self.assertEqual(res.fetchone()[0], 11)
+            self.assertEqual(res.fetchone()[0], 12)
 
             res = d.sql(f"select ts from read_parquet('{db_dir}/*') where ops = 'STAR' "
                             +"and event_name = 'CLIENT DRIVER';")
@@ -37,5 +36,16 @@ class TestArrow(unittest.TestCase):
             res = d.sql(f"select count(*) from read_parquet('{db_dir}/*') where ops = 'WAIT' "
                         "and service_name = 'xxx_stg';")
             self.assertEqual(res.fetchone()[0], 26)
+    def test_schema_version(self):
+        """Checks if generated parquet file has a schema version record"""
+        with tempfile.TemporaryDirectory() as db_dir:
+            dbs = Backend(db_dir, 'unittest')
+            tracker = CallTracker(dbs)
+            parser.process_file(tracker, 'tests/traces/lobs.trc')
+            tracker.flush()
+
+            res = d.sql(f"select event_raw from read_parquet('{db_dir}/*') "
+                        +"where ops = 'HEADER' and event_name = 'PARQUET_SCHEMA';")
+            self.assertEqual(res.fetchone()[0], PARQUET_SCHEMA_VERSION)
 if __name__ == '__main__':
     unittest.main()
