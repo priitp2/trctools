@@ -1,10 +1,10 @@
 import tempfile
 import unittest
-import parser
 import datetime
 import duckdb as d
 from backend.arrow import Backend, PARQUET_SCHEMA_VERSION
 from call_tracker import CallTracker
+import trcparser
 
 class TestArrow(unittest.TestCase):
     def test_lobs(self):
@@ -12,7 +12,7 @@ class TestArrow(unittest.TestCase):
         with tempfile.TemporaryDirectory() as db_dir:
             dbs = Backend(db_dir, 'unittest')
             tracker = CallTracker(dbs)
-            parser.process_file(tracker, 'tests/traces/lobs.trc')
+            trcparser.process_file(tracker, 'tests/traces/lobs.trc')
             tracker.flush()
 
             res = d.sql(f"select count(*) from read_parquet('{db_dir}/*') where ops like 'LOB%';")
@@ -41,7 +41,7 @@ class TestArrow(unittest.TestCase):
         with tempfile.TemporaryDirectory() as db_dir:
             dbs = Backend(db_dir, 'unittest')
             tracker = CallTracker(dbs)
-            parser.process_file(tracker, 'tests/traces/lobs.trc')
+            trcparser.process_file(tracker, 'tests/traces/lobs.trc')
             tracker.flush()
 
             res = d.sql(f"select event_raw from read_parquet('{db_dir}/*') "

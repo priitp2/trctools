@@ -1,5 +1,5 @@
 import unittest
-import parser as trcparser
+import trcparser
 from call_tracker import CallTracker
 from tests.mock_backend import Backend
 from datetime import timedelta
