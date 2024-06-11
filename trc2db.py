@@ -2,7 +2,7 @@
 
 import argparse
 import time
-import parser as trcparser
+import trcparser
 from call_tracker import CallTracker
 
 __doc__ = """Turn Oracle SQL trace files into Parquet, or inserts them into a Oracle database,
