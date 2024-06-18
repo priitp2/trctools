@@ -43,20 +43,20 @@ def get_timestamp(instr):
 
 def get_opener(fname):
     """Tries to guess the file type and returns corresponding open function."""
-    kind = filetype.guess(fname)
-    if kind is None:
-        # Filetype does not recognize legacy lzma?
-        if fnmatch.fnmatch(fname, '*.lzma'):
+    match filetype.guess(fname):
+        case None if fnmatch.fnmatch(fname, '*.lzma'):
+            # Filetype does not recognize legacy lzma?
             return lzma.open
-        return open
-    if kind.mime == 'application/gzip':
-        return gzip.open
-    if kind.mime == 'application/x-bzip2':
-        return bz2.open
-    if kind.mime == 'application/x-xz':
-        return lzma.open
-
-    raise RuntimeError(f"Unsupported file type {kind}")
+        case None:
+            return open
+        case ft if ft.mime == 'application/gzip':
+            return gzip.open
+        case ft if ft.mime == 'application/x-bzip2':
+            return bz2.open
+        case ft if ft.mime == 'application/x-xz':
+            return lzma.open
+        case other_type :
+            raise RuntimeError(f"Unsupported file type {other_type}")
 
 def process_file(tracker, fname, orphans=False):
     """The god function. Does everything: reads the input file and parses the lines. """
