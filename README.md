@@ -27,6 +27,8 @@ To turn SQL trace into Parquet files:
 ./trc2db.py --dbdir /home/pripii/parquet trace0*/*
 ```
 
+Trace files can be compressed either with gzip, bzip2 or xz(lzma). Archive files like tar and zip are not supported at the moment.
+
 To send traces to the OTLP compatible backend:
 ```
 $ ./trc2db.py --backend otlp --traceid-parameter 'CLIENT ID' tracefile.trc

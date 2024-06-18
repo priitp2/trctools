@@ -4,6 +4,7 @@ pyarrow
 oracledb
 tzdata
 oracledb
+filetype
 
 # Additional packages for summary.py
 duckdb

@@ -32,6 +32,16 @@ class TestTrc2db(unittest.TestCase):
             pfile = f"{db_dir}/{args.file_prefix}.0"
             res = d.sql(f"select count(*) from read_parquet('{pfile}');")
             self.assertEqual(res.fetchone()[0], 59)
+    def test_process_comp_file(self):
+        with tempfile.TemporaryDirectory() as db_dir:
+            args = DummyArgs(dbdir=db_dir, trace_files=('tests/traces/two_statements_one_cursor.trc.gz',
+                'tests/traces/mixed_execs.trc.bz2', 'tests/traces/lobread.trc.xz'))
+            trc2db.process_files(args)
+            pfile = f"{db_dir}/{args.file_prefix}.0"
+            res = d.sql(f"select count(*) from read_parquet('{pfile}');")
+            self.assertEqual(res.fetchone()[0], 214)
 
+            res = d.sql(f"select count(distinct file_name) from read_parquet('{pfile}');")
+            self.assertEqual(res.fetchone()[0], 3)
 if __name__ == '__main__':
     unittest.main()
