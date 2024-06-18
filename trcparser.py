@@ -6,6 +6,7 @@ import filetype
 import gzip
 import bz2
 import lzma
+import fnmatch
 
 from ops import ops_factory
 
@@ -42,6 +43,9 @@ def get_timestamp(instr):
 def get_opener(fname):
     kind = filetype.guess(fname)
     if kind == None:
+        # Filetype does not recognize legacy lzma?
+        if fnmatch.fnmatch(fname, '*.lzma'):
+            return lzma.open
         return open
     elif kind.mime == 'application/gzip':
         return gzip.open
