@@ -1,12 +1,13 @@
+
+import bz2
 import collections
 import datetime
+import fnmatch
+import gzip
+import lzma
 import re
 from zoneinfo import ZoneInfo
 import filetype
-import gzip
-import bz2
-import lzma
-import fnmatch
 
 from ops import ops_factory
 
@@ -41,20 +42,21 @@ def get_timestamp(instr):
     return datetime.datetime.strptime(instr, date_format).astimezone(tz=ZoneInfo('UTC'))
 
 def get_opener(fname):
+    """Tries to guess the file type and returns corresponding open function."""
     kind = filetype.guess(fname)
-    if kind == None:
+    if kind is None:
         # Filetype does not recognize legacy lzma?
         if fnmatch.fnmatch(fname, '*.lzma'):
             return lzma.open
         return open
-    elif kind.mime == 'application/gzip':
+    if kind.mime == 'application/gzip':
         return gzip.open
-    elif kind.mime == 'application/x-bzip2':
+    if kind.mime == 'application/x-bzip2':
         return bz2.open
-    elif kind.mime == 'application/x-xz':
+    if kind.mime == 'application/x-xz':
         return lzma.open
-    else:
-        raise RuntimeError(f"Unsupported file type {kind}")
+
+    raise RuntimeError(f"Unsupported file type {kind}")
 
 def process_file(tracker, fname, orphans=False):
     """The god function. Does everything: reads the input file and parses the lines. """
