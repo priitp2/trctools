@@ -2,6 +2,10 @@ import collections
 import datetime
 import re
 from zoneinfo import ZoneInfo
+import filetype
+import gzip
+import bz2
+import lzma
 
 from ops import ops_factory
 
@@ -35,6 +39,19 @@ def get_timestamp(instr):
         date_format = '%Y-%m-%dT%H:%M:%S.%f'
     return datetime.datetime.strptime(instr, date_format).astimezone(tz=ZoneInfo('UTC'))
 
+def get_opener(fname):
+    kind = filetype.guess(fname)
+    if kind == None:
+        return open
+    elif kind.mime == 'application/gzip':
+        return gzip.open
+    elif kind.mime == 'application/x-bzip2':
+        return bz2.open
+    elif kind.mime == 'application/x-xz':
+        return lzma.open
+    else:
+        raise RuntimeError(f"Unsupported file type {kind}")
+
 def process_file(tracker, fname, orphans=False):
     """The god function. Does everything: reads the input file and parses the lines. """
 
@@ -47,7 +64,8 @@ def process_file(tracker, fname, orphans=False):
     file_meta['FILE_NAME'] = fname
     file_meta['LINE_COUNT'] = 0
 
-    with open(fname, 'r', encoding='utf_8') as trace:
+    opener = get_opener(fname)
+    with opener(fname, 'rt', encoding='utf_8') as trace:
         for line in trace:
             file_meta['LINE_COUNT'] += 1
 
