@@ -97,7 +97,7 @@ class SummaryDuckdb:
                                     sql_id
                         ) dbc ON ( ela.sql_id = dbc.sql_id )
                         ORDER BY
-                        ela.execs;
+                        ela.execs desc;
                     """
         res = d.sql(query)
         print(res)
