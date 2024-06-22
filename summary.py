@@ -188,6 +188,7 @@ class SummaryDuckdb:
             inner_where = f" AND exec_id in (select exec_id from v_elapsed_time where ela > {thresold})"
         res = d.sql(f"""
 			SELECT
+                            row_number() over(order by count(event_name) asc),
                             event_name           wait,
                             COUNT(*)             count,
                             SUM(elapsed_time)    sum,
@@ -215,8 +216,11 @@ class SummaryDuckdb:
                             event_name
                         ORDER BY
                             COUNT(*) DESC
+                        LIMIT {self.tabsize};
                     """)
-        print(res)
+        table = tabulate.tabulate(res.fetchall(), tablefmt=self.tabtype,
+                headers=['#', 'wait', 'count', 'sum(us)', 'median(us)', 'p99(us)', 'max(us)'])
+        print(table)
     def wait_histogram(self, wait_name, fname):
         res = d.sql(f"""select elapsed_time
                         from
