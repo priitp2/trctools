@@ -159,10 +159,12 @@ class SummaryDuckdb:
         with open(fname, 'wb') as f:
             resp_hist.output_percentile_distribution(f, 1.0)
     def outliers(self, sql_id, thresold, statistic='elapsed_time'):
-        res = d.sql(f"""select cursor_id "cursor",
+        res = d.sql(f"""select
+                            row_number() over(order by sum({statistic}) asc),
+                            cursor_id "cursor",
                             sum({statistic}) "{statistic}",
                             first(ts),
-                            first(file_name) file_name,
+                            case when length(first(file_name)) > 30 then '<...>'||substr(first(file_name), length(first(file_name)) -35, 40) else first(file_name) end file_name,
                             first(line) "first line"
                         from
                             read_parquet('{self.dbdir}')
@@ -172,8 +174,11 @@ class SummaryDuckdb:
                             cursor_id, exec_id
                         having sum({statistic}) > {thresold}
                         order by sum({statistic}) desc
+                        LIMIT {self.tabsize};
                     """)
-        print(res)
+        table = tabulate.tabulate(res.fetchall(), tablefmt=self.tabtype,
+                headers=['#', 'cursor', statistic, 'timestamp', 'filename', 'first line#'])
+        print(table)
     def waits(self, sql_id, thresold):
         pred = ''
         inner_where = ''
