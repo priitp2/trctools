@@ -246,17 +246,25 @@ class SummaryDuckdb:
                             last(ts order by ts) filter(ts is not null) "last timestamp"
                         from read_parquet('{self.dbdir}')
                     """)
-        print(res)
+        table = tabulate.tabulate(res.fetchall(), tablefmt=self.tabtype,
+                headers=['rows', 'files', "sql_id's", 'cursors', 'first_timestamp', 'last_timestamp'])
+        print(table)
 
-        res = d.sql(f"""select file_name, count(*) "rows",
+        res = d.sql(f"""select
+                            row_number() over(order by count(*) asc),
+                             case when length(first(file_name)) > 30 then '<...>'||substr(first(file_name), length(first(file_name)) -20, 40) else first(file_name) end file_name,
+                            count(*) "rows",
                             date_trunc('second', min(ts)) "first timestamp",
                             date_trunc('second', max(ts)) "last timestamp",
                             date_trunc('second', max(ts)) - date_trunc('second', min(ts)) "wallclock time in file",
                             cast(round((max(tim) - min(tim))/1000000) as integer) "elapsed(s)" 
                         from read_parquet('{self.dbdir}')
                         group by file_name order by count(*) desc
+                        LIMIT {self.tabsize};
                     """)
-        print(res)
+        table = tabulate.tabulate(res.fetchall(), tablefmt=self.tabtype,
+                headers=['#', 'file_name', 'rows', 'first_timestamp', 'last_timestamp', 'wallclock time in file', 'elapsed(s)'])
+        print(table)
     def sql(self, sql_id):
         res = d.sql(f"""create or replace view ops_stats as
                             select sum(cpu_time) cpu,
@@ -300,7 +308,9 @@ class SummaryDuckdb:
                             max(rows_processed) "max"
                         from ops_stats
                     """)
-        print(res)
+        table = tabulate.tabulate(res.fetchall(), tablefmt=self.tabtype,
+                headers=['statistic', 'sum', 'median(us)', 'p99(us)', 'max(us)'])
+        print(table)
 
         res = d.sql(f"""select ops, cnt "count", sum_cpu "sum(cpu)", median_cpu "median cpu",
                             p99_cpu "p99 cpu", max_cpu "max cpu",
@@ -323,7 +333,11 @@ class SummaryDuckdb:
                             group by ops
                             order by dummy)
         """)
-        print(res)
+        table = tabulate.tabulate(res.fetchall(), tablefmt=self.tabtype,
+                headers=['operation', 'count', 'sum of cpu(us)', 'median cpu(us)', 'p99 cpu(us)',
+                            'max cpu(us)', 'sum of elapsed(us)', 'median elapsed(us)',
+                            'p99 elapsed(us)', 'max elapsed(us)'])
+        print(table)
 
 if __name__ == '__main__':
 
