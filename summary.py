@@ -4,6 +4,7 @@ import argparse
 import sys
 import duckdb as d
 from hdrh.histogram import HdrHistogram
+import tabulate
 
 __doc__ = """Some examples what can be done with Oracle SQL tracec using Duckdb and Parquet."""
 
@@ -28,8 +29,10 @@ def create_preds(fis):
 
 class SummaryDuckdb:
     """ Initializes Duckdb with wiews and runs queries."""
-    def __init__(self, dbdir):
+    def __init__(self, dbdir, tabtype, tabsize):
         self.dbdir = dbdir
+        self.tabtype = tabtype
+        self.tabsize = tabsize
         d.sql(f"""create or replace view v_elapsed_time as
                 select sql_id,
                     exec_id,
@@ -61,8 +64,9 @@ class SummaryDuckdb:
 
         query = f"""
 			SELECT
-                            ela.sql_id,
-                            dbc.sql_text,
+                            row_number() over(order by ela.execs asc),
+                            coalesce(ela.sql_id, 'NULL'),
+                            coalesce(substring(dbc.sql_text, 0, 30), 'NULL'),
                             ela.execs,
                             ela.total,
                             ela.median,
@@ -97,10 +101,13 @@ class SummaryDuckdb:
                                     sql_id
                         ) dbc ON ( ela.sql_id = dbc.sql_id )
                         ORDER BY
-                        ela.execs desc;
+                        ela.execs desc
+                        LIMIT {self.tabsize};
                     """
         res = d.sql(query)
-        print(res)
+        table = tabulate.tabulate(res.fetchall(), tablefmt=self.tabtype,
+                headers=['#', 'sql_id', 'sql_text', 'executions', 'total(us)', 'median(us)', 'p99(us)', 'max(us)'])
+        print(table)
     def cursor_summary(self):
         """Prints out list of cursors queries executed and some summary statistics. Difference
             with method summary() is that not all of the PARSING IN CURSOR events might be in the
@@ -285,6 +292,7 @@ class SummaryDuckdb:
                         from ops_stats
                     """)
         print(res)
+
         res = d.sql(f"""select ops, cnt "count", sum_cpu "sum(cpu)", median_cpu "median cpu",
                             p99_cpu "p99 cpu", max_cpu "max cpu",
                             sum_ela "sum(elapsed)", median_ela "median elapsed",
@@ -317,6 +325,14 @@ if __name__ == '__main__':
 
     parser.add_argument('--dbdir', metavar='dbdir', type=str, required=True,
                                     help='Directory for Parquet files')
+    parser.add_argument('--table-type', metavar='tabtype', type=str, required=False,
+                                default='fancy_outline',
+                                help="Which kind of table to generate. For example, 'jira'"
+                                +" will generate table that can be copied into the trouble"
+                                + " ticket. See the documentation for tabulate. Default:"
+                                +" 'fancy_outline'")
+    parser.add_argument('--table-size', metavar='tabsize', type=int, required=False,
+                                default=30, help='Number of rows in the table. Default is 30')
 
     summary_parser = subparsers.add_parser('summary', help='Generates summary of the executed SQL '
                         +'statements, execution counts, median and p99 execution times')
@@ -368,7 +384,7 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    s = SummaryDuckdb(args.dbdir + '/*')
+    s = SummaryDuckdb(args.dbdir + '/*', args.table_type, args.table_size)
 
     if args.action == 'summary':
         s.summary(filters)
