@@ -83,8 +83,7 @@ def process_file(tracker, fname, orphans=False):
             if len(line) < 2:
                 continue
 
-            match = CALL_MATCHER.match(line)
-            if match:
+            if (match := CALL_MATCHER.match(line)) is not None:
                 if in_binds:
                     in_binds = False
                     binds = None
@@ -111,36 +110,31 @@ def process_file(tracker, fname, orphans=False):
                 continue
 
             if in_pic:
-                match = PIC_MATCHER.match(line)
-                if match:
+                if (match := PIC_MATCHER.match(line)) is not None:
                     in_pic = False
                     pic = None
                 else:
                     pic.raw.append(line)
                 continue
 
-            match = LOB_MATCHER.match(line)
-            if match:
+            if (match := LOB_MATCHER.match(line)) is not None:
                 ops = ops_factory(match.group(1), None, match.group(2), file_meta,
                                     tracker.time_tracker.get_wc)
                 tracker.db.add_ops(tracker.db.get_exec_id(), None, [ops])
                 continue
 
-            match = XCTEND_MATCHER.match(line)
-            if match:
+            if (match := XCTEND_MATCHER.match(line)) is not None:
                 ops = ops_factory('XCTEND', None, match.group(1), file_meta,
                                     tracker.time_tracker.get_wc)
                 tracker.db.add_ops(tracker.db.get_exec_id(), None, [ops])
                 continue
 
             # FIXME: make this configurable
-            match = RES_MATCHER.match(line)
-            if match:
+            if (match := RES_MATCHER.match(line)) is not None:
                 tracker.reset()
                 continue
 
-            match = DATE_MATCHER.match(line)
-            if match:
+            if (match := DATE_MATCHER.match(line)) is not None:
                 ts2 = get_timestamp(match.group(1))
                 tracker.time_tracker.reset(ts2)
                 ops = ops_factory('STAR', None, None, file_meta, lambda x: None,
@@ -148,8 +142,7 @@ def process_file(tracker, fname, orphans=False):
                 tracker.db.add_ops(tracker.db.get_exec_id(), None, [ops])
                 continue
 
-            match = STARS_MATCHER.match(line)
-            if match:
+            if (match := STARS_MATCHER.match(line)) is not None:
                 ts2 = get_timestamp(match.group(3))
                 name = match.group(1).strip(':')
                 value = match.group(2).strip('()')
@@ -159,8 +152,7 @@ def process_file(tracker, fname, orphans=False):
                 tracker.db.add_ops(tracker.db.get_exec_id(), None, [star])
                 continue
 
-            match = FILE_HEADER_MATCHER.match(line)
-            if match:
+            if (match := FILE_HEADER_MATCHER.match(line)) is not None:
                 header = ops_factory('HEADER', None, match.group(2), file_meta,
                                         lambda x: None, match.group(1), None)
                 tracker.db.add_ops(tracker.db.get_exec_id(), None, [header])
