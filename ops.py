@@ -11,25 +11,28 @@ def ops_factory(op_type, cursor, params, fmeta, ts_callback, name=None, ts2=None
     """
         Factory method for operations.
     """
-    if op_type == 'WAIT':
-        return Wait(op_type, cursor, params, fmeta, ts_callback)
-    if op_type == 'STAT':
-        return Stat(op_type, cursor, params, fmeta, ts_callback)
-    if op_type == 'BINDS':
-        return Binds(op_type, cursor, params, fmeta, ts_callback)
-    if op_type in ('STAR', 'HEADER'):
-        return Meta(op_type, cursor, params, fmeta, name, ts2)
-    if op_type == 'XCTEND':
-        return Xctend(op_type, cursor, params, fmeta, ts_callback)
-    if op_type == 'PIC':
-        return Pic(op_type, cursor, params, fmeta, ts_callback)
-    if op_type.startswith('LOB'):
-        return Lob(op_type, cursor, params, fmeta, ts_callback)
-    if op_type in ('PARSE', 'EXEC', 'CLOSE', 'FETCH'):
-        return Exec(op_type, cursor, params, fmeta, ts_callback)
-    if op_type == 'ERROR':
-        return Error(op_type, cursor, params, fmeta, ts_callback)
-    raise AttributeError(f"Wrong op_type: {op_type}")
+    match op_type:
+        case 'WAIT':
+            (ops := Wait(op_type, cursor, params, fmeta, ts_callback))
+        case 'STAT':
+            (ops := Stat(op_type, cursor, params, fmeta, ts_callback))
+        case 'BINDS':
+            (ops := Binds(op_type, cursor, params, fmeta, ts_callback))
+        case 'STAR' | 'HEADER':
+            (ops := Meta(op_type, cursor, params, fmeta, name, ts2))
+        case 'XCTEND':
+            (ops := Xctend(op_type, cursor, params, fmeta, ts_callback))
+        case 'PIC':
+            (ops := Pic(op_type, cursor, params, fmeta, ts_callback))
+        case 'PARSE' | 'EXEC' | 'CLOSE' | 'FETCH':
+            (ops := Exec(op_type, cursor, params, fmeta, ts_callback))
+        case 'ERROR':
+            (ops := Error(op_type, cursor, params, fmeta, ts_callback))
+        case _ if op_type.startswith('LOB'):
+            (ops := Lob(op_type, cursor, params, fmeta, ts_callback))
+        case _:
+            raise AttributeError(f"Wrong op_type: {op_type}")
+    return ops
 
 class Ops:
     """
