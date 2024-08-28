@@ -35,15 +35,15 @@ class TestOps(unittest.TestCase):
 
     def test_init_wait(self):
         ops = test_constants.TRACKED_OPS['WAIT']
-        self.assertEqual(ops.op_type, 'WAIT')
-        self.assertEqual(ops.cursor, test_constants.CURSOR)
-        self.assertEqual(ops.e, 403)
-        self.assertEqual(ops.tim, 5793512314261)
-        self.assertEqual(ops.name, 'db file sequential read')
+        self.assertEqual(ops.dbop.op_type, 'WAIT')
+        self.assertEqual(ops.dbop.cursor, test_constants.CURSOR)
+        self.assertEqual(ops.dbop.e, 403)
+        self.assertEqual(ops.dbop.tim, 5793512314261)
+        self.assertEqual(ops.dbop.name, 'db file sequential read')
 
         # Missing attribute, not in __slots__
         with self.assertRaises(AttributeError):
-            self.assertEqual(ops.og, 1)
+            self.assertEqual(ops.doesnotexist, 1)
 
     def test_to_list(self):
         sql_id = 'abc123'
