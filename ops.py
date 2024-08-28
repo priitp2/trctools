@@ -1,3 +1,5 @@
+from dataclasses import dataclass, astuple, fields
+import datetime
 import re
 
 __doc__ = """
@@ -35,31 +37,84 @@ def ops_factory(op_type, cursor, params, fmeta, ts_callback, name=None, ts2=None
             raise AttributeError(f"Wrong op_type: {op_type}")
     return ops
 
+@dataclass(init=False, kw_only=True)
+class DatabaseOp:
+    exec_id: int = None
+    sql_id: str = None
+    cursor: str = None
+    op_type: str = None
+    c: int = None
+    e: int = None
+    p: int = None
+    cr: int = None
+    cu: int = None
+    mis: int = None
+    r: int = None
+    dep: int = None
+    og: int = None
+    plh: int = None
+    tim: int = None
+    type: int = None
+    name: str = None
+    raw: str = None
+    fname: str = None
+    line: int = None
+    ts: datetime.datetime = None
+    len: int = None
+    uid: int = None
+    oct: int = None
+    lid: int = None
+    hv: int = None
+    ad: str = None
+    rlbk: str = None
+    rd_only: int = None
+    lobtype: str = None
+    bytes: int = None
+    sid: str = None
+    client_id: str = None
+    service_name: str = None
+    module: str = None
+    action: str = None
+    container_id: int = None
+    err: int = None
+
 class Ops:
     """
         Base class for various operations.
     """
     def __init__(self, op_type, cursor, fmeta, ts_callback):
+        self.dbop = DatabaseOp()
         self.op_type = op_type
+        self.dbop.op_type = op_type
         self.cursor = cursor
+        self.dbop.cursor = cursor
+        self.dbop.fname = fmeta['FILE_NAME']
         self.fname = fmeta['FILE_NAME']
+        self.dbop.line = fmeta['LINE_COUNT']
         self.line = fmeta['LINE_COUNT']
+        self.dbop.sid = fmeta['SID']
+        self.dbop.client_id = fmeta['CLIENT ID']
+        self.dbop.service_name = fmeta['SERVICE NAME']
+        self.dbop.module = fmeta['MODULE']
+        self.dbop.action = fmeta['ACTION']
+        self.dbop.container_id = fmeta['CONTAINER ID']
         self.ts_callback = ts_callback
         self.fmeta = fmeta
     def __getattr__(self, name):
         """ In case of missing attribute returns 0 if attribute is in __slots__. This is needed in
             to_list(). """
-        if name in self.__slots__:
-            return 0
+        # FIXME: rewrite after last subclass is converted!
+        for f in fields(self.dbop):
+            if f.name == name:
+                return 0
         raise AttributeError(f"Wrong attribute: {name}")
     def to_list(self, exec_id, sql_id):
         """ Generates list that is used to persist Ops in the database. Children are supposed to 
             override this."""
-        return [exec_id, sql_id, None, self.op_type, None, None, None, None,
-                    None, None, None, None, None, None, None, None, None,
-                    None, None, None, None, None, None, None, None, None,
-                    None, None, None, None, None, None, None, None, None,
-                    None, None, None, None]
+        self.dbop.exec_id = exec_id
+        self.dbop.sql_id = sql_id
+        self.dbop.ts = self.ts_callback(self.dbop.tim)
+        return astuple(self.dbop)
     def to_dict(self, exec_id, sql_id):
         out = {}
         out['sql_id'] = sql_id
@@ -82,22 +137,19 @@ class Wait(Ops):
     """ Handles WAIT lines. Wait event name is parsed out, everything else is persisted as-is."""
     def __init__(self, op_type, cursor, params, fmeta, ts_callback):
         super().__init__(op_type, cursor, fmeta, ts_callback)
-        self.__dict__['raw'] = params
+        self.dbop.__dict__['raw'] = params
         match = wait_matcher.match(params)
         if match:
-            self.__dict__['name'] = match.group(1).strip("'")
-            self.__dict__['e'] = int(match.group(2))
+            self.dbop.__dict__['name'] = match.group(1).strip("'")
+            self.dbop.__dict__['e'] = int(match.group(2))
 
-            self.__dict__['tim'] = int(match.group(4))
+            self.dbop.__dict__['tim'] = int(match.group(4))
             self.__slots__ = (op_type, cursor, 'raw', 'name', 'e', 'tim')
     def to_list(self, exec_id, sql_id):
-        return [exec_id, sql_id, self.cursor, self.op_type, None, self.e, None, None,
-                    None, None, None, None, None, None, self.tim, None, self.name,
-                    self.raw, self.fname, self.line, self.ts_callback(self.tim), None,
-                    None, None, None, None, None, None, None, None, None,
-                    self.fmeta['SESSION ID'], self.fmeta['CLIENT ID'], self.fmeta['SERVICE NAME'],
-                    self.fmeta['MODULE NAME'], self.fmeta['ACTION NAME'],
-                    self.fmeta['CONTAINER ID'], None]
+        self.dbop.exec_id = exec_id
+        self.dbop.sql_id = sql_id
+        self.dbop.ts = self.ts_callback(self.dbop.tim)
+        return astuple(self.dbop)
     def __str__(self):
         return f"{self.cursor}: {self.op_type} {self.raw}"
 
@@ -108,13 +160,13 @@ class Stat(Ops):
         self.__dict__['raw'] = params
         self.__slots__ = (op_type, cursor, 'raw')
     def to_list(self, exec_id, sql_id):
-        return [exec_id, sql_id, self.cursor, self.op_type, None, None, None, None, None,
+        return (exec_id, sql_id, self.cursor, self.op_type, None, None, None, None, None,
                     None, None, None, None, None, None, None, None, self.raw, self.fname,
                     self.line, self.ts_callback(None), None, None, None, None, None, None,
                     None, None, None, None,
                     self.fmeta['SESSION ID'], self.fmeta['CLIENT ID'], self.fmeta['SERVICE NAME'],
                     self.fmeta['MODULE NAME'], self.fmeta['ACTION NAME'],
-                    self.fmeta['CONTAINER ID'], None]
+                    self.fmeta['CONTAINER ID'], None)
     def __str__(self):
         return f"{self.cursor}: {self.op_type} {self.raw}"
 
@@ -128,12 +180,12 @@ class Meta(Ops):
         self.__dict__['ts2'] = ts2
         self.__slots__ = (op_type, cursor, 'raw', 'name', 'ts2')
     def to_list(self, exec_id, sql_id):
-        return [exec_id, sql_id, self.cursor, self.op_type, None, None, None, None, None,
+        return (exec_id, sql_id, self.cursor, self.op_type, None, None, None, None, None,
                     None, None, None, None, None, None, None, self.name, self.raw, self.fname,
                     self.line, self.ts2, None, None, None, None, None, None, None, None,
                     None, None, self.fmeta['SESSION ID'], self.fmeta['CLIENT ID'],
                     self.fmeta['SERVICE NAME'], self.fmeta['MODULE NAME'],
-                    self.fmeta['ACTION NAME'], self.fmeta['CONTAINER ID'], None]
+                    self.fmeta['ACTION NAME'], self.fmeta['CONTAINER ID'], None)
     def __str__(self):
         if self.op_type == 'HEADER':
             return f"{self.name}: {self.raw}"
@@ -146,13 +198,13 @@ class Binds(Ops):
         self.__dict__['raw'] = params
         self.__slots__ = (op_type, cursor, 'raw')
     def to_list(self, exec_id, sql_id):
-        return [exec_id, sql_id, self.cursor, self.op_type, None, None, None, None, None,
+        return (exec_id, sql_id, self.cursor, self.op_type, None, None, None, None, None,
                     None, None, None, None, None, None, None, None, "".join(self.raw), self.fname,
                     self.line, self.ts_callback(None), None, None, None, None, None, None, None,
                     None, None, None,
                     self.fmeta['SESSION ID'], self.fmeta['CLIENT ID'], self.fmeta['SERVICE NAME'],
                     self.fmeta['MODULE NAME'], self.fmeta['ACTION NAME'],
-                    self.fmeta['CONTAINER ID'], None]
+                    self.fmeta['CONTAINER ID'], None)
     def __str__(self):
         return f"{self.cursor}: {self.op_type} {self.raw}"
 
@@ -165,13 +217,13 @@ class Xctend(Ops):
             self.__dict__[key[0]] = int(key[1])
         self.__slots__ = (op_type, cursor, 'rlbk', 'rd_only', 'tim')
     def to_list(self, exec_id, sql_id):
-        return [exec_id, sql_id, self.cursor, self.op_type, None, None, None, None, None,
+        return (exec_id, sql_id, self.cursor, self.op_type, None, None, None, None, None,
                     None, None, None, None, None, self.tim, None, '', None, self.fname,
                     self.line, self.ts_callback(self.tim), None, None, None, None, None, None,
                     self.rlbk, self.rd_only, None, None,
                     self.fmeta['SESSION ID'], self.fmeta['CLIENT ID'], self.fmeta['SERVICE NAME'],
                     self.fmeta['MODULE NAME'], self.fmeta['ACTION NAME'],
-                    self.fmeta['CONTAINER ID'], None]
+                    self.fmeta['CONTAINER ID'], None)
     def __str__(self):
         return f"XCTEND rlbk={self.rlbk}, rd_only={self.rd_only}, tim={self.tim}"
 
@@ -190,13 +242,13 @@ class Pic(Ops):
         self.__slots__ = (op_type, cursor, 'dep', 'tim', 'len', 'uid', 'oct', 'lid',
                             'hv', 'ad', 'raw', 'sqlid')
     def to_list(self, exec_id, sql_id):
-        return [exec_id, sql_id, self.cursor, self.op_type, None, None, None, None, None,
+        return (exec_id, sql_id, self.cursor, self.op_type, None, None, None, None, None,
                     None, None, self.dep, None, None, self.tim, None, '', "".join(self.raw),
                     self.fname, self.line, self.ts_callback(self.tim), self.len, self.uid,
                     self.oct, self.lid, self.hv, self.ad, None, None, None, None,
                     self.fmeta['SESSION ID'], self.fmeta['CLIENT ID'], self.fmeta['SERVICE NAME'],
                     self.fmeta['MODULE NAME'], self.fmeta['ACTION NAME'],
-                    self.fmeta['CONTAINER ID'], None]
+                    self.fmeta['CONTAINER ID'], None)
     def __str__(self):
         return f"PARSING IN CURSOR len={self.len} dep={self.dep} uid={self.uid} " \
                + f"oct={self.oct} lid={self.lid} tim={self.tim} hv={self.hv} "    \
@@ -215,13 +267,13 @@ class Lob(Ops):
                     self.__dict__[key[0]] = int(key[1])
         self.__slots__ = ('op_type', 'cursor', 'type', 'c', 'e', 'p', 'cr', 'cu', 'tim', 'bytes')
     def to_list(self, exec_id, sql_id):
-        return [exec_id, None, None, self.op_type, self.c, self.e, self.p, self.cr,
+        return (exec_id, None, None, self.op_type, self.c, self.e, self.p, self.cr,
                 self.cu, None, None, None, None, None, self.tim, None,
                 '', '', self.fname, self.line, self.ts_callback(self.tim), None, None, None, None,
                 None, None, None, None, self.type, self.bytes,
                 self.fmeta['SESSION ID'], self.fmeta['CLIENT ID'], self.fmeta['SERVICE NAME'],
                 self.fmeta['MODULE NAME'], self.fmeta['ACTION NAME'],
-                self.fmeta['CONTAINER ID'], None]
+                self.fmeta['CONTAINER ID'], None)
     def __str__(self):
         return f"{self.op_type}: type={self.type},bytes={self.r},c={self.c},e={self.e},"   \
                + f"p={self.p},cr={self.cr},cu={self.cu},tim={self.tim}"
@@ -238,13 +290,13 @@ class Exec(Ops):
         self.__slots__ = ('op_type', 'cursor', 'c', 'e', 'p', 'cr', 'cu', 'mis', 'r',
                             'dep', 'og', 'plh', 'tim', 'type')
     def to_list(self, exec_id, sql_id):
-        return [exec_id, sql_id, self.cursor, self.op_type, self.c, self.e, self.p, self.cr,
+        return (exec_id, sql_id, self.cursor, self.op_type, self.c, self.e, self.p, self.cr,
                     self.cu, self.mis, self.r, self.dep, self.og, self.plh, self.tim, self.type,
                     '', '', self.fname, self.line, self.ts_callback(self.tim), None, None, None,
                     None, None, None, None, None, None, None,
                     self.fmeta['SESSION ID'], self.fmeta['CLIENT ID'], self.fmeta['SERVICE NAME'],
                     self.fmeta['MODULE NAME'], self.fmeta['ACTION NAME'],
-                    self.fmeta['CONTAINER ID'], None]
+                    self.fmeta['CONTAINER ID'], None)
     def __str__(self):
         str0 = f"{self.cursor}: {self.op_type} "
         return str0 + f"c={self.c},e={self.e},p={self.p},cr={self.cr},cu={self.cu},"           \
@@ -261,13 +313,13 @@ class Error(Ops):
                 self.__dict__[key[0]] = int(key[1])
         self.__slots__ = ('op_type', 'cursor', 'err', 'tim')
     def to_list(self, exec_id, sql_id):
-        return [exec_id, sql_id, self.cursor, self.op_type, None, None, None, None,
+        return (exec_id, sql_id, self.cursor, self.op_type, None, None, None, None,
                     None, None, None, None, None, None, self.tim, None,
                     '', '', self.fname, self.line, self.ts_callback(self.tim), None, None, None,
                     None, None, None, None, None, None, None,
                     self.fmeta['SESSION ID'], self.fmeta['CLIENT ID'], self.fmeta['SERVICE NAME'],
                     self.fmeta['MODULE NAME'], self.fmeta['ACTION NAME'],
-                    self.fmeta['CONTAINER ID'], self.err]
+                    self.fmeta['CONTAINER ID'], self.err)
     def __str__(self):
         str0 = f"{self.op_type} {self.cursor}:"
         return str0 + f"err={self.err} tim={self.tim}"
