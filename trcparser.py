@@ -90,7 +90,7 @@ def process_file(tracker, fname, orphans=False):
 
                 if match.group(1) == 'BINDS':
                     in_binds = True
-                    binds = ops_factory('BINDS', match.group(2), [], file_meta,
+                    binds = ops_factory('BINDS', match.group(2), '', file_meta,
                                         tracker.time_tracker.get_wc)
                     tracker.add_ops(binds.cursor, binds)
                     continue
@@ -106,7 +106,7 @@ def process_file(tracker, fname, orphans=False):
                 continue
 
             if in_binds:
-                binds.raw.append(line)
+                binds.add_line(line)
                 continue
 
             if in_pic:
