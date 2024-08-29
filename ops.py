@@ -186,18 +186,9 @@ class Xctend(Ops):
         super().__init__(op_type, cursor, fmeta, ts_callback)
         for item in params.split(', '):
             key = item.split('=')
-            self.__dict__[key[0]] = int(key[1])
-        self.__slots__ = (op_type, cursor, 'rlbk', 'rd_only', 'tim')
-    def to_list(self, exec_id, sql_id):
-        return (exec_id, sql_id, self.cursor, self.op_type, None, None, None, None, None,
-                    None, None, None, None, None, self.tim, None, '', None, self.fname,
-                    self.line, self.ts_callback(self.tim), None, None, None, None, None, None,
-                    self.rlbk, self.rd_only, None, None,
-                    self.fmeta['SESSION ID'], self.fmeta['CLIENT ID'], self.fmeta['SERVICE NAME'],
-                    self.fmeta['MODULE NAME'], self.fmeta['ACTION NAME'],
-                    self.fmeta['CONTAINER ID'], None)
+            self.dbop.__dict__[key[0]] = int(key[1])
     def __str__(self):
-        return f"XCTEND rlbk={self.rlbk}, rd_only={self.rd_only}, tim={self.tim}"
+        return f"XCTEND rlbk={self.dbop.rlbk}, rd_only={self.dbop.rd_only}, tim={self.dbop.tim}"
 
 class Pic(Ops):
     """ PARSE IN CURSOR lines. SQL statement is persisted as one string, in `raw` field"""
