@@ -174,18 +174,11 @@ class Binds(Ops):
     """ Bind values. Everything is persisted as-is, in one string."""
     def __init__(self, op_type, cursor, params, fmeta, ts_callback):
         super().__init__(op_type, cursor, fmeta, ts_callback)
-        self.__dict__['raw'] = params
-        self.__slots__ = (op_type, cursor, 'raw')
-    def to_list(self, exec_id, sql_id):
-        return (exec_id, sql_id, self.cursor, self.op_type, None, None, None, None, None,
-                    None, None, None, None, None, None, None, None, "".join(self.raw), self.fname,
-                    self.line, self.ts_callback(None), None, None, None, None, None, None, None,
-                    None, None, None,
-                    self.fmeta['SESSION ID'], self.fmeta['CLIENT ID'], self.fmeta['SERVICE NAME'],
-                    self.fmeta['MODULE NAME'], self.fmeta['ACTION NAME'],
-                    self.fmeta['CONTAINER ID'], None)
+        self.dbop.__dict__['raw'] = params
+    def add_line(self, line):
+        self.dbop.__dict__['raw'] = "".join((self.dbop.__dict__['raw'], line))
     def __str__(self):
-        return f"{self.cursor}: {self.op_type} {self.raw}"
+        return f"{self.dbop.cursor}: {self.dbop.op_type} {self.dbop.raw}"
 
 class Xctend(Ops):
     """ Commits (XCTEND)."""
