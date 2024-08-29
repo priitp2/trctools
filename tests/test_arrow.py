@@ -34,7 +34,7 @@ class TestArrow(unittest.TestCase):
             self.assertEqual(res.fetchone()[0], datetime.datetime(2023, 8, 2, 16, 8, 39, 807701))
 
             res = d.sql(f"select count(*) from read_parquet('{db_dir}/*') where ops = 'WAIT' "
-                        "and service_name = 'xxx_stg';")
+                        +"and service_name = 'xxx_stg';")
             self.assertEqual(res.fetchone()[0], 26)
     def test_schema_version(self):
         """Checks if generated parquet file has a schema version record"""
