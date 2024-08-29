@@ -145,11 +145,6 @@ class Wait(Ops):
 
             self.dbop.__dict__['tim'] = int(match.group(4))
             self.__slots__ = (op_type, cursor, 'raw', 'name', 'e', 'tim')
-    def to_list(self, exec_id, sql_id):
-        self.dbop.exec_id = exec_id
-        self.dbop.sql_id = sql_id
-        self.dbop.ts = self.ts_callback(self.dbop.tim)
-        return astuple(self.dbop)
     def __str__(self):
         return f"{self.cursor}: {self.op_type} {self.raw}"
 
