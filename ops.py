@@ -113,7 +113,8 @@ class Ops:
             override this."""
         self.dbop.exec_id = exec_id
         self.dbop.sql_id = sql_id
-        self.dbop.ts = self.ts_callback(self.dbop.tim)
+        if self.dbop.ts == None and self.ts_callback != None:
+            self.dbop.ts = self.ts_callback(self.dbop.tim)
         return astuple(self.dbop)
     def to_dict(self, exec_id, sql_id):
         out = {}
@@ -161,21 +162,13 @@ class Meta(Ops):
         wall clock readings, these are persisted in ts2."""
     def __init__(self, op_type, cursor, params, fmeta, name, ts2):
         super().__init__(op_type, cursor, fmeta, None)
-        self.__dict__['name'] = name
-        self.__dict__['raw'] = params
-        self.__dict__['ts2'] = ts2
-        self.__slots__ = (op_type, cursor, 'raw', 'name', 'ts2')
-    def to_list(self, exec_id, sql_id):
-        return (exec_id, sql_id, self.cursor, self.op_type, None, None, None, None, None,
-                    None, None, None, None, None, None, None, self.name, self.raw, self.fname,
-                    self.line, self.ts2, None, None, None, None, None, None, None, None,
-                    None, None, self.fmeta['SESSION ID'], self.fmeta['CLIENT ID'],
-                    self.fmeta['SERVICE NAME'], self.fmeta['MODULE NAME'],
-                    self.fmeta['ACTION NAME'], self.fmeta['CONTAINER ID'], None)
+        self.dbop.__dict__['name'] = name
+        self.dbop.__dict__['raw'] = params
+        self.dbop.__dict__['ts'] = ts2
     def __str__(self):
         if self.op_type == 'HEADER':
-            return f"{self.name}: {self.raw}"
-        return f"*** {self.name}:({self.raw}) {self.ts2}"
+            return f"{self.dbop.name}: {self.dbop.raw}"
+        return f"*** {self.dbop.name}:({self.dbop.raw}) {self.dbop.ts}"
 
 class Binds(Ops):
     """ Bind values. Everything is persisted as-is, in one string."""
