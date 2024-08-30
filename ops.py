@@ -228,7 +228,7 @@ class Lob(Ops):
     def __str__(self):
         return f"{self.dbop.op_type}: type={self.dbop.type},bytes={self.dbop.r},c={self.dbop.c}," \
                + f"e={self.dbop.e},p={self.dbop.p},cr={self.dbop.cr},cu={self.dbop.cu}," \
-               + f"tim={self.tim}"
+               + f"tim={self.dbop.tim}"
 
 class Exec(Ops):
     """ Events related to the database client calls (EXEC, FETCH, PARSE, CLOSE). These have similar
