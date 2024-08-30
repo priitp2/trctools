@@ -104,6 +104,9 @@ class Ops:
         """ In case of missing attribute returns 0 if attribute is in __slots__. This is needed in
             to_list(). """
         # FIXME: rewrite after last subclass is converted!
+        # FIXME: PIC has sqlid, this is everywhere else called sql_id
+        if name == 'sqlid':
+            return self.dbop.sql_id
         for f in fields(self.dbop):
             if f.name == name:
                 return 0
@@ -197,25 +200,19 @@ class Pic(Ops):
         for item in params.split(' '):
             if len(item):
                 key = item.split('=')
-                if key[0] in ['ad', 'sqlid']:
-                    self.__dict__[key[0]] = key[1].strip("'")
+                if key[0] == 'sqlid':
+                    self.dbop.__dict__['sql_id'] = key[1].strip("'")
+                elif key[0] == 'ad':
+                    self.dbop.__dict__[key[0]] = key[1].strip("'")
                 else:
-                    self.__dict__[key[0]] = int(key[1])
-        self.__dict__['raw'] = []
-        self.__slots__ = (op_type, cursor, 'dep', 'tim', 'len', 'uid', 'oct', 'lid',
-                            'hv', 'ad', 'raw', 'sqlid')
-    def to_list(self, exec_id, sql_id):
-        return (exec_id, sql_id, self.cursor, self.op_type, None, None, None, None, None,
-                    None, None, self.dep, None, None, self.tim, None, '', "".join(self.raw),
-                    self.fname, self.line, self.ts_callback(self.tim), self.len, self.uid,
-                    self.oct, self.lid, self.hv, self.ad, None, None, None, None,
-                    self.fmeta['SESSION ID'], self.fmeta['CLIENT ID'], self.fmeta['SERVICE NAME'],
-                    self.fmeta['MODULE NAME'], self.fmeta['ACTION NAME'],
-                    self.fmeta['CONTAINER ID'], None)
+                    self.dbop.__dict__[key[0]] = int(key[1])
+        self.dbop.__dict__['raw'] = ''
+    def add_line(self, line):
+        self.dbop.__dict__['raw'] = "".join((self.dbop.__dict__['raw'], line))
     def __str__(self):
-        return f"PARSING IN CURSOR len={self.len} dep={self.dep} uid={self.uid} " \
-               + f"oct={self.oct} lid={self.lid} tim={self.tim} hv={self.hv} "    \
-               + f"ad={self.ad} sqlid={self.sqlid}\n{self.raw}\nEND OF STMT"
+        return f"PARSING IN CURSOR len={self.dbop.len} dep={self.dbop.dep} uid={self.dbop.uid} " \
+               + f"oct={self.dbop.oct} lid={self.dbop.lid} tim={self.dbop.tim} hv={self.dbop.hv} "    \
+               + f"ad={self.dbop.ad} sqlid={self.dbop.sql_id}\n{self.dbop.raw}\nEND OF STMT"
 
 class Lob(Ops):
     """ Various LOB* operations."""
