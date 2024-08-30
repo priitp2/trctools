@@ -222,21 +222,13 @@ class Lob(Ops):
             if len(item):
                 key = item.split('=')
                 if key[0] == 'type':
-                    self.__dict__[key[0]] = key[1]
+                    self.dbop.__dict__['lobtype'] = key[1]
                 else:
-                    self.__dict__[key[0]] = int(key[1])
-        self.__slots__ = ('op_type', 'cursor', 'type', 'c', 'e', 'p', 'cr', 'cu', 'tim', 'bytes')
-    def to_list(self, exec_id, sql_id):
-        return (exec_id, None, None, self.op_type, self.c, self.e, self.p, self.cr,
-                self.cu, None, None, None, None, None, self.tim, None,
-                '', '', self.fname, self.line, self.ts_callback(self.tim), None, None, None, None,
-                None, None, None, None, self.type, self.bytes,
-                self.fmeta['SESSION ID'], self.fmeta['CLIENT ID'], self.fmeta['SERVICE NAME'],
-                self.fmeta['MODULE NAME'], self.fmeta['ACTION NAME'],
-                self.fmeta['CONTAINER ID'], None)
+                    self.dbop.__dict__[key[0]] = int(key[1])
     def __str__(self):
-        return f"{self.op_type}: type={self.type},bytes={self.r},c={self.c},e={self.e},"   \
-               + f"p={self.p},cr={self.cr},cu={self.cu},tim={self.tim}"
+        return f"{self.dbop.op_type}: type={self.dbop.type},bytes={self.dbop.r},c={self.dbop.c}," \
+               + f"e={self.dbop.e},p={self.dbop.p},cr={self.dbop.cr},cu={self.dbop.cu}," \
+               + f"tim={self.tim}"
 
 class Exec(Ops):
     """ Events related to the database client calls (EXEC, FETCH, PARSE, CLOSE). These have similar
