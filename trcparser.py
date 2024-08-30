@@ -114,7 +114,7 @@ def process_file(tracker, fname, orphans=False):
                     in_pic = False
                     pic = None
                 else:
-                    pic.raw.append(line)
+                    pic.add_line(line)
                 continue
 
             if (match := LOB_MATCHER.match(line)) is not None:

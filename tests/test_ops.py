@@ -89,7 +89,7 @@ class TestOps(unittest.TestCase):
         self.assertRegex(str(ops), r'^\*\*\* CLIENT DRIVER:*')
 
         ops = test_constants.TRACKED_OPS['PIC']
-        self.assertRegex(str(ops), f'^PARSING IN CURSOR (.*) tim={ops.tim}(.*)')
+        self.assertRegex(str(ops), f'^PARSING IN CURSOR (.*) tim={ops.dbop.tim}(.*)')
 
         ops = test_constants.UNTRACKED_OPS['XCTEND']
         self.assertRegex(str(ops), '^XCTEND rlbk=0,*')
