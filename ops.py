@@ -39,6 +39,15 @@ def ops_factory(op_type, cursor, params, fmeta, ts_callback, name=None, ts2=None
 
 @dataclass(init=False, kw_only=True)
 class DatabaseOp:
+    """Container for the various fields in the trace files. Field names correspond 1:1 to the
+       contents of the trace file, except: 
+           * sql_id is called sqlid in PARSING IN CURSOR event
+           * exec_id is synthetically generated, it has no counterpart in the trace file
+           * ts is the timestamp found here and there in the trace file. Can be generated
+             for all operations.
+           * lobtype is 'type' in the trace file. Renamed to avoid data type clash with 'type'
+             parameter in CLOSE.
+           """
     exec_id: int = None
     sql_id: str = None
     cursor: str = None
@@ -84,22 +93,18 @@ class Ops:
     """
     def __init__(self, op_type, cursor, fmeta, ts_callback):
         self.dbop = DatabaseOp()
-        self.op_type = op_type
         self.dbop.op_type = op_type
-        self.cursor = cursor
         self.dbop.cursor = cursor
         self.dbop.fname = fmeta['FILE_NAME']
-        self.fname = fmeta['FILE_NAME']
         self.dbop.line = fmeta['LINE_COUNT']
-        self.line = fmeta['LINE_COUNT']
         self.dbop.sid = fmeta['SID']
         self.dbop.client_id = fmeta['CLIENT ID']
         self.dbop.service_name = fmeta['SERVICE NAME']
         self.dbop.module = fmeta['MODULE']
         self.dbop.action = fmeta['ACTION']
         self.dbop.container_id = fmeta['CONTAINER ID']
+
         self.ts_callback = ts_callback
-        self.fmeta = fmeta
     def __getattr__(self, name):
         """ In case of missing attribute returns 0 if attribute is in __slots__. This is needed in
             to_list(). """
