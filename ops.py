@@ -254,16 +254,7 @@ class Error(Ops):
         for item in params.split(' '):
             if len(item):
                 key = item.split('=')
-                self.__dict__[key[0]] = int(key[1])
-        self.__slots__ = ('op_type', 'cursor', 'err', 'tim')
-    def to_list(self, exec_id, sql_id):
-        return (exec_id, sql_id, self.cursor, self.op_type, None, None, None, None,
-                    None, None, None, None, None, None, self.tim, None,
-                    '', '', self.fname, self.line, self.ts_callback(self.tim), None, None, None,
-                    None, None, None, None, None, None, None,
-                    self.fmeta['SESSION ID'], self.fmeta['CLIENT ID'], self.fmeta['SERVICE NAME'],
-                    self.fmeta['MODULE NAME'], self.fmeta['ACTION NAME'],
-                    self.fmeta['CONTAINER ID'], self.err)
+                self.dbop.__dict__[key[0]] = int(key[1])
     def __str__(self):
-        str0 = f"{self.op_type} {self.cursor}:"
-        return str0 + f"err={self.err} tim={self.tim}"
+        str0 = f"{self.dbop.op_type} {self.dbop.cursor}:"
+        return str0 + f"err={self.dbop.err} tim={self.dbop.tim}"
