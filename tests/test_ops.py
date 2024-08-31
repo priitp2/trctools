@@ -48,7 +48,7 @@ class TestOps(unittest.TestCase):
     def test_to_list(self):
         sql_id = 'abc123'
         ops = test_constants.TRACKED_OPS['EXEC']
-        today = datetime.datetime.today()
+        today = datetime.datetime.now()
         ops.ts_callback = lambda x: today
         lst = ops.to_list(0, sql_id)
         self.assertEqual(len(lst), len(arrow.PARQUET_SCHEMA))
