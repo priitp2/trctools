@@ -7,7 +7,7 @@ Contains common constants for tests.
 """
 CURSOR = '#140131077570528'
 WRONG_CURSOR = '#321'
-TS_CALLBACK = lambda x : datetime.datetime.today()
+TS_CALLBACK = lambda x : datetime.datetime.now()
 FMETA = collections.defaultdict(lambda: None)
 FMETA['FILE_NAME'] = 'trace.trc'
 FMETA['LINE_COUNT'] = 77
