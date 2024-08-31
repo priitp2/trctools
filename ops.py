@@ -106,14 +106,12 @@ class Ops:
 
         self.ts_callback = ts_callback
     def __getattr__(self, name):
-        """ In case of missing attribute returns 0 if attribute is in __slots__. This is needed in
-            to_list(). """
-        # FIXME: rewrite after last subclass is converted!
-        # FIXME: PIC has sqlid, this is everywhere else called sql_id
+        """Redirects attributes to self.dbop."""
         if name == 'sqlid':
             return self.dbop.sql_id
         if name in self.dbop.__dict__:
             return self.dbop.__dict__[name]
+        # For fields that are not set, just return 0
         if name in [f.name for f in fields(self.dbop)]:
             return 0
         raise AttributeError(f"Wrong attribute: {name}")
@@ -122,20 +120,24 @@ class Ops:
             override this."""
         self.dbop.exec_id = exec_id
         self.dbop.sql_id = sql_id
-        if self.dbop.ts == None and self.ts_callback != None:
+        if self.dbop.ts is None and self.ts_callback is not None:
             self.dbop.ts = self.ts_callback(self.dbop.tim)
         return astuple(self.dbop)
     def to_dict(self, exec_id, sql_id):
+        """Returns DatabaseOp as a dict."""
         out = asdict(self.dbop)
 
         out['sql_id'] = sql_id
         out['exec_id'] = exec_id
         if out['op_type'] == 'PIC':
-             out['op_type']= 'PARSING IN CURSOR'
-        if self.dbop.ts == None and self.ts_callback != None:
+            out['op_type']= 'PARSING IN CURSOR'
+        if self.dbop.ts is None and self.ts_callback is not None:
             out['ts'] = self.ts_callback(self.dbop.tim)
 
-        return out 
+        return out
+    def add_line(self, line):
+        """Adds another line to the container."""
+        self.dbop.__dict__['raw'] = "".join((self.dbop.__dict__['raw'], line))
     def __str__(self):
         return ''
 
@@ -180,8 +182,6 @@ class Binds(Ops):
     def __init__(self, op_type, cursor, params, fmeta, ts_callback):
         super().__init__(op_type, cursor, fmeta, ts_callback)
         self.dbop.__dict__['raw'] = params
-    def add_line(self, line):
-        self.dbop.__dict__['raw'] = "".join((self.dbop.__dict__['raw'], line))
     def __str__(self):
         return f"{self.dbop.cursor}: {self.dbop.op_type} {self.dbop.raw}"
 
@@ -209,11 +209,9 @@ class Pic(Ops):
                 else:
                     self.dbop.__dict__[key[0]] = int(key[1])
         self.dbop.__dict__['raw'] = ''
-    def add_line(self, line):
-        self.dbop.__dict__['raw'] = "".join((self.dbop.__dict__['raw'], line))
     def __str__(self):
         return f"PARSING IN CURSOR len={self.dbop.len} dep={self.dbop.dep} uid={self.dbop.uid} " \
-               + f"oct={self.dbop.oct} lid={self.dbop.lid} tim={self.dbop.tim} hv={self.dbop.hv} "    \
+               + f"oct={self.dbop.oct} lid={self.dbop.lid} tim={self.dbop.tim} hv={self.dbop.hv} "\
                + f"ad={self.dbop.ad} sqlid={self.dbop.sql_id}\n{self.dbop.raw}\nEND OF STMT"
 
 class Lob(Ops):
