@@ -1,4 +1,4 @@
-from dataclasses import dataclass, astuple, fields
+from dataclasses import dataclass, astuple, fields, asdict
 import datetime
 import re
 
@@ -121,20 +121,16 @@ class Ops:
             self.dbop.ts = self.ts_callback(self.dbop.tim)
         return astuple(self.dbop)
     def to_dict(self, exec_id, sql_id):
-        out = {}
-        self.dbop.sql_id = sql_id
-        self.dbop.exec_id = exec_id
-        if self.op_type == 'PIC':
-            out['op_type'] = 'PARSING IN CURSOR'
-        else:
-            out['op_type'] = self.op_type
-        out['cursor'] = self.cursor
-        for i in fields(self.dbop):
-            if i.name in self.dbop.__dict__.keys():
-                if i.name == 'tim':
-                    out['ts'] = self.ts_callback(self.dbop.__dict__[i.name])
-                out[i.name] = self.dbop.__dict__[i.name]
-        return out | {k:v  for (k, v) in self.fmeta.items() if v }
+        out = asdict(self.dbop)
+
+        out['sql_id'] = sql_id
+        out['exec_id'] = exec_id
+        if out['op_type'] == 'PIC':
+             out['op_type']= 'PARSING IN CURSOR'
+        if self.dbop.ts == None and self.ts_callback != None:
+            out['ts'] = self.ts_callback(self.dbop.tim)
+
+        return out 
     def __str__(self):
         return ''
 
