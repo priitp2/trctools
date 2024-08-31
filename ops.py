@@ -107,9 +107,10 @@ class Ops:
         # FIXME: PIC has sqlid, this is everywhere else called sql_id
         if name == 'sqlid':
             return self.dbop.sql_id
-        for f in fields(self.dbop):
-            if f.name == name:
-                return 0
+        if name in self.dbop.__dict__:
+            return self.dbop.__dict__[name]
+        if name in [f.name for f in fields(self.dbop)]:
+            return 0
         raise AttributeError(f"Wrong attribute: {name}")
     def to_list(self, exec_id, sql_id):
         """ Generates list that is used to persist Ops in the database. Children are supposed to 
@@ -121,18 +122,18 @@ class Ops:
         return astuple(self.dbop)
     def to_dict(self, exec_id, sql_id):
         out = {}
-        out['sql_id'] = sql_id
-        out['exec_id'] = exec_id
+        self.dbop.sql_id = sql_id
+        self.dbop.exec_id = exec_id
         if self.op_type == 'PIC':
             out['op_type'] = 'PARSING IN CURSOR'
         else:
             out['op_type'] = self.op_type
         out['cursor'] = self.cursor
-        for i in self.__dict__.keys():
-            if i in self.__slots__:
-                if i == 'tim':
-                    out['ts'] = self.ts_callback(self.__dict__[i])
-                out[i] = self.__dict__[i]
+        for i in fields(self.dbop):
+            if i.name in self.dbop.__dict__.keys():
+                if i.name == 'tim':
+                    out['ts'] = self.ts_callback(self.dbop.__dict__[i.name])
+                out[i.name] = self.dbop.__dict__[i.name]
         return out | {k:v  for (k, v) in self.fmeta.items() if v }
     def __str__(self):
         return ''
@@ -238,22 +239,13 @@ class Exec(Ops):
         for item in params.split(','):
             if len(item):
                 key = item.split('=')
-                self.__dict__[key[0]] = int(key[1])
-        self.__slots__ = ('op_type', 'cursor', 'c', 'e', 'p', 'cr', 'cu', 'mis', 'r',
-                            'dep', 'og', 'plh', 'tim', 'type')
-    def to_list(self, exec_id, sql_id):
-        return (exec_id, sql_id, self.cursor, self.op_type, self.c, self.e, self.p, self.cr,
-                    self.cu, self.mis, self.r, self.dep, self.og, self.plh, self.tim, self.type,
-                    '', '', self.fname, self.line, self.ts_callback(self.tim), None, None, None,
-                    None, None, None, None, None, None, None,
-                    self.fmeta['SESSION ID'], self.fmeta['CLIENT ID'], self.fmeta['SERVICE NAME'],
-                    self.fmeta['MODULE NAME'], self.fmeta['ACTION NAME'],
-                    self.fmeta['CONTAINER ID'], None)
+                self.dbop.__dict__[key[0]] = int(key[1])
     def __str__(self):
-        str0 = f"{self.cursor}: {self.op_type} "
-        return str0 + f"c={self.c},e={self.e},p={self.p},cr={self.cr},cu={self.cu},"           \
-                    + f"mis={self.mis},r={self.r},dep={self.dep},og={self.og},plh={self.plh}," \
-                    + f"tim={self.tim},fname={self.fname},line={self.line}"
+        str0 = f"{self.dbop.cursor}: {self.dbop.op_type} "
+        return str0 + f"c={self.dbop.c},e={self.dbop.e},p={self.dbop.p},cr={self.dbop.cr}," \
+                    + f"cu={self.dbop.cu},mis={self.dbop.mis},r={self.dbop.r}," \
+                    + f"dep={self.dbop.dep},og={self.dbop.og},plh={self.dbop.plh}," \
+                    + f"tim={self.dbop.tim},fname={self.dbop.fname},line={self.dbop.line}"
 
 class Error(Ops):
     """Covers ERROR call. Has two attributes, error code and tim. """
