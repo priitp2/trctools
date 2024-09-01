@@ -45,12 +45,12 @@ class TestOps(unittest.TestCase):
         with self.assertRaises(AttributeError):
             self.assertEqual(ops.doesnotexist, 1)
 
-    def test_to_list(self):
+    def test_astuple(self):
         sql_id = 'abc123'
         ops = test_constants.TRACKED_OPS['EXEC']
         today = datetime.datetime.now()
         ops.ts_callback = lambda x: today
-        lst = ops.to_list(0, sql_id)
+        lst = ops.astuple(0, sql_id)
         self.assertEqual(len(lst), len(arrow.PARQUET_SCHEMA))
         self.assertEqual(lst[0], 0)
         self.assertEqual(lst[1], sql_id)

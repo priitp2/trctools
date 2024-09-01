@@ -115,7 +115,7 @@ class Ops:
         if name in [f.name for f in fields(self.dbop)]:
             return 0
         raise AttributeError(f"Wrong attribute: {name}")
-    def to_list(self, exec_id, sql_id):
+    def astuple(self, exec_id, sql_id):
         """ Generates list that is used to persist Ops in the database. Children are supposed to 
             override this."""
         self.dbop.exec_id = exec_id
