@@ -88,7 +88,7 @@ class Backend:
     def add_ops(self, exec_id, sql_id, ops):
         ''' Adds list of ops to the batch. Checks the size of the _ops_list and _table and
             triggers flush if needed.'''
-        self._ops_list += [o.to_list(exec_id, sql_id) for o in ops]
+        self._ops_list += [o.astuple(exec_id, sql_id) for o in ops]
         if len(self._ops_list) > BATCH_SIZE/100:
             self._batch2table()
         if self._row_count > BATCH_SIZE:

@@ -7,7 +7,7 @@ class Backend:
         self.exec_id += 1
         return self.exec_id
     def add_ops(self, exec_id, cursor, ops):
-        self.batches += [o.to_list(exec_id, cursor) for o in ops]
+        self.batches += [o.astuple(exec_id, cursor) for o in ops]
     def insert_single_ops(self, ops):
         self.insert_ops([ops])
     def insert_ops(self, ops):
