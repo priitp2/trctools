@@ -1,4 +1,4 @@
-from dataclasses import dataclass, astuple, fields, asdict
+from dataclasses import dataclass, fields, asdict
 import datetime
 import re
 
@@ -122,7 +122,47 @@ class Ops:
         self.dbop.sql_id = sql_id
         if self.dbop.ts is None and self.ts_callback is not None:
             self.dbop.ts = self.ts_callback(self.dbop.tim)
-        return astuple(self.dbop)
+        return (
+            self.dbop.exec_id,
+            self.dbop.sql_id,
+            self.dbop.cursor,
+            self.dbop.op_type,
+            self.dbop.c,
+            self.dbop.e,
+            self.dbop.p,
+            self.dbop.cr,
+            self.dbop.cu,
+            self.dbop.mis,
+            self.dbop.r,
+            self.dbop.dep,
+            self.dbop.og,
+            self.dbop.plh,
+            self.dbop.tim,
+            self.dbop.type,
+            self.dbop.name,
+            self.dbop.raw,
+            self.dbop.fname,
+            self.dbop.line,
+            self.dbop.ts,
+            self.dbop.len,
+            self.dbop.uid,
+            self.dbop.oct,
+            self.dbop.lid,
+            self.dbop.hv,
+            self.dbop.ad,
+            self.dbop.rlbk,
+            self.dbop.rd_only,
+            self.dbop.lobtype,
+            self.dbop.bytes,
+            self.dbop.sid,
+            self.dbop.client_id,
+            self.dbop.service_name,
+            self.dbop.module,
+            self.dbop.action,
+            self.dbop.container_id,
+            self.dbop.err,
+        )
+        #return astuple(self.dbop)
     def to_dict(self, exec_id, sql_id):
         """Returns DatabaseOp as a dict."""
         out = asdict(self.dbop)
