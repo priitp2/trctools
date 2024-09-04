@@ -5,7 +5,7 @@ __doc__ = ''' Adapter for pyarrow: turns stuff into Parquet files.'''
 # How many rows are bufferd and flushed to the disk in one file. Bigger number means
 # larger memory usage and less parquet files
 BATCH_SIZE = 10000000
-PARQUET_SCHEMA_VERSION = '0.2'
+PARQUET_SCHEMA_VERSION = '0.3'
 
 PARQUET_SCHEMA = pa.schema([
     ('span_id', pa.int64()),
