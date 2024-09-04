@@ -1,8 +1,8 @@
 -- increment by should match DB.seq_batch_size
-create sequence cursor_exec_id increment by 100;
+create sequence cursor_span_id increment by 100;
 
 CREATE TABLE dbcall (
-    exec_id        INTEGER NOT NULL,
+    span_id        INTEGER NOT NULL,
     sql_id         VARCHAR2(16),
     cursor_id      VARCHAR2(64),
     ops            VARCHAR2(12) NOT NULL,
@@ -45,11 +45,11 @@ CREATE TABLE dbcall (
 create view elapsed_time as
     select
         sql_id,
-	exec_id,
-	max(ts) keep (dense_rank last order by ts) over (partition by sql_id, exec_id) - min(ts) keep (dense_rank first order by ts) over (partition by sql_id, exec_id) as ela
+	span_id,
+	max(ts) keep (dense_rank last order by ts) over (partition by sql_id, span_id) - min(ts) keep (dense_rank first order by ts) over (partition by sql_id, span_id) as ela
     from
 	dbcall
     where
 	ts is not null
-    group by sql_id, exec_id;
+    group by sql_id, span_id;
 

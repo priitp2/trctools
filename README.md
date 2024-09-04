@@ -124,7 +124,7 @@ or for the whole trace:
 
 # Data schema
 
-trc2db tracks database client interactions with the database, and assigns `exec_id` to each interactions. `ops` is a type of
+trc2db tracks database client interactions with the database, and assigns `span_id` to each interactions. `ops` is a type of
 the database call, with some exceptions. Lines from the file header have a ops `HEADER`, and lines starting with `***` have ops
 `STAR`. 
 
@@ -148,7 +148,7 @@ Alternative description of the schema is in `db/arrow.py`
 |      name      |    type    |                                            logical_type                                             |
 |----------------|------------|-----------------------------------------------------------------------------------------------------|
 | schema         |            |                                                                                                     |
-| exec_id        | INT64      |                                                                                                     |
+| span_id        | INT64      |                                                                                                     |
 | sql_id         | BYTE_ARRAY | StringType()                                                                                        |
 | cursor_id      | BYTE_ARRAY | StringType()                                                                                        |
 | ops            | BYTE_ARRAY | StringType()                                                                                        |

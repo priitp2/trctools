@@ -35,7 +35,7 @@ class SummaryDuckdb:
         self.tabsize = tabsize
         d.sql(f"""create or replace view v_elapsed_time as
                 select sql_id,
-                    exec_id,
+                    span_id,
                     max(tim) - min(tim) as ela,
                     first(ts order by ts) ts,
                     first(client_id) client_id
@@ -43,18 +43,18 @@ class SummaryDuckdb:
                     read_parquet('{dbdir}')
                 where
                     tim is not null
-                group by sql_id, exec_id;
+                group by sql_id, span_id;
               """)
         d.sql(f"""create or replace view cursor_elapsed_time as
                 select cursor_id,
-                    exec_id,
+                    span_id,
                     max(tim) - min(tim) as ela,
                     first(ts order by ts) ts
                 from
                     read_parquet('{dbdir}')
                 where
                     tim is not null
-                group by cursor_id, exec_id;
+                group by cursor_id, span_id;
               """)
 
     def summary(self, fis):
@@ -171,7 +171,7 @@ class SummaryDuckdb:
                         where
                             sql_id = '{sql_id}'
                         group by
-                            cursor_id, exec_id
+                            cursor_id, span_id
                         having sum({statistic}) > {thresold}
                         order by sum({statistic}) desc
                         LIMIT {self.tabsize};
@@ -185,7 +185,7 @@ class SummaryDuckdb:
         if sql_id:
             pred = f"AND {sqlid2pred(sql_id)}"
         if thresold:
-            inner_where = f" AND exec_id in (select exec_id from v_elapsed_time where ela > {thresold})"
+            inner_where = f" AND span_id in (select span_id from v_elapsed_time where ela > {thresold})"
         res = d.sql(f"""
 			SELECT
                             row_number() over(order by count(event_name) asc),
@@ -276,7 +276,7 @@ class SummaryDuckdb:
                             from read_parquet('{self.dbdir}')
                             where
                                 sql_id = '{sql_id}'
-                            group by exec_id
+                            group by span_id
                     """)
         res = d.sql("""select 'cpu' "stats", sum(cpu) "sum", median(cpu) "median",
                             PERCENTILE_DISC(0.99) WITHIN GROUP( ORDER BY cpu) "99th percentile",

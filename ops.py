@@ -42,13 +42,13 @@ class DatabaseOp:
     """Container for the various fields in the trace files. Field names correspond 1:1 to the
        contents of the trace file, except: 
            * sql_id is called sqlid in PARSING IN CURSOR event
-           * exec_id is synthetically generated, it has no counterpart in the trace file
+           * span_id is synthetically generated, it has no counterpart in the trace file
            * ts is the timestamp found here and there in the trace file. Can be generated
              for all operations.
            * lobtype is 'type' in the trace file. Renamed to avoid data type clash with 'type'
              parameter in CLOSE.
            """
-    exec_id: int = None
+    span_id: int = None
     sql_id: str = None
     cursor: str = None
     op_type: str = None
@@ -115,15 +115,15 @@ class Ops:
         if name in [f.name for f in fields(self.dbop)]:
             return 0
         raise AttributeError(f"Wrong attribute: {name}")
-    def astuple(self, exec_id, sql_id):
+    def astuple(self, span_id, sql_id):
         """ Generates list that is used to persist Ops in the database. Children are supposed to 
             override this."""
-        self.dbop.exec_id = exec_id
+        self.dbop.span_id = span_id
         self.dbop.sql_id = sql_id
         if self.dbop.ts is None and self.ts_callback is not None:
             self.dbop.ts = self.ts_callback(self.dbop.tim)
         return (
-            self.dbop.exec_id,
+            self.dbop.span_id,
             self.dbop.sql_id,
             self.dbop.cursor,
             self.dbop.op_type,
@@ -163,12 +163,12 @@ class Ops:
             self.dbop.err,
         )
         #return astuple(self.dbop)
-    def to_dict(self, exec_id, sql_id):
+    def to_dict(self, span_id, sql_id):
         """Returns DatabaseOp as a dict."""
         out = asdict(self.dbop)
 
         out['sql_id'] = sql_id
-        out['exec_id'] = exec_id
+        out['span_id'] = span_id
         if out['op_type'] == 'PIC':
             out['op_type']= 'PARSING IN CURSOR'
         if self.dbop.ts is None and self.ts_callback is not None:

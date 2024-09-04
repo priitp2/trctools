@@ -101,10 +101,10 @@ class TestOps(unittest.TestCase):
 
     def test_to_dict(self):
         ops = test_constants.TRACKED_OPS['FETCH']
-        exec_id = 666
-        d = ops.to_dict(exec_id, test_constants.CURSOR)
+        span_id = 666
+        d = ops.to_dict(span_id, test_constants.CURSOR)
         self.assertTrue(isinstance(d, dict))
-        self.assertEqual(exec_id, d['exec_id'])
+        self.assertEqual(span_id, d['span_id'])
         self.assertEqual(test_constants.CURSOR, d['cursor'])
         self.assertEqual(ops.e, d['e'])
         self.assertEqual(ops.r, d['r'])
