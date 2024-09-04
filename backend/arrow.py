@@ -8,7 +8,7 @@ BATCH_SIZE = 10000000
 PARQUET_SCHEMA_VERSION = '0.2'
 
 PARQUET_SCHEMA = pa.schema([
-    ('exec_id', pa.int64()),
+    ('span_id', pa.int64()),
     ('sql_id', pa.string()),
     ('cursor_id', pa.string()),
     ('ops', pa.string()),
@@ -55,14 +55,14 @@ class Backend:
     def __init__(self, dbdir, prefix):
         self.dbdir = dbdir
         self.prefix = prefix
-        self._exec_id = 0
+        self._span_id = 0
         self._ops_list = []
         self._flush_count = 0
         self._table = None
         self._row_count = 0
-    def get_exec_id(self):
-        self._exec_id += 1
-        return self._exec_id
+    def get_span_id(self):
+        self._span_id += 1
+        return self._span_id
     def _batch2table(self):
         ''' Compresses self._ops_list into arrays, turns arrays into table and merges it
             with self._table.'''
@@ -76,7 +76,7 @@ class Backend:
         self._ops_list = []
     def _inject_schema_version(self):
         '''Adds Parquet schema version record to the generated file.'''
-        schema_record = [[self.get_exec_id()], [None], [None], ['HEADER'], [None], [None], [None],
+        schema_record = [[self.get_span_id()], [None], [None], ['HEADER'], [None], [None], [None],
                          [None], [None], [None], [None], [None], [None], [None], [None], [None],
                          ['PARQUET_SCHEMA'], [PARQUET_SCHEMA_VERSION], [None], [None], [None],
                          [None], [None], [None], [None], [None], [None], [None], [None], [None],
@@ -85,10 +85,10 @@ class Backend:
         tbl = pa.Table.from_arrays(schema_record, schema = PARQUET_SCHEMA)
         if self._table:
             self._table = pa.concat_tables([self._table, tbl])
-    def add_ops(self, exec_id, sql_id, ops):
+    def add_ops(self, span_id, sql_id, ops):
         ''' Adds list of ops to the batch. Checks the size of the _ops_list and _table and
             triggers flush if needed.'''
-        self._ops_list += [o.astuple(exec_id, sql_id) for o in ops]
+        self._ops_list += [o.astuple(span_id, sql_id) for o in ops]
         if len(self._ops_list) > BATCH_SIZE/100:
             self._batch2table()
         if self._row_count > BATCH_SIZE:

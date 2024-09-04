@@ -6,7 +6,7 @@ class CurrentStatement:
         if len(cursor) < 2 and cursor != '#0':
             raise ValueError("init: got empty cursor")
         self.cursor = cursor
-        # These calls are tracked as a client interaction(exec_id)
+        # These calls are tracked as a client interaction(span_id)
         self.known_ops = ('PIC', 'PARSE', 'EXEC', 'WAIT', 'FETCH', 'CLOSE', 'STAT', 'BINDS', 'ERROR')
         self.ops = {'PIC':None, 'PARSE':None, 'EXEC':None, 'WAIT':[], 'FETCH':[], 'CLOSE':None,
                 'STAT':[], 'BINDS':None, 'ERROR':None}
@@ -46,7 +46,7 @@ class CurrentStatement:
         """Turns ops into lists and adds to the database"""
         if not self.dbs:
             raise TypeError("dump_to_db: database not set!")
-        exec_id = self.dbs.get_exec_id()
+        span_id = self.dbs.get_span_id()
         out = []
 
 
@@ -56,4 +56,4 @@ class CurrentStatement:
                     out += ops
                 else:
                     out.append(ops)
-        self.dbs.add_ops(exec_id, self.sql_id, out)
+        self.dbs.add_ops(span_id, self.sql_id, out)

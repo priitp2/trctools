@@ -120,13 +120,13 @@ def process_file(tracker, fname, orphans=False):
             if (match := LOB_MATCHER.match(line)) is not None:
                 ops = ops_factory(match.group(1), None, match.group(2), file_meta,
                                     tracker.time_tracker.get_wc)
-                tracker.db.add_ops(tracker.db.get_exec_id(), None, [ops])
+                tracker.db.add_ops(tracker.db.get_span_id(), None, [ops])
                 continue
 
             if (match := XCTEND_MATCHER.match(line)) is not None:
                 ops = ops_factory('XCTEND', None, match.group(1), file_meta,
                                     tracker.time_tracker.get_wc)
-                tracker.db.add_ops(tracker.db.get_exec_id(), None, [ops])
+                tracker.db.add_ops(tracker.db.get_span_id(), None, [ops])
                 continue
 
             # FIXME: make this configurable
@@ -139,7 +139,7 @@ def process_file(tracker, fname, orphans=False):
                 tracker.time_tracker.reset(ts2)
                 ops = ops_factory('STAR', None, None, file_meta, lambda x: None,
                                     'DATETIME', ts2)
-                tracker.db.add_ops(tracker.db.get_exec_id(), None, [ops])
+                tracker.db.add_ops(tracker.db.get_span_id(), None, [ops])
                 continue
 
             if (match := STARS_MATCHER.match(line)) is not None:
@@ -149,13 +149,13 @@ def process_file(tracker, fname, orphans=False):
                 file_meta[name] = value
                 tracker.time_tracker.reset(ts2)
                 star = ops_factory('STAR', None, value, file_meta, lambda x: None, name, ts2)
-                tracker.db.add_ops(tracker.db.get_exec_id(), None, [star])
+                tracker.db.add_ops(tracker.db.get_span_id(), None, [star])
                 continue
 
             if (match := FILE_HEADER_MATCHER.match(line)) is not None:
                 header = ops_factory('HEADER', None, match.group(2), file_meta,
                                         lambda x: None, match.group(1), None)
-                tracker.db.add_ops(tracker.db.get_exec_id(), None, [header])
+                tracker.db.add_ops(tracker.db.get_span_id(), None, [header])
                 continue
 
             if orphans:
