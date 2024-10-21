@@ -105,5 +105,5 @@ class Backend:
         '''Flushes the _ops_list to the table, and table to the disk.'''
         if len(self._ops_list) > 0:
             self._batch2table()
-        if self._table.num_rows > 0:
+        if self._table is not None:
             self.flush_batches()
