@@ -29,7 +29,7 @@ def ops_factory(op_type, cursor, params, fmeta, ts_callback, name=None, ts2=None
             ops = Pic(op_type, cursor, params, fmeta, ts_callback)
         case 'PARSE' | 'EXEC' | 'CLOSE' | 'FETCH':
             ops = Exec(op_type, cursor, params, fmeta, ts_callback)
-        case 'ERROR':
+        case 'ERROR' | 'PARSE ERROR':
             ops = Error(op_type, cursor, params, fmeta, ts_callback)
         case _ if op_type.startswith('LOB'):
             ops = Lob(op_type, cursor, params, fmeta, ts_callback)
@@ -287,7 +287,7 @@ class Exec(Ops):
                     + f"tim={self.dbop.tim},fname={self.dbop.fname},line={self.dbop.line}"
 
 class Error(Ops):
-    """Covers ERROR call. Has two attributes, error code and tim. """
+    """Covers ERROR and PARSE ERROR calls."""
     def __init__(self, op_type, cursor, params, fmeta, ts_callback):
         super().__init__(op_type, cursor, fmeta, ts_callback)
         for item in params.split(' '):
@@ -296,4 +296,8 @@ class Error(Ops):
                 self.dbop.__dict__[key[0]] = int(key[1])
     def __str__(self):
         str0 = f"{self.dbop.op_type} {self.dbop.cursor}:"
-        return str0 + f"err={self.dbop.err} tim={self.dbop.tim}"
+        if self.dbop.op_type == 'ERROR':
+            return str0 + f"err={self.dbop.err} tim={self.dbop.tim}"
+        return str0 + f"len={self.dbop.len} dep={self.dbop.dep} uid={self.dbop.uid} " \
+                    + f"oct={self.dbop.oct} lid={self.dbop.lid} tim={self.dbop.tim} " \
+                    + f"err={self.dbop.err}"
