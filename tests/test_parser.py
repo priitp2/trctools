@@ -166,5 +166,12 @@ class TestParser(unittest.TestCase):
         self.tracker.flush()
         self.assertEqual(lines, 51)
 
+    def test_parse_error(self):
+        lines = trcparser.process_file(self.tracker, 'tests/traces/parse_error.trc')
+        self.tracker.flush()
+        self.assertEqual(lines, 36)
+        self.assertEqual(self.get_count(self.tracker.db.batches, 3, 'PARSE ERROR'), 1)
+        self.assertEqual(self.get_count(self.tracker.db.batches, 3, 'CLOSE'), 1)
+
 if __name__ == '__main__':
     unittest.main()
