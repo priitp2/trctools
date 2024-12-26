@@ -5,50 +5,50 @@ __doc__ = ''' Adapter for pyarrow: turns stuff into Parquet files.'''
 # How many rows are bufferd and flushed to the disk in one file. Bigger number means
 # larger memory usage and less parquet files
 BATCH_SIZE = 10000000
-PARQUET_SCHEMA_VERSION = '0.3'
+PARQUET_SCHEMA_VERSION = '0.4'
 
 PARQUET_SCHEMA = pa.schema([
-    ('span_id', pa.int64()),
+    ('span_id', pa.uint64()),
     ('sql_id', pa.string()),
     ('cursor_id', pa.string()),
     ('ops', pa.string()),
-    ('cpu_time', pa.int64()),
-    ('elapsed_time', pa.int64()),
-    ('ph_reads', pa.int64()),
-    ('cr_reads', pa.int64()),
-    ('current_reads', pa.int64()),
-    ('cursor_missed', pa.int64()),
-    ('rows_processed', pa.int64()),
-    ('rec_call_dp', pa.int64()),
-    ('opt_goal', pa.int64()),
-    ('plh', pa.int64()),
-    ('tim', pa.int64()),
-    ('c_type', pa.int64()),
+    ('cpu_time', pa.uiint64()),
+    ('elapsed_time', pa.uint64()),
+    ('ph_reads', pa.uint64()),
+    ('cr_reads', pa.uint64()),
+    ('current_reads', pa.uint64()),
+    ('cursor_missed', pa.uint8()),
+    ('rows_processed', pa.uint64()),
+    ('rec_call_dp', pa.uint8()),
+    ('opt_goal', pa.uint8()),
+    ('plh', pa.uint64()),
+    ('tim', pa.uint64()),
+    ('c_type', pa.uint8()),
     ('event_name', pa.string()),
     ('event_raw', pa.string()),
     ('file_name', pa.string()),
-    ('line', pa.int64()),
+    ('line', pa.uint64()),
     ('ts', pa.timestamp('us')),
     # Next 6 is for PIC
-    ('len', pa.int64()),
-    ('uid', pa.int64()),
-    ('oct', pa.int64()),
-    ('lid', pa.int64()),
-    ('hv', pa.int64()),
+    ('len', pa.uint32()),
+    ('uid', pa.uint32()),
+    ('oct', pa.uint16()),
+    ('lid', pa.uint16()),
+    ('hv', pa.uint64()),
     ('ad', pa.string()),
     # For XCTEND
-    ('rlbk', pa.string()),
-    ('rd_only', pa.string()),
+    ('rlbk', pa.uint8()),
+    ('rd_only', pa.uint8()),
     # For LOBs
     ('lobtype', pa.string()),
-    ('bytes', pa.int64()),
+    ('bytes', pa.uint64()),
     ('sid', pa.string()),
     ('client_id', pa.string()),
     ('service_name', pa.string()),
     ('module', pa.string()),
     ('action', pa.string()),
-    ('container_id', pa.int16()),
-    ('error_code', pa.int16()), # Populated for the ERROR call
+    ('container_id', pa.uint16()),
+    ('error_code', pa.uint16()), # Populated for the ERROR call
 ])
 
 class Backend:
