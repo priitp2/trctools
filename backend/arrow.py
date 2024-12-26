@@ -12,7 +12,7 @@ PARQUET_SCHEMA = pa.schema([
     ('sql_id', pa.string()),
     ('cursor_id', pa.string()),
     ('ops', pa.string()),
-    ('cpu_time', pa.uiint64()),
+    ('cpu_time', pa.uint64()),
     ('elapsed_time', pa.uint64()),
     ('ph_reads', pa.uint64()),
     ('cr_reads', pa.uint64()),
