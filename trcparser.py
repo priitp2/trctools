@@ -24,7 +24,7 @@ TIMEZONE_MATCHER = re.compile(r'''(?:.*)\+(\d\d:\d\d)''')
 STARS_MATCHER = re.compile(r'''^\*\*\* (SESSION ID:|CLIENT ID:|SERVICE NAME:|MODULE NAME:'''
         +r'''|ACTION NAME:|CLIENT DRIVER:|CONTAINER ID:|CLIENT IP:|CONNECTION ID:)(\(.*\)) (.*)''')
 CALL_MATCHER = re.compile(r'''^(PARSE|PARSING IN CURSOR|EXEC|FETCH|WAIT|CLOSE'''
-                        +r'''|BINDS|STAT|ERROR) (#\d+)(:| )(.*)''')
+                        +r'''|BINDS|STAT|ERROR|PARSE ERROR) (#\d+)(:| )(.*)''')
 LOB_MATCHER = re.compile(r'''^(LOB[A-Z]+): (.*)''')
 
 FILE_HEADER_MATCHER = re.compile(r'''^(Build label|ORACLE_HOME|System name'''
@@ -65,8 +65,10 @@ def process_file(tracker, fname, orphans=False):
 
     in_binds = False
     in_pic = False
+    in_parse_error = False
     binds = ()
     pic = None
+    parse_error = None
 
     file_meta = collections.defaultdict(lambda: None)
     file_meta['FILE_NAME'] = fname
@@ -102,6 +104,14 @@ def process_file(tracker, fname, orphans=False):
                                         tracker.time_tracker.get_wc)
                     tracker.add_pic(pic.cursor, pic)
                     continue
+                if in_parse_error:
+                    in_parse_error = False
+                if match.group(1) == 'PARSE ERROR':
+                    in_parse_error = True
+                    parse_error = ops_factory('PARSE ERROR', match.group(2), match.group(4),
+                                        file_meta, tracker.time_tracker.get_wc)
+                    tracker.add_ops(parse_error.cursor, parse_error)
+                    continue
                 ops = ops_factory(match.group(1), match.group(2), match.group(4), file_meta,
                                         tracker.time_tracker.get_wc)
                 tracker.add_ops(match.group(2), ops)
@@ -118,6 +128,9 @@ def process_file(tracker, fname, orphans=False):
                 else:
                     pic.add_line(line)
                 continue
+
+            if in_parse_error:
+                parse_error.add_line(line)
 
             if (match := LOB_MATCHER.match(line)) is not None:
                 ops = ops_factory(match.group(1), None, match.group(2), file_meta,
