@@ -1,0 +1,36 @@
+Trace file tests/traces/parse_error.trc
+Oracle Database 19c Enterprise Edition Release 19.0.0.0.0 - Production
+Version 19.24.0.0.0
+Build label:    RDBMS_19.24.0.0.0DBRU_LINUX.X64_240627
+ORACLE_HOME:    /u01/app/oracle/product/19-db-19242
+System name:    Linux
+Node name:      oratest.example.com
+Release:        5.4.17-2136.335.4.el8uek.x86_64
+Version:        #3 SMP Thu Aug 22 12:18:30 PDT 2024
+Machine:        x86_64
+CLID:   P
+Instance name: test01
+Instance number: 1
+Database name: TOTBFHPV
+Database unique name: TEST
+Database id: 1664403926
+Redo thread mounted by this instance: 1
+Oracle process number: 435
+Unix process pid: 2105441, image: oratest.example.com
+
+
+*** 2024-12-10T08:40:08.807553+00:00 (TESTDB(5))
+*** SESSION ID:(436.41732) 2024-12-10T08:40:08.807582+00:00
+*** CLIENT ID:() 2024-12-10T08:40:08.807586+00:00
+*** SERVICE NAME:(testservice) 2024-12-10T08:40:08.807590+00:00
+*** MODULE NAME:(SQL Developer) 2024-12-10T08:40:08.807593+00:00
+*** ACTION NAME:() 2024-12-10T08:40:08.807597+00:00
+*** CLIENT DRIVER:(SERVER) 2024-12-10T08:40:08.807600+00:00
+*** CONTAINER ID:(5) 2024-12-10T08:40:08.807603+00:00
+
+An audit record for the authentication attempt could not be written out due to an ORA-28035 error condition or a recursive ORA-0 error condition at SQL level 2.
+
+PARSE ERROR #140604232973104:len=67 dep=1 uid=112 oct=3 lid=112 tim=6149052610789 err=10980
+/* SQL Analyze(436,0) */ select username from dba_users order by 1
+CLOSE #140604232973104:c=1,e=1,dep=1,type=0,tim=6149052610880
+
