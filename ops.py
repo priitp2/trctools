@@ -294,6 +294,8 @@ class Error(Ops):
             if len(item):
                 key = item.split('=')
                 self.dbop.__dict__[key[0]] = int(key[1])
+        if op_type == 'PARSE ERROR':
+            self.dbop.__dict__['raw'] = ''
     def __str__(self):
         str0 = f"{self.dbop.op_type} {self.dbop.cursor}:"
         if self.dbop.op_type == 'ERROR':
