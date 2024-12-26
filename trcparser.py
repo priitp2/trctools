@@ -28,7 +28,9 @@ CALL_MATCHER = re.compile(r'''^(PARSE|PARSING IN CURSOR|EXEC|FETCH|WAIT|CLOSE'''
 LOB_MATCHER = re.compile(r'''^(LOB[A-Z]+): (.*)''')
 
 FILE_HEADER_MATCHER = re.compile(r'''^(Build label|ORACLE_HOME|System name'''
-                        +r'''|Node name|Release|Version|Machine|Instance name'''
+                        +r'''|Node name|Release|Version|Machine|CLID|Instance name'''
+                        +r'''|Instance number|Database name|Database unique name'''
+                        +r'''|Database unique id'''
                         +r'''|Redo thread mounted by this instance|Oracle process number'''
                         +r'''|Unix process pid):\s+(.*)''')
 
