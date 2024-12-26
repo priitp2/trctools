@@ -7,9 +7,10 @@ class CurrentStatement:
             raise ValueError("init: got empty cursor")
         self.cursor = cursor
         # These calls are tracked as a client interaction(span_id)
-        self.known_ops = ('PIC', 'PARSE', 'EXEC', 'WAIT', 'FETCH', 'CLOSE', 'STAT', 'BINDS', 'ERROR')
+        self.known_ops = ('PIC', 'PARSE', 'EXEC', 'WAIT', 'FETCH', 'CLOSE', 'STAT', 'BINDS',
+                'ERROR', 'PARSE ERROR')
         self.ops = {'PIC':None, 'PARSE':None, 'EXEC':None, 'WAIT':[], 'FETCH':[], 'CLOSE':None,
-                'STAT':[], 'BINDS':None, 'ERROR':None}
+                'STAT':[], 'BINDS':None, 'ERROR':None, 'PARSE ERROR': None}
         self.sql_id = sql_id
         self.dbs = dbs
     def is_not_empty(self):
