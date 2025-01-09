@@ -3,8 +3,7 @@ from ops import Ops
 class CurrentStatement:
     """Tracks operations done within one database interaction."""
     def __init__(self, cursor: str, dbs, sql_id: str=None) -> None:
-        self.__slots__ = ('cursor', 'parsing_in', 'parse', 'exec', 'waits', 'fetches',
-                            'close', 'sql_id', 'dbs', 'stat')
+        self.__slots__ = ('cursor', 'sql_id', 'dbs', 'known_ops', 'ops')
         if len(cursor) < 2 and cursor != '#0':
             raise ValueError("init: got empty cursor")
         self.cursor = cursor
@@ -16,6 +15,7 @@ class CurrentStatement:
         self.sql_id = sql_id
         self.dbs = dbs
     def is_not_empty(self) -> bool:
+        """Checks if any of the ops is set. """
         for ops in self.ops.items():
             if ops[1]:
                 return True
@@ -33,6 +33,7 @@ class CurrentStatement:
             return
         self.ops[ops.op_type] = ops
     def is_set(self, op_type: str) -> bool:
+        """Checks if specific ops is set"""
         if self.ops[op_type]:
             return True
         return False
