@@ -1,6 +1,8 @@
+from ops import Ops
+
 class CurrentStatement:
     """Tracks operations done within one database interaction."""
-    def __init__(self, cursor, dbs, sql_id=None):
+    def __init__(self, cursor: str, dbs, sql_id: str=None) -> None:
         self.__slots__ = ('cursor', 'parsing_in', 'parse', 'exec', 'waits', 'fetches',
                             'close', 'sql_id', 'dbs', 'stat')
         if len(cursor) < 2 and cursor != '#0':
@@ -13,13 +15,13 @@ class CurrentStatement:
                 'STAT':[], 'BINDS':None, 'ERROR':None, 'PARSE ERROR': None}
         self.sql_id = sql_id
         self.dbs = dbs
-    def is_not_empty(self):
+    def is_not_empty(self) -> bool:
         for ops in self.ops.items():
             if ops[1]:
                 return True
         return False
 
-    def add_ops(self, ops):
+    def add_ops(self, ops: Ops) -> None:
         if self.cursor != ops.cursor:
             raise KeyError(f"add_ops: wrong cursor, got {ops.cursor}, have {self.cursor}")
         if ops.op_type not in self.known_ops:
@@ -30,11 +32,11 @@ class CurrentStatement:
             self.ops[ops.op_type].append(ops)
             return
         self.ops[ops.op_type] = ops
-    def is_set(self, op_type):
+    def is_set(self, op_type: str) -> bool:
         if self.ops[op_type]:
             return True
         return False
-    def count_ops(self, op_type):
+    def count_ops(self, op_type: str) -> int:
         """Counts number of (listy) ops. Useful for tests."""
         for ops in self.ops.values():
             if ops and isinstance(ops, list):
@@ -43,13 +45,12 @@ class CurrentStatement:
             if ops and ops.op_type == op_type:
                 return 1
         return 0
-    def dump_to_db(self):
+    def dump_to_db(self) -> None:
         """Turns ops into lists and adds to the database"""
         if not self.dbs:
             raise TypeError("dump_to_db: database not set!")
         span_id = self.dbs.get_span_id()
         out = []
-
 
         for ops in self.ops.values():
             if ops:
