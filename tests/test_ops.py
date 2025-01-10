@@ -67,9 +67,9 @@ class TestOps(unittest.TestCase):
         self.assertEqual(lst[12], ops.og)
         self.assertEqual(lst[13], ops.plh)
         self.assertEqual(lst[14], ops.tim)
-        self.assertEqual(lst[15], None)
-        self.assertEqual(lst[16], None)
-        self.assertEqual(lst[17], None)
+        self.assertEqual(lst[15], 0)
+        self.assertEqual(lst[16], '')
+        self.assertEqual(lst[17], '')
         self.assertEqual(lst[18], test_constants.FMETA['FILE_NAME'])
         self.assertEqual(lst[19], test_constants.FMETA['LINE_COUNT'])
         # ts2
