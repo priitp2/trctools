@@ -36,11 +36,6 @@ class CurrentStatement:
                 self.ops[ops.op_type] = [ops]
             return
         self.ops[ops.op_type] = ops
-    def is_set(self, op_type: str) -> bool:
-        """Checks if specific ops is set"""
-        if op_type in self.ops:
-            return True
-        return False
     def count_ops(self, op_type: str) -> int:
         """Counts number of (listy) ops. Useful for tests."""
         for ops in self.ops.values():
