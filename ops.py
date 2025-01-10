@@ -10,7 +10,7 @@ __doc__ = """
 
 wait_matcher = re.compile(r""" nam='(.*)' ela= (\d+) (.*) tim=(\d+)""")
 
-@dataclass(init=False, kw_only=True)
+@dataclass(init=True, kw_only=True)
 class DatabaseOp:
     """Container for the various fields in the trace files. Field names correspond 1:1 to the
        contents of the trace file, except: 
@@ -65,17 +65,17 @@ class Ops:
         Base class for various operations.
     """
     def __init__(self, op_type: str, cursor: str, fmeta: dict, ts_callback) -> None:
-        self.dbop = DatabaseOp()
-        self.dbop.op_type = op_type
-        self.dbop.cursor = cursor
-        self.dbop.fname = fmeta['FILE_NAME']
-        self.dbop.line = fmeta['LINE_COUNT']
-        self.dbop.sid = fmeta['SID']
-        self.dbop.client_id = fmeta['CLIENT ID']
-        self.dbop.service_name = fmeta['SERVICE NAME']
-        self.dbop.module = fmeta['MODULE']
-        self.dbop.action = fmeta['ACTION']
-        self.dbop.container_id = fmeta['CONTAINER ID']
+        self.dbop = DatabaseOp(op_type = op_type,
+            cursor = cursor,
+            fname = fmeta['FILE_NAME'],
+            line = fmeta['LINE_COUNT'],
+            sid = fmeta['SID'],
+            client_id = fmeta['CLIENT ID'],
+            service_name = fmeta['SERVICE NAME'],
+            module = fmeta['MODULE'],
+            action = fmeta['ACTION'],
+            container_id = fmeta['CONTAINER ID']
+        )
 
         self.ts_callback = ts_callback
     def __getattr__(self, name):
