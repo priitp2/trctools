@@ -88,7 +88,7 @@ class Ops:
         if name in [f.name for f in fields(self.dbop)]:
             return 0
         raise AttributeError(f"Wrong attribute: {name}")
-    def astuple(self, span_id, sql_id):
+    def astuple(self, span_id: int, sql_id: str) -> tuple:
         """ Generates list that is used to persist Ops in the database. Children are supposed to 
             override this."""
         self.dbop.span_id = span_id
@@ -136,7 +136,7 @@ class Ops:
             self.dbop.err,
         )
         #return astuple(self.dbop)
-    def to_dict(self, span_id, sql_id):
+    def to_dict(self, span_id: int, sql_id: str) -> dict:
         """Returns DatabaseOp as a dict."""
         out = asdict(self.dbop)
 
@@ -148,10 +148,10 @@ class Ops:
             out['ts'] = self.ts_callback(self.dbop.tim)
 
         return out
-    def add_line(self, line):
+    def add_line(self, line: str) -> None:
         """Adds another line to the container."""
         self.dbop.__dict__['raw'] = "".join((self.dbop.__dict__['raw'], line))
-    def __str__(self):
+    def __str__(self) -> str:
         return ''
 
 class Wait(Ops):
