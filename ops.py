@@ -1,6 +1,7 @@
 from dataclasses import dataclass, fields, asdict
 import datetime
 import re
+from typing import Optional
 
 __doc__ = """
     Contains classes representing the various operations/lines in the trace file.
@@ -8,34 +9,6 @@ __doc__ = """
 """
 
 wait_matcher = re.compile(r""" nam='(.*)' ela= (\d+) (.*) tim=(\d+)""")
-
-def ops_factory(op_type, cursor, params, fmeta, ts_callback, name=None, ts2=None):
-    """
-        Factory method for operations.
-    """
-    ops = None
-    match op_type:
-        case 'WAIT':
-            ops = Wait(op_type, cursor, params, fmeta, ts_callback)
-        case 'STAT':
-            ops = Stat(op_type, cursor, params, fmeta, ts_callback)
-        case 'BINDS':
-            ops = Binds(op_type, cursor, params, fmeta, ts_callback)
-        case 'STAR' | 'HEADER':
-            ops = Meta(op_type, cursor, params, fmeta, name, ts2)
-        case 'XCTEND':
-            ops = Xctend(op_type, cursor, params, fmeta, ts_callback)
-        case 'PIC':
-            ops = Pic(op_type, cursor, params, fmeta, ts_callback)
-        case 'PARSE' | 'EXEC' | 'CLOSE' | 'FETCH':
-            ops = Exec(op_type, cursor, params, fmeta, ts_callback)
-        case 'ERROR' | 'PARSE ERROR':
-            ops = Error(op_type, cursor, params, fmeta, ts_callback)
-        case _ if op_type.startswith('LOB'):
-            ops = Lob(op_type, cursor, params, fmeta, ts_callback)
-        case _:
-            raise AttributeError(f"Wrong op_type: {op_type}")
-    return ops
 
 @dataclass(init=False, kw_only=True)
 class DatabaseOp:
@@ -91,7 +64,7 @@ class Ops:
     """
         Base class for various operations.
     """
-    def __init__(self, op_type, cursor, fmeta, ts_callback):
+    def __init__(self, op_type: str, cursor: str, fmeta: dict, ts_callback) -> None:
         self.dbop = DatabaseOp()
         self.dbop.op_type = op_type
         self.dbop.cursor = cursor
@@ -303,3 +276,32 @@ class Error(Ops):
         return str0 + f"len={self.dbop.len} dep={self.dbop.dep} uid={self.dbop.uid} " \
                     + f"oct={self.dbop.oct} lid={self.dbop.lid} tim={self.dbop.tim} " \
                     + f"err={self.dbop.err}"
+
+def ops_factory(op_type: str, cursor: str, params: str, fmeta: dict, ts_callback,
+        name: Optional[str]=None, ts2=None) -> Ops:
+    """
+        Factory method for operations.
+    """
+    ops: Optional[Ops] = None
+    match op_type:
+        case 'WAIT':
+            ops = Wait(op_type, cursor, params, fmeta, ts_callback)
+        case 'STAT':
+            ops = Stat(op_type, cursor, params, fmeta, ts_callback)
+        case 'BINDS':
+            ops = Binds(op_type, cursor, params, fmeta, ts_callback)
+        case 'STAR' | 'HEADER':
+            ops = Meta(op_type, cursor, params, fmeta, name, ts2)
+        case 'XCTEND':
+            ops = Xctend(op_type, cursor, params, fmeta, ts_callback)
+        case 'PIC':
+            ops = Pic(op_type, cursor, params, fmeta, ts_callback)
+        case 'PARSE' | 'EXEC' | 'CLOSE' | 'FETCH':
+            ops = Exec(op_type, cursor, params, fmeta, ts_callback)
+        case 'ERROR' | 'PARSE ERROR':
+            ops = Error(op_type, cursor, params, fmeta, ts_callback)
+        case _ if op_type.startswith('LOB'):
+            ops = Lob(op_type, cursor, params, fmeta, ts_callback)
+        case _:
+            raise AttributeError(f"Wrong op_type: {op_type}")
+    return ops
