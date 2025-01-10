@@ -16,11 +16,6 @@ class CurrentStatement:
         self.ops: Mapping[str, Ops | list[Ops]] = {}
         self.sql_id = sql_id
         self.dbs = dbs
-    def is_not_empty(self) -> bool:
-        """Checks if any of the ops is set. """
-        if len(self.ops) > 0:
-            return True
-        return False
 
     def add_ops(self, ops: Ops) -> None:
         if self.cursor != ops.cursor:
