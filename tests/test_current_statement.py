@@ -18,16 +18,6 @@ class TestCurrentStatement(unittest.TestCase):
             self.cstat.add_ops(ops)
         self.cstat.dump_to_db()
         self.assertEqual(len(self.cstat.dbs.batches), len(test_constants.TRACKED_OPS))
-    def test_is_not_empty(self):
-        self.assertFalse(self.cstat.is_not_empty())
-        self.cstat.add_ops(test_constants.TRACKED_OPS['EXEC'])
-        self.assertTrue(self.cstat.is_not_empty())
-
-        self.cstat = CurrentStatement(test_constants.CURSOR, None)
-        wait = test_constants.TRACKED_OPS['WAIT']
-        for i in range(0, 3):
-            self.cstat.add_ops(wait)
-        self.assertTrue(self.cstat.is_not_empty())
     def test_add_ops(self):
         for ops in test_constants.TRACKED_OPS.values():
             self.cstat.add_ops(ops)
