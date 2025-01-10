@@ -43,7 +43,7 @@ class TestCurrentStatement(unittest.TestCase):
         self.assertTrue(self.cstat.is_set('WAIT'))
 
         # Unset PIC, so we can test is_set returning False
-        self.cstat.ops['PIC'] = None
+        del(self.cstat.ops['PIC'])
         self.assertFalse(self.cstat.is_set('PIC'))
 
         # Missing in TRACKED_OPS

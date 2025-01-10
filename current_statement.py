@@ -1,24 +1,25 @@
+from collections.abc import Mapping
+from typing import Optional
 from ops import Ops
 
 class CurrentStatement:
     """Tracks operations done within one database interaction."""
-    def __init__(self, cursor: str, dbs, sql_id: str=None) -> None:
+    def __init__(self, cursor: str, dbs, sql_id: Optional[str]=None) -> None:
         self.__slots__ = ('cursor', 'sql_id', 'dbs', 'known_ops', 'ops')
         if len(cursor) < 2 and cursor != '#0':
             raise ValueError("init: got empty cursor")
         self.cursor = cursor
         # These calls are tracked as a client interaction(span_id)
-        self.known_ops = ('PIC', 'PARSE', 'EXEC', 'WAIT', 'FETCH', 'CLOSE', 'STAT', 'BINDS',
-                'ERROR', 'PARSE ERROR')
-        self.ops = {'PIC':None, 'PARSE':None, 'EXEC':None, 'WAIT':[], 'FETCH':[], 'CLOSE':None,
-                'STAT':[], 'BINDS':None, 'ERROR':None, 'PARSE ERROR': None}
+        self.known_ops: tuple[str, ...] = ('PIC', 'PARSE', 'EXEC', 'WAIT', 'FETCH', 'CLOSE', 'STAT',
+                'BINDS', 'ERROR', 'PARSE ERROR')
+        self.iterable_ops: tuple[str, ...] = ('WAIT', 'FETCH', 'STAT')
+        self.ops: Mapping[str, Ops | list[Ops]] = {}
         self.sql_id = sql_id
         self.dbs = dbs
     def is_not_empty(self) -> bool:
         """Checks if any of the ops is set. """
-        for ops in self.ops.items():
-            if ops[1]:
-                return True
+        if len(self.ops) > 0:
+            return True
         return False
 
     def add_ops(self, ops: Ops) -> None:
@@ -26,24 +27,26 @@ class CurrentStatement:
             raise KeyError(f"add_ops: wrong cursor, got {ops.cursor}, have {self.cursor}")
         if ops.op_type not in self.known_ops:
             raise KeyError(f"add_ops: unknown ops type: {ops.op_type}")
-        if self.ops[ops.op_type] and not isinstance(self.ops[ops.op_type], list):
+        if ops.op_type in self.ops and ops.op_type not in self.iterable_ops:
             raise KeyError(f"add_ops: already set: ops {ops.op_type}")
-        if ops.op_type in ('WAIT', 'FETCH', 'STAT'):
-            self.ops[ops.op_type].append(ops)
+        if ops.op_type in self.iterable_ops:
+            if ops.op_type in self.ops:
+                self.ops[ops.op_type].append(ops)
+            else:
+                self.ops[ops.op_type] = [ops]
             return
         self.ops[ops.op_type] = ops
     def is_set(self, op_type: str) -> bool:
         """Checks if specific ops is set"""
-        if self.ops[op_type]:
+        if op_type in self.ops:
             return True
         return False
     def count_ops(self, op_type: str) -> int:
         """Counts number of (listy) ops. Useful for tests."""
         for ops in self.ops.values():
-            if ops and isinstance(ops, list):
-                if ops[0].op_type == op_type:
-                    return len(ops)
-            if ops and ops.op_type == op_type:
+            if isinstance(ops, list):
+                return len(ops)
+            if ops.op_type == op_type:
                 return 1
         return 0
     def dump_to_db(self) -> None:
@@ -54,9 +57,8 @@ class CurrentStatement:
         out = []
 
         for ops in self.ops.values():
-            if ops:
-                if isinstance(ops, list):
-                    out += ops
-                else:
-                    out.append(ops)
+            if isinstance(ops, list):
+                out += ops
+            else:
+                out.append(ops)
         self.dbs.add_ops(span_id, self.sql_id, out)
