@@ -38,7 +38,7 @@ class TestCallTracker(unittest.TestCase):
         self.tracker.add_ops(test_constants.CURSOR, test_constants.TRACKED_OPS['PARSE'])
         cursor = self.tracker.latest_cursors[test_constants.CURSOR]
         self.assertNotEqual(cursor, None)
-        self.assertTrue(cursor.is_set('PARSE'))
+        self.assertTrue('PARSE' in cursor.ops)
         self.assertEqual(len(self.tracker.latest_cursors), 1)
         self.assertEqual(len(self.tracker.cursors), 1)
         self.assertEqual(len(self.tracker.db.batches), 2)
@@ -87,8 +87,8 @@ class TestCallTracker(unittest.TestCase):
         # Another PIC should close existing test_constants.CURSOR/interaction
         self.tracker.add_pic(test_constants.CURSOR, test_constants.TRACKED_OPS['PIC'])
         crs = self.tracker.latest_cursors[test_constants.CURSOR]
-        self.assertTrue(crs.is_set('PIC'))
-        self.assertFalse(crs.is_set('EXEC'))
+        self.assertTrue('PIC' in crs.ops)
+        self.assertFalse('EXEC' in crs.ops)
         self.assertEqual(len(self.tracker.latest_cursors), 1)
         self.assertEqual(len(self.tracker.db.batches), 2)
     def test_add_ops_add_pic(self):

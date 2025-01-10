@@ -41,7 +41,7 @@ class CallTracker:
         cstat = self._get_statement(cursor)
         # If non-list ops is already set we assume previous client interaction is over and
         # we can close latest cursor/interaction
-        if not cstat or (cstat.is_set(ops.op_type)
+        if not cstat or (ops.op_type in cstat.ops
                             and not isinstance(cstat.ops[ops.op_type], list)):
             cstat = self.add_latest_cursor(cursor)
         cstat.add_ops(ops)

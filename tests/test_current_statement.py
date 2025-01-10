@@ -36,18 +36,14 @@ class TestCurrentStatement(unittest.TestCase):
         wait = test_constants.TRACKED_OPS['WAIT']
         self.cstat.add_ops(wait)
 
-        self.assertTrue(self.cstat.is_set('PARSE'))
-        self.assertTrue(self.cstat.is_set('EXEC'))
-        self.assertTrue(self.cstat.is_set('CLOSE'))
-        self.assertTrue(self.cstat.is_set('STAT'))
-        self.assertTrue(self.cstat.is_set('WAIT'))
-
-        # Unset PIC, so we can test is_set returning False
-        del(self.cstat.ops['PIC'])
-        self.assertFalse(self.cstat.is_set('PIC'))
+        self.assertTrue('PARSE' in self.cstat.ops)
+        self.assertTrue('EXEC' in self.cstat.ops)
+        self.assertTrue('CLOSE' in self.cstat.ops)
+        self.assertTrue('STAT' in self.cstat.ops)
+        self.assertTrue('WAIT' in self.cstat.ops)
 
         # Missing in TRACKED_OPS
-        self.assertFalse(self.cstat.is_set('BINDS'))
+        self.assertFalse('BINDS' in self.cstat.ops)
 
         wrong_cs = ops_factory('WAIT', test_constants.WRONG_CURSOR, " nam='db file sequential read' " \
                 + "ela= 403 file#=414 block#=2682927 ", test_constants.FMETA, 3, FAKE_TIME_TRACKER)
@@ -62,9 +58,6 @@ class TestCurrentStatement(unittest.TestCase):
         ops = test_constants.TRACKED_OPS['EXEC']
         with self.assertRaisesRegex(BaseException, 'add_ops: already set: *'):
             self.cstat.add_ops(ops)
-
-    def test_is_set(self):
-        self.assertFalse(self.cstat.is_set('EXEC'))
 
     def test_count_ops(self):
         self.assertEqual(self.cstat.count_ops('FETCH'), 0)
