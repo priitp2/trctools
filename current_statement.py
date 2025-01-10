@@ -18,6 +18,7 @@ class CurrentStatement:
         self.dbs = dbs
 
     def add_ops(self, ops: Ops) -> None:
+        """Adds database operation to the current statement"""
         if self.cursor != ops.cursor:
             raise KeyError(f"add_ops: wrong cursor, got {ops.cursor}, have {self.cursor}")
         if ops.op_type not in self.known_ops:
