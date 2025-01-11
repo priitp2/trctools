@@ -1,20 +1,20 @@
-from collections.abc import Mapping
 from typing import Optional
 from ops import Ops
+
+KNOWN_OPS: tuple[str, ...] = ('PIC', 'PARSE', 'EXEC', 'WAIT', 'FETCH', 'CLOSE', 'STAT',
+    'BINDS', 'ERROR', 'PARSE ERROR')
+ITERABLE_OPS: tuple[str, ...] = ('WAIT', 'FETCH', 'STAT')
 
 class CurrentStatement:
     """Tracks operations done within one database interaction/span."""
     def __init__(self, cursor: str, dbs, sql_id: Optional[str]=None) -> None:
-        self.__slots__ = ('cursor', 'sql_id', 'dbs', 'known_ops', 'ops')
+        self.__slots__ = ('cursor', 'sql_id', 'dbs', 'known_ops', 'ops', 'ops_container')
         if len(cursor) < 2 and cursor != '#0':
             raise ValueError("init: got empty cursor")
         self.cursor = cursor
         # These calls are tracked as a client interaction(span_id)
-        self.known_ops: tuple[str, ...] = ('PIC', 'PARSE', 'EXEC', 'WAIT', 'FETCH', 'CLOSE', 'STAT',
-                'BINDS', 'ERROR', 'PARSE ERROR')
-        self.iterable_ops: tuple[str, ...] = ('WAIT', 'FETCH', 'STAT')
-        self.ops: Mapping[str, Ops | list[Ops]] = {}
-        self.ops_container: List[Ops] = []
+        self.ops: dict[str, Ops] = {}
+        self.ops_container: list[Ops] = []
         self.sql_id = sql_id
         self.dbs = dbs
 
@@ -25,11 +25,11 @@ class CurrentStatement:
         """Adds database operation to the current statement"""
         if self.cursor != ops.cursor:
             raise KeyError(f"add_ops: wrong cursor, got {ops.cursor}, have {self.cursor}")
-        if ops.op_type not in self.known_ops:
+        if ops.op_type not in KNOWN_OPS:
             raise KeyError(f"add_ops: unknown ops type: {ops.op_type}")
-        if ops.op_type in self.ops and ops.op_type not in self.iterable_ops:
+        if ops.op_type in self.ops and ops.op_type not in ITERABLE_OPS:
             raise KeyError(f"add_ops: already set: ops {ops.op_type}")
-        if ops.op_type in self.iterable_ops:
+        if ops.op_type in ITERABLE_OPS:
             self.ops_container.append(ops)
             return
         self.ops[ops.op_type] = ops
