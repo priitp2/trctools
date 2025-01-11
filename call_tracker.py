@@ -1,24 +1,26 @@
 from current_statement import CurrentStatement
+from ops import Ops
 from time_tracker import TimeTracker
+from typing import Optional
 
 class CallTracker:
     '''
         Tracks database client interactions.
     '''
-    def __init__(self, db):
+    def __init__(self, db) -> None:
         self.db = db
         # {cursor handle: CurrentStatement}
-        self.latest_cursors = {}
+        self.latest_cursors: dict[str, CurrentStatement] = {}
         # {cursor handle: sql_id}
-        self.cursors = {}
+        self.cursors: dict[str, Optional[str]] = {}
 
         self.dummy_counter = 0
         self.time_tracker = TimeTracker()
-    def _get_statement(self, cursor):
+    def _get_statement(self, cursor: str) -> Optional[CurrentStatement]:
         if cursor in self.latest_cursors:
             return self.latest_cursors[cursor]
         return None
-    def add_latest_cursor(self, cursor):
+    def add_latest_cursor(self, cursor: str) -> CurrentStatement:
         ''' Tracks client interactions. If cursor is present then this is new execution,
             so dump the cursor to the database and overwrite the latest_cursor.
         '''
@@ -35,7 +37,7 @@ class CallTracker:
             stat.dump_to_db()
         self.latest_cursors[cursor] = CurrentStatement(cursor, self.db, self.cursors[cursor])
         return self.latest_cursors[cursor]
-    def add_ops(self, cursor, ops):
+    def add_ops(self, cursor: str, ops: Ops):
         ''' Adds tracked operation.'''
 
         cstat = self._get_statement(cursor)
