@@ -1,7 +1,7 @@
+from typing import Optional
 from current_statement import CurrentStatement
 from ops import Ops
 from time_tracker import TimeTracker
-from typing import Optional
 
 class CallTracker:
     '''
@@ -37,7 +37,7 @@ class CallTracker:
             stat.dump_to_db()
         self.latest_cursors[cursor] = CurrentStatement(cursor, self.db, self.cursors[cursor])
         return self.latest_cursors[cursor]
-    def add_ops(self, cursor: str, ops: Ops):
+    def add_ops(self, cursor: str, ops: Ops) -> None:
         ''' Adds tracked operation.'''
 
         cstat = self._get_statement(cursor)
@@ -46,7 +46,7 @@ class CallTracker:
         if not cstat or (ops.op_type in cstat.ops):
             cstat = self.add_latest_cursor(cursor)
         cstat.add_ops(ops)
-    def add_pic(self, cursor, params):
+    def add_pic(self, cursor: str, params: Ops) -> None:
         '''Separate function to add PIC ops. It is separate b/c of extra steps with sql_id.'''
         cstat = self._get_statement(cursor)
         if cstat:
@@ -60,7 +60,7 @@ class CallTracker:
         self.latest_cursors[cursor] = cstat
 
         cstat.add_ops(params)
-    def reset(self):
+    def reset(self) -> None:
         '''Cleans the state of the tracker. Removes empty statements from latest_cursor. '''
         empty = []
         for cursor in self.latest_cursors:
@@ -70,7 +70,7 @@ class CallTracker:
                 empty.append(cursor)
         for cursor in empty:
             del self.latest_cursors[cursor]
-    def flush(self):
+    def flush(self) -> None:
         '''Resets the tracker and flushes the db. '''
         if not self.db:
             return
