@@ -3,7 +3,7 @@ from typing import Optional
 from ops import Ops
 
 class CurrentStatement:
-    """Tracks operations done within one database interaction."""
+    """Tracks operations done within one database interaction/span."""
     def __init__(self, cursor: str, dbs, sql_id: Optional[str]=None) -> None:
         self.__slots__ = ('cursor', 'sql_id', 'dbs', 'known_ops', 'ops')
         if len(cursor) < 2 and cursor != '#0':
@@ -14,9 +14,13 @@ class CurrentStatement:
                 'BINDS', 'ERROR', 'PARSE ERROR')
         self.iterable_ops: tuple[str, ...] = ('WAIT', 'FETCH', 'STAT')
         self.ops: Mapping[str, Ops | list[Ops]] = {}
+        self.ops_container: List[Ops] = []
         self.sql_id = sql_id
         self.dbs = dbs
 
+    def __len__(self) -> int:
+        """Returns number of operations in span"""
+        return len(self.ops) + len(self.ops_container)
     def add_ops(self, ops: Ops) -> None:
         """Adds database operation to the current statement"""
         if self.cursor != ops.cursor:
@@ -26,20 +30,19 @@ class CurrentStatement:
         if ops.op_type in self.ops and ops.op_type not in self.iterable_ops:
             raise KeyError(f"add_ops: already set: ops {ops.op_type}")
         if ops.op_type in self.iterable_ops:
-            if ops.op_type in self.ops:
-                self.ops[ops.op_type].append(ops)
-            else:
-                self.ops[ops.op_type] = [ops]
+            self.ops_container.append(ops)
             return
         self.ops[ops.op_type] = ops
     def count_ops(self, op_type: str) -> int:
         """Counts number of (listy) ops. Useful for tests."""
         for ops in self.ops.values():
-            if isinstance(ops, list):
-                return len(ops)
             if ops.op_type == op_type:
                 return 1
-        return 0
+        out = 0
+        for ops in self.ops_container:
+            if ops.op_type == op_type:
+                out += 1
+        return out
     def dump_to_db(self) -> None:
         """Turns ops into lists and adds to the database"""
         if not self.dbs:
@@ -48,8 +51,6 @@ class CurrentStatement:
         out = []
 
         for ops in self.ops.values():
-            if isinstance(ops, list):
-                out += ops
-            else:
-                out.append(ops)
+            out.append(ops)
+        out += self.ops_container
         self.dbs.add_ops(span_id, self.sql_id, out)
