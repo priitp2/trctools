@@ -11,7 +11,7 @@ class CurrentStatement:
     def __init__(self, cursor: str, dbs, sql_id: Optional[str]=None) -> None:
         self.__slots__ = ('cursor', 'sql_id', 'dbs', 'known_ops', 'ops', 'ops_container')
 
-        # Cursor is 0 or a large number 
+        # Cursor is 0 or a large number
         if len(cursor) <= 2 and cursor != '#0':
             raise ValueError("init: got empty cursor")
 
