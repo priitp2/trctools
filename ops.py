@@ -1,7 +1,7 @@
 from dataclasses import dataclass, fields, asdict
 import datetime
 import re
-from typing import Optional, Union, Callable
+from typing import Any, Optional, Union, Callable
 
 __doc__ = """
     Contains classes representing the various operations/lines in the trace file.
@@ -80,7 +80,7 @@ class Ops:
         )
 
         self.ts_callback = ts_callback
-    def __getattr__(self, name: str) -> Union[int | str | datetime.datetime]:
+    def __getattr__(self, name: str) -> Any:
         """Redirects attributes to self.dbop."""
         if name == 'sqlid':
             return self.dbop.sql_id
