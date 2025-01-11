@@ -3,14 +3,18 @@ from ops import Ops
 
 KNOWN_OPS: tuple[str, ...] = ('PIC', 'PARSE', 'EXEC', 'WAIT', 'FETCH', 'CLOSE', 'STAT',
     'BINDS', 'ERROR', 'PARSE ERROR')
+
 ITERABLE_OPS: tuple[str, ...] = ('WAIT', 'FETCH', 'STAT')
 
 class CurrentStatement:
     """Tracks operations done within one database interaction/span."""
     def __init__(self, cursor: str, dbs, sql_id: Optional[str]=None) -> None:
         self.__slots__ = ('cursor', 'sql_id', 'dbs', 'known_ops', 'ops', 'ops_container')
-        if len(cursor) < 2 and cursor != '#0':
+
+        # Cursor is 0 or a large number 
+        if len(cursor) <= 2 and cursor != '#0':
             raise ValueError("init: got empty cursor")
+
         self.cursor = cursor
         # These calls are tracked as a client interaction(span_id)
         self.ops: dict[str, Ops] = {}
