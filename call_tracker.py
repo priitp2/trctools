@@ -63,7 +63,7 @@ class CallTracker:
         '''Cleans the state of the tracker. Removes empty statements from latest_cursor. '''
         empty = []
         for cursor in self.latest_cursors:
-            if len(self.latest_cursors[cursor].ops) > 0:
+            if len(self.latest_cursors[cursor]) > 0:
                 self.add_latest_cursor(cursor)
             else:
                 empty.append(cursor)

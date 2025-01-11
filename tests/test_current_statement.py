@@ -29,8 +29,8 @@ class TestCurrentStatement(unittest.TestCase):
         self.assertTrue('PARSE' in self.cstat.ops)
         self.assertTrue('EXEC' in self.cstat.ops)
         self.assertTrue('CLOSE' in self.cstat.ops)
-        self.assertTrue('STAT' in self.cstat.ops)
-        self.assertTrue('WAIT' in self.cstat.ops)
+        self.assertEqual(self.cstat.count_ops('STAT'), 2)
+        self.assertEqual(self.cstat.count_ops('WAIT'), 2)
 
         # Missing in TRACKED_OPS
         self.assertFalse('BINDS' in self.cstat.ops)
@@ -60,5 +60,16 @@ class TestCurrentStatement(unittest.TestCase):
         for i in range(0, 3):
             self.cstat.add_ops(wait)
         self.assertEqual(self.cstat.count_ops('WAIT'), 3)
+    def test_len(self):
+        self.assertEqual(len(self.cstat), 0)
+
+        ops = test_constants.TRACKED_OPS['EXEC']
+        self.cstat.add_ops(ops)
+        self.assertEqual(len(self.cstat), 1)
+
+        wait = test_constants.TRACKED_OPS['WAIT']
+        for i in range(0, 3):
+            self.cstat.add_ops(wait)
+        self.assertEqual(len(self.cstat), 4)
 if __name__ == '__main__':
     unittest.main()
