@@ -93,7 +93,9 @@ class Backend:
         if len(self._ops_list) > BATCH_SIZE/100:
             self._batch2table()
         if self._table and self._table.num_rows > BATCH_SIZE:
-            self.futures.append(self.executor.submit(self.flush_batches, self._table))
+            self.futures.append(
+                    self.executor.submit(self.flush_batches, self._table)
+            )
             self._table = None
     def flush_batches(self, tbl) -> None:
         '''Flushes everything to the disk.'''
@@ -108,7 +110,9 @@ class Backend:
         if len(self._ops_list) > 0:
             self._batch2table()
         if self._table is not None:
-            self.futures.append(self.executor.submit(self.flush_batches, self._table))
+            self.futures.append(
+                    self.executor.submit(self.flush_batches, self._table)
+            )
             self._table = None
         for f in self.futures:
             ex = f.exception()
