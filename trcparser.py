@@ -2,6 +2,7 @@
 import bz2
 import collections
 import datetime
+from enum import Enum
 import fnmatch
 import gzip
 import lzma
@@ -60,12 +61,16 @@ def get_opener(fname):
         case other_type :
             raise RuntimeError(f"Unsupported file type {other_type}")
 
+class ParserState(Enum):
+    NOC = 0 # Most of the events are single-line
+    BINDS = 1
+    PIC = 2
+    PARSE_ERROR = 3
+
 def process_file(tracker, fname, orphans=False):
     """The god function. Does everything: reads the input file and parses the lines. """
 
-    in_binds = False
-    in_pic = False
-    in_parse_error = False
+    parser_state: int = ParserState.NOC
     binds = ()
     pic = None
     parse_error = None
@@ -88,26 +93,26 @@ def process_file(tracker, fname, orphans=False):
                 continue
 
             if (match := CALL_MATCHER.match(line)) is not None:
-                if in_binds:
-                    in_binds = False
+                if parser_state == ParserState.BINDS:
+                    parser_state = ParserState.NOC
                     binds = None
 
                 if match.group(1) == 'BINDS':
-                    in_binds = True
+                    parser_state = ParserState.BINDS
                     binds = ops_factory('BINDS', match.group(2), '', file_meta,
                                         tracker.time_tracker.get_wc)
                     tracker.add_ops(binds.cursor, binds)
                     continue
                 if match.group(1) == 'PARSING IN CURSOR':
-                    in_pic = True
+                    parser_state = ParserState.PIC
                     pic = ops_factory('PIC', match.group(2), match.group(4), file_meta,
                                         tracker.time_tracker.get_wc)
                     tracker.add_pic(pic.cursor, pic)
                     continue
-                if in_parse_error:
-                    in_parse_error = False
+                if parser_state == ParserState.PARSE_ERROR:
+                    parser_state = ParserState.NOC
                 if match.group(1) == 'PARSE ERROR':
-                    in_parse_error = True
+                    parser_state = ParserState.PARSE_ERROR
                     parse_error = ops_factory('PARSE ERROR', match.group(2), match.group(4),
                                         file_meta, tracker.time_tracker.get_wc)
                     tracker.add_ops(parse_error.cursor, parse_error)
@@ -117,19 +122,19 @@ def process_file(tracker, fname, orphans=False):
                 tracker.add_ops(match.group(2), ops)
                 continue
 
-            if in_binds:
+            if parser_state == ParserState.BINDS:
                 binds.add_line(line)
                 continue
 
-            if in_pic:
+            if parser_state == ParserState.PIC:
                 if (match := PIC_MATCHER.match(line)) is not None:
-                    in_pic = False
+                    parser_state = ParserState.NOC
                     pic = None
                 else:
                     pic.add_line(line)
                 continue
 
-            if in_parse_error:
+            if parser_state == ParserState.PARSE_ERROR:
                 parse_error.add_line(line)
 
             if (match := LOB_MATCHER.match(line)) is not None:
