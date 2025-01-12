@@ -7,10 +7,11 @@ import fnmatch
 import gzip
 import lzma
 import re
+from typing import Optional
 from zoneinfo import ZoneInfo
 import filetype
 
-from ops import ops_factory
+from ops import ops_factory, Ops
 
 __doc__ = '''Parser for the SQL trace files. '''
 
@@ -62,6 +63,7 @@ def get_opener(fname):
             raise RuntimeError(f"Unsupported file type {other_type}")
 
 class ParserState(Enum):
+    """Keeps track of the parser state"""
     NOC = 0 # Most of the events are single-line
     BINDS = 1
     PIC = 2
@@ -71,9 +73,7 @@ def process_file(tracker, fname, orphans=False):
     """The god function. Does everything: reads the input file and parses the lines. """
 
     parser_state: int = ParserState.NOC
-    binds = ()
-    pic = None
-    parse_error = None
+    container_ops: Optional[Ops] = None
 
     file_meta = collections.defaultdict(lambda: None)
     file_meta['FILE_NAME'] = fname
@@ -95,27 +95,27 @@ def process_file(tracker, fname, orphans=False):
             if (match := CALL_MATCHER.match(line)) is not None:
                 if parser_state == ParserState.BINDS:
                     parser_state = ParserState.NOC
-                    binds = None
+                    container_ops = None
 
                 if match.group(1) == 'BINDS':
                     parser_state = ParserState.BINDS
-                    binds = ops_factory('BINDS', match.group(2), '', file_meta,
+                    container_ops = ops_factory('BINDS', match.group(2), '', file_meta,
                                         tracker.time_tracker.get_wc)
-                    tracker.add_ops(binds.cursor, binds)
+                    tracker.add_ops(container_ops.cursor, container_ops)
                     continue
                 if match.group(1) == 'PARSING IN CURSOR':
                     parser_state = ParserState.PIC
-                    pic = ops_factory('PIC', match.group(2), match.group(4), file_meta,
+                    container_ops = ops_factory('PIC', match.group(2), match.group(4), file_meta,
                                         tracker.time_tracker.get_wc)
-                    tracker.add_pic(pic.cursor, pic)
+                    tracker.add_pic(container_ops.cursor, container_ops)
                     continue
                 if parser_state == ParserState.PARSE_ERROR:
                     parser_state = ParserState.NOC
                 if match.group(1) == 'PARSE ERROR':
                     parser_state = ParserState.PARSE_ERROR
-                    parse_error = ops_factory('PARSE ERROR', match.group(2), match.group(4),
+                    container_ops = ops_factory('PARSE ERROR', match.group(2), match.group(4),
                                         file_meta, tracker.time_tracker.get_wc)
-                    tracker.add_ops(parse_error.cursor, parse_error)
+                    tracker.add_ops(container_ops.cursor, container_ops)
                     continue
                 ops = ops_factory(match.group(1), match.group(2), match.group(4), file_meta,
                                         tracker.time_tracker.get_wc)
@@ -123,19 +123,19 @@ def process_file(tracker, fname, orphans=False):
                 continue
 
             if parser_state == ParserState.BINDS:
-                binds.add_line(line)
+                container_ops.add_line(line)
                 continue
 
             if parser_state == ParserState.PIC:
                 if (match := PIC_MATCHER.match(line)) is not None:
                     parser_state = ParserState.NOC
-                    pic = None
+                    container_ops = None
                 else:
-                    pic.add_line(line)
+                    container_ops.add_line(line)
                 continue
 
             if parser_state == ParserState.PARSE_ERROR:
-                parse_error.add_line(line)
+                container_ops.add_line(line)
 
             if (match := LOB_MATCHER.match(line)) is not None:
                 ops = ops_factory(match.group(1), None, match.group(2), file_meta,
