@@ -55,22 +55,20 @@ PARQUET_SCHEMA = pa.schema([
 
 class Backend:
     def __init__(self, dbdir: str, prefix: str) -> None:
-        self.dbdir = dbdir
-        self.prefix = prefix
+        self.filename = f'{dbdir}/{prefix}'
         self._span_id: int = 0
         self._ops_list: list = []
         self._flush_count: int = 0
         self._table: Optional[pa.Table] = None
-        self._row_count: int = 0
         self.futures: list[Future] = []
         self.executor = ThreadPoolExecutor(max_workers=1)
     def get_span_id(self) -> int:
+        '''Span id generator'''
         self._span_id += 1
         return self._span_id
     def _batch2table(self) -> None:
         ''' Compresses self._ops_list into arrays, turns arrays into table and merges it
             with self._table.'''
-        self._row_count += len(self._ops_list)
         arrays = [pa.array(i) for i in zip(*self._ops_list)]
         tbl = pa.Table.from_arrays(arrays, schema = PARQUET_SCHEMA)
         if self._table:
@@ -94,15 +92,14 @@ class Backend:
         self._ops_list += [o.astuple(span_id, sql_id) for o in ops]
         if len(self._ops_list) > BATCH_SIZE/100:
             self._batch2table()
-        if self._row_count > BATCH_SIZE:
+        if self._table and self._table.num_rows > BATCH_SIZE:
             self.futures.append(self.executor.submit(self.flush_batches, self._table))
             self._table = None
-            self._row_count = 0
     def flush_batches(self, tbl) -> None:
         '''Flushes everything to the disk.'''
         sch = self._inject_schema_version()
         tbl = pa.concat_tables([tbl, sch])
-        pq.write_table(tbl, f'{self.dbdir}/{self.prefix}.{self._flush_count}',
+        pq.write_table(tbl, f'{self.filename}.{self._flush_count}',
                         compression='gzip')
         del tbl
         self._flush_count += 1
