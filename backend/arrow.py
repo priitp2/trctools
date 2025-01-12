@@ -1,3 +1,5 @@
+from concurrent.futures import ThreadPoolExecutor, Future
+from typing import Optional
 import pyarrow as pa
 import pyarrow.parquet as pq
 
@@ -52,18 +54,20 @@ PARQUET_SCHEMA = pa.schema([
 ])
 
 class Backend:
-    def __init__(self, dbdir, prefix):
+    def __init__(self, dbdir: str, prefix: str) -> None:
         self.dbdir = dbdir
         self.prefix = prefix
-        self._span_id = 0
-        self._ops_list = []
-        self._flush_count = 0
-        self._table = None
-        self._row_count = 0
-    def get_span_id(self):
+        self._span_id: int = 0
+        self._ops_list: list = []
+        self._flush_count: int = 0
+        self._table: Optional[pa.Table] = None
+        self._row_count: int = 0
+        self.futures: list[Future] = []
+        self.executor = ThreadPoolExecutor(max_workers=1)
+    def get_span_id(self) -> int:
         self._span_id += 1
         return self._span_id
-    def _batch2table(self):
+    def _batch2table(self) -> None:
         ''' Compresses self._ops_list into arrays, turns arrays into table and merges it
             with self._table.'''
         self._row_count += len(self._ops_list)
@@ -74,7 +78,7 @@ class Backend:
         else:
             self._table = tbl
         self._ops_list = []
-    def _inject_schema_version(self):
+    def _inject_schema_version(self) -> pa.Table:
         '''Adds Parquet schema version record to the generated file.'''
         schema_record = [[self.get_span_id()], [None], [None], ['HEADER'], [None], [None], [None],
                          [None], [None], [None], [None], [None], [None], [None], [None], [None],
@@ -83,27 +87,33 @@ class Backend:
                          [None], [None], [None], [None], [None], [None], [None], [None]]
         #a = pa.array(zip(*schema_record))
         tbl = pa.Table.from_arrays(schema_record, schema = PARQUET_SCHEMA)
-        if self._table:
-            self._table = pa.concat_tables([self._table, tbl])
-    def add_ops(self, span_id, sql_id, ops):
+        return tbl
+    def add_ops(self, span_id: int, sql_id: str, ops) -> None:
         ''' Adds list of ops to the batch. Checks the size of the _ops_list and _table and
             triggers flush if needed.'''
         self._ops_list += [o.astuple(span_id, sql_id) for o in ops]
         if len(self._ops_list) > BATCH_SIZE/100:
             self._batch2table()
         if self._row_count > BATCH_SIZE:
-            self.flush_batches()
+            self.futures.append(self.executor.submit(self.flush_batches, self._table))
+            self._table = None
             self._row_count = 0
-    def flush_batches(self):
+    def flush_batches(self, tbl) -> None:
         '''Flushes everything to the disk.'''
-        self._inject_schema_version()
-        pq.write_table(self._table, f'{self.dbdir}/{self.prefix}.{self._flush_count}',
+        sch = self._inject_schema_version()
+        tbl = pa.concat_tables([tbl, sch])
+        pq.write_table(tbl, f'{self.dbdir}/{self.prefix}.{self._flush_count}',
                         compression='gzip')
-        self._table = None
+        del tbl
         self._flush_count += 1
-    def flush(self):
+    def flush(self) -> None:
         '''Flushes the _ops_list to the table, and table to the disk.'''
         if len(self._ops_list) > 0:
             self._batch2table()
         if self._table is not None:
-            self.flush_batches()
+            self.futures.append(self.executor.submit(self.flush_batches, self._table))
+            self._table = None
+        for f in self.futures:
+            ex = f.exception()
+            if ex:
+                raise RuntimeError(ex)
