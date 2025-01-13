@@ -1,4 +1,3 @@
-
 import bz2
 import collections
 import datetime
@@ -25,8 +24,8 @@ TIMEZONE_MATCHER = re.compile(r'''(?:.*)\+(\d\d:\d\d)''')
 
 STARS_MATCHER = re.compile(r'''^\*\*\* (SESSION ID:|CLIENT ID:|SERVICE NAME:|MODULE NAME:'''
         +r'''|ACTION NAME:|CLIENT DRIVER:|CONTAINER ID:|CLIENT IP:|CONNECTION ID:)(\(.*\)) (.*)''')
-CALL_MATCHER = re.compile(r'''^(PARSE|PARSING IN CURSOR|EXEC|FETCH|WAIT|CLOSE'''
-                        +r'''|BINDS|STAT|ERROR|PARSE ERROR) (#\d+)(:| )(.*)''')
+CALL_MATCHER = re.compile(r'''^(PARSE|EXEC|FETCH|WAIT|CLOSE|STAT|ERROR) (#\d+)(:| )(.*)''')
+MULTILINE_MATCHER = re.compile(r'''^(PARSING IN CURSOR|BINDS|PARSE ERROR) (#\d+)(:| )(.*)''')
 LOB_MATCHER = re.compile(r'''^(LOB[A-Z]+): (.*)''')
 
 FILE_HEADER_MATCHER = re.compile(r'''^(Build label|ORACLE_HOME|System name'''
@@ -93,10 +92,16 @@ def process_file(tracker, fname, orphans=False):
                 continue
 
             if (match := CALL_MATCHER.match(line)) is not None:
-                if parser_state == ParserState.BINDS:
+                if parser_state != ParserState.NOC:
                     parser_state = ParserState.NOC
                     container_ops = None
 
+                ops = ops_factory(match.group(1), match.group(2), match.group(4), file_meta,
+                                        tracker.time_tracker.get_wc)
+                tracker.add_ops(match.group(2), ops)
+                continue
+
+            if (match := MULTILINE_MATCHER.match(line)) is not None:
                 if match.group(1) == 'BINDS':
                     parser_state = ParserState.BINDS
                     container_ops = ops_factory('BINDS', match.group(2), '', file_meta,
@@ -109,20 +114,14 @@ def process_file(tracker, fname, orphans=False):
                                         tracker.time_tracker.get_wc)
                     tracker.add_pic(container_ops.cursor, container_ops)
                     continue
-                if parser_state == ParserState.PARSE_ERROR:
-                    parser_state = ParserState.NOC
                 if match.group(1) == 'PARSE ERROR':
                     parser_state = ParserState.PARSE_ERROR
                     container_ops = ops_factory('PARSE ERROR', match.group(2), match.group(4),
                                         file_meta, tracker.time_tracker.get_wc)
                     tracker.add_ops(container_ops.cursor, container_ops)
                     continue
-                ops = ops_factory(match.group(1), match.group(2), match.group(4), file_meta,
-                                        tracker.time_tracker.get_wc)
-                tracker.add_ops(match.group(2), ops)
-                continue
 
-            if parser_state == ParserState.BINDS:
+            if parser_state in (ParserState.BINDS, ParserState.PARSE_ERROR):
                 container_ops.add_line(line)
                 continue
 
@@ -133,9 +132,6 @@ def process_file(tracker, fname, orphans=False):
                 else:
                     container_ops.add_line(line)
                 continue
-
-            if parser_state == ParserState.PARSE_ERROR:
-                container_ops.add_line(line)
 
             if (match := LOB_MATCHER.match(line)) is not None:
                 ops = ops_factory(match.group(1), None, match.group(2), file_meta,
