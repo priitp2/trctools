@@ -66,7 +66,7 @@ class SummaryDuckdb:
 			SELECT
                             row_number() over(order by ela.execs asc),
                             coalesce(ela.sql_id, 'NULL'),
-                            coalesce(substring(dbc.sql_text, 0, 30), 'NULL'),
+                            coalesce(regexp_replace(substring(dbc.sql_text, 0, 30), '[\r\n]', '', 'g'), 'NULL'),
                             ela.execs,
                             ela.total,
                             ela.median,
