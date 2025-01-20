@@ -179,11 +179,9 @@ class SummaryDuckdb:
         table = tabulate.tabulate(res.fetchall(), tablefmt=self.tabtype,
                 headers=['#', 'cursor', statistic, 'timestamp', 'filename', 'first line#'])
         print(table)
-    def waits(self, sql_id, thresold):
-        pred = ''
+    def waits(self, fis, thresold):
+        preds = create_preds(fis)
         inner_where = ''
-        if sql_id:
-            pred = f"AND {sqlid2pred(sql_id)}"
         if thresold:
             inner_where = f" AND span_id in (select span_id from v_elapsed_time where ela > {thresold})"
         res = d.sql(f"""
@@ -209,7 +207,7 @@ class SummaryDuckdb:
                                 read_parquet ( '{self.dbdir}' )
                             WHERE
                                 ops = 'WAIT'
-                                {pred}
+                                AND {preds}
                                 {inner_where}
                         )
                         GROUP BY
@@ -392,8 +390,16 @@ if __name__ == '__main__':
 
     waits_parser = subparsers.add_parser('waits', help='Prints summary of the wait events for '
                     +'sql_id')
-    waits_parser.add_argument('--sql_id', type=str, dest='sql_id',
-                     help="Comma separated list of sql_id's for which waits are displayed")
+    waits_parser.add_argument('--start', metavar='start',
+                            type=lambda x: filters.__setitem__('start', x),
+                            help='Start timestamp in ISO 8601 format')
+    waits_parser.add_argument('--end', metavar='end',
+                            type=lambda x: filters.__setitem__('end', x),
+                            help='End timestamp in ISO 8601 format')
+    waits_parser.add_argument('--client_id', type= lambda x: filters.__setitem__('client_id', x),
+                            help='Filter by CLIENT ID')
+    waits_parser.add_argument('--sql_id', type= lambda x: filters.__setitem__('sql_id', x),
+                            help="Filter by comma separated list of sql_id's")
     waits_parser.add_argument('--thresold', type=str, dest='thresold',
                      help="Outlier thresold in microseconds. Minimum query response time from "
                         +"which the wait events are included")
@@ -424,7 +430,7 @@ if __name__ == '__main__':
             sys.exit('Error: sql_io is mandatory parameter')
         s.outliers(args.sql_id, args.thresold, args.stat)
     elif args.action == 'waits':
-        s.waits(args.sql_id, args.thresold)
+        s.waits(filters, args.thresold)
     elif args.action == 'db':
         s.db()
     elif args.action == 'sql':
