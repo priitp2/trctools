@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 import tempfile
 import unittest
 import duckdb as d
@@ -13,6 +13,8 @@ class DummyArgs:
     file_prefix: str() = 'unittest'
     traceid: str() = 'CLIENT ID'
     orphans: bool() = True
+    fstype: str() = 'local'
+    fsopts: dict = field(default_factory=dict)
 
 class TestTrc2db(unittest.TestCase):
     """Tests for trc2db.py"""

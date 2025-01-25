@@ -2,7 +2,7 @@ import tempfile
 import unittest
 import datetime
 import duckdb as d
-from backend.arrow import Backend, PARQUET_SCHEMA_VERSION
+from backend.arrow import Backend, PARQUET_SCHEMA_VERSION, make_fs
 from call_tracker import CallTracker
 import trcparser
 
@@ -47,5 +47,14 @@ class TestArrow(unittest.TestCase):
             res = d.sql(f"select event_raw from read_parquet('{db_dir}/*') "
                         +"where ops = 'HEADER' and event_name = 'PARQUET_SCHEMA';")
             self.assertEqual(res.fetchone()[0], PARQUET_SCHEMA_VERSION)
+
+    def test_make_fs_local(self):
+        tmpdir = 'test'
+        fstype = 'local'
+        fsopt = {}
+        with tempfile.TemporaryDirectory() as db_dir:
+            fs = make_fs(f'{db_dir}/{tmpdir}', fstype, fsopt)
+            self.assertEqual(fs.type_name, fstype)
+
 if __name__ == '__main__':
     unittest.main()
