@@ -19,6 +19,7 @@ def get_backend(args):
         print('Using backend: arrow/parquet')
         from backend.arrow import Backend
         backend = Backend(args.dbdir, args.file_prefix)
+        backend.set_fs(args.fstype, args.fsopts)
     elif args.db == 'otlp':
         print('Using OTLP exporter')
         from backend.otlp import Backend
@@ -27,7 +28,7 @@ def get_backend(args):
         print('Using backend: None')
     return backend
 
-def process_files(args):
+def process_files(args) -> None:
     backend = get_backend(args)
     tracker = CallTracker(backend)
 
@@ -55,6 +56,12 @@ parser.add_argument('--backend', type=str, default = 'parquet', dest='db',
                     +" implementations: oracle, parquet, otlp")
 parser.add_argument('--dbdir', type=str, default = './', dest='dbdir',
                     help="Directory for the parquet files")
+parser.add_argument('--fstype', type=str, default = 'local', dest='fstype',
+                    help="File system type, possible options: local, s3, gcs, hadoop, subtree "
+                    +"default: local")
+parser.add_argument('--fsopts', type=str, default = {}, dest='fsopts',
+                    help="JSON object with file system option overrides. This is passed directly "
+                    +"to pyarrow filesystem implementation")
 parser.add_argument('--db-file-prefix', type=str, default = 'parquet', dest='file_prefix',
                     help="Parquet file name prefix")
 parser.add_argument('--traceid-parameter', type=str, default = 'CLIENT ID', dest='traceid',

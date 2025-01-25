@@ -6,8 +6,9 @@ import pyarrow.parquet as pq
 __doc__ = ''' Adapter for pyarrow: turns stuff into Parquet files.'''
 # How many rows are bufferd and flushed to the disk in one file. Bigger number means
 # larger memory usage and less parquet files
-BATCH_SIZE = 10000000
+BATCH_SIZE = 5000000
 PARQUET_SCHEMA_VERSION = '0.4'
+DEFAULT_FS = 'local'
 
 PARQUET_SCHEMA = pa.schema([
     ('span_id', pa.uint64()),
@@ -53,8 +54,25 @@ PARQUET_SCHEMA = pa.schema([
     ('error_code', pa.uint16()), # Populated for the ERROR call
 ])
 
+def make_fs(dbdir: str, fstype: str, fsopt: dict) -> pa.fs.FileSystem:
+    fs = None
+    match fstype:
+        case 'local':
+            fs = pa.fs.LocalFileSystem(**fsopt)
+            fs.create_dir(dbdir)
+        case 's3':
+            fs = pa.fs.S3FileSystem(**fsopt)
+        case 'gcs':
+            fs = pa.fs.GcsFileSystem(**fsopt)
+        case 'hadoop':
+            fs = pa.fs.HadoopFileSystem(**fsopt)
+        case 'subtree':
+            fs = pa.fs.SubTreeFileSystem(**fsopt)
+    return fs
+
 class Backend:
     def __init__(self, dbdir: str, prefix: str) -> None:
+        self.dbdir = dbdir
         self.filename = f'{dbdir}/{prefix}'
         self._span_id: int = 0
         self._ops_list: list = []
@@ -62,6 +80,10 @@ class Backend:
         self._table: Optional[pa.Table] = None
         self.futures: list[Future] = []
         self.executor = ThreadPoolExecutor(max_workers=1)
+
+        self.set_fs()
+    def set_fs(self, fstype: str = DEFAULT_FS, fopt: dict = {}) -> None:
+        self.fs = make_fs(self.dbdir, fstype, fopt)
     def get_span_id(self) -> int:
         '''Span id generator'''
         self._span_id += 1
@@ -86,6 +108,22 @@ class Backend:
         #a = pa.array(zip(*schema_record))
         tbl = pa.Table.from_arrays(schema_record, schema = PARQUET_SCHEMA)
         return tbl
+    def check_and_execute(self) -> None:
+        '''Flushes the data to the disk in the background and checks if any of the previous
+            flushes have completed'''
+        f = self.executor.submit(self.flush_batches, self._table)
+        self.futures.append(f)
+
+        for w in self.futures:
+            if w.done():
+                del self.futures[self.futures.index(w)]
+                continue
+            try:
+                ex = w.exception(1)
+                if ex:
+                    raise RuntimeError(ex)
+            except TimeoutError:
+                continue
     def add_ops(self, span_id: int, sql_id: str, ops) -> None:
         ''' Adds list of ops to the batch. Checks the size of the _ops_list and _table and
             triggers flush if needed.'''
@@ -93,16 +131,15 @@ class Backend:
         if len(self._ops_list) > BATCH_SIZE/100:
             self._batch2table()
         if self._table and self._table.num_rows > BATCH_SIZE:
-            self.futures.append(
-                    self.executor.submit(self.flush_batches, self._table)
-            )
+            self.check_and_execute()
             self._table = None
     def flush_batches(self, tbl) -> None:
         '''Flushes everything to the disk.'''
         sch = self._inject_schema_version()
         tbl = pa.concat_tables([tbl, sch])
-        pq.write_table(tbl, f'{self.filename}.{self._flush_count}',
-                        compression='gzip')
+        with self.fs.open_output_stream(f'{self.filename}.{self._flush_count}') as fstream:
+            pq.write_table(tbl, fstream, compression='gzip')
+            fstream.flush()
         del tbl
         self._flush_count += 1
     def flush(self) -> None:
@@ -110,9 +147,7 @@ class Backend:
         if len(self._ops_list) > 0:
             self._batch2table()
         if self._table is not None:
-            self.futures.append(
-                    self.executor.submit(self.flush_batches, self._table)
-            )
+            self.check_and_execute()
             self._table = None
         for f in self.futures:
             ex = f.exception()
