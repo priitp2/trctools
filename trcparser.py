@@ -35,7 +35,7 @@ FILE_HEADER_MATCHER = re.compile(r'''^(Build label|ORACLE_HOME|System name'''
                         +r'''|Redo thread mounted by this instance|Oracle process number'''
                         +r'''|Unix process pid):\s+(.*)''')
 
-def get_timestamp(instr):
+def get_timestamp(instr) -> datetime.datetime:
     """Checks if input has a time zone or not, and adjusts the format accordingly."""
     tz_match = TIMEZONE_MATCHER.match(instr)
     if tz_match:
@@ -68,7 +68,7 @@ class ParserState(Enum):
     PIC = 2
     PARSE_ERROR = 3
 
-def process_file(tracker, fname, orphans=False):
+def process_file(tracker, fname, orphans=False) -> collections.defaultdict():
     """The god function. Does everything: reads the input file and parses the lines. """
 
     parser_state: int = ParserState.NOC
