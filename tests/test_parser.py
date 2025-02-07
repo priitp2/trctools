@@ -173,5 +173,10 @@ class TestParser(unittest.TestCase):
         self.assertEqual(self.get_count(self.tracker.db.batches, 3, 'PARSE ERROR'), 1)
         self.assertEqual(self.get_count(self.tracker.db.batches, 3, 'CLOSE'), 1)
 
+    def test_broken_tracefile(self):
+        '''Test for broken tracefile. There's a missing CRLF in the file and we expect parser
+            not to throw an exception'''
+        lines = trcparser.process_file(self.tracker, 'tests/traces/broken_trace.trc')
+
 if __name__ == '__main__':
     unittest.main()
