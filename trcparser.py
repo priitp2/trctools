@@ -79,6 +79,7 @@ def process_file(tracker, fname, orphans=False) -> collections.defaultdict():
     file_meta = collections.defaultdict(lambda: None)
     file_meta['FILE_NAME'] = fname
     file_meta['LINE_COUNT'] = 0
+    error_count = 0
 
     opener = get_opener(fname)
     with opener(fname, 'rt', encoding='utf_8') as trace:
@@ -105,6 +106,7 @@ def process_file(tracker, fname, orphans=False) -> collections.defaultdict():
                     print(f"Got exception from ops_factory, will ignore the line. Offending line #{file_meta['LINE_COUNT']}:")
                     print(line)
                     print_exception(exception())
+                    error_count += 1
                     continue
                 tracker.add_ops(match.group(2), ops)
                 continue
@@ -184,5 +186,7 @@ def process_file(tracker, fname, orphans=False) -> collections.defaultdict():
 
             if orphans:
                 print(f"non-matching line: {line}")
+    if error_count > 0:
+        print(f'Encountered {error_count} errors')
 
     return file_meta['LINE_COUNT']
