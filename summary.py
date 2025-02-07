@@ -159,7 +159,8 @@ class SummaryDuckdb:
             fname = f"elapsed_{sql_id}.out"
         with open(fname, 'wb') as f:
             resp_hist.output_percentile_distribution(f, 1.0)
-    def outliers(self, sql_id, thresold, statistic='elapsed_time'):
+    def outliers(self, sql_id, thresold, fis, statistic='elapsed_time'):
+        preds = create_preds(fis)
         res = d.sql(f"""select
                             row_number() over(order by sum({statistic}) asc),
                             cursor_id "cursor",
@@ -170,13 +171,13 @@ class SummaryDuckdb:
                         from
                             read_parquet('{self.dbdir}')
                         where
-                            sql_id = '{sql_id}'
+                            {preds}
                         group by
                             cursor_id, span_id
                         having sum({statistic}) > {thresold}
                         order by sum({statistic}) desc
                         LIMIT {self.tabsize};
-                    """)
+                    """
         table = tabulate.tabulate(res.fetchall(), tablefmt=self.tabtype,
                 headers=['#', 'cursor', statistic, 'timestamp', 'filename', 'first line#'])
         print(table)
@@ -383,14 +384,20 @@ if __name__ == '__main__':
 
     out_parser = subparsers.add_parser('outliers', help='Displays content of the trace files for '
                          +'the executions that took more than specified amount of time')
-    out_parser.add_argument('--sql_id', type=str, dest='sql_id',
-                     help="Comma separated list of sql_id's for which outliers are displayed")
+    out_parser.add_argument('--sql_id', type= lambda x: filters.__setitem__('sql_id', x),
+                            help="Filter by comma separated list of sql_id's")
     out_parser.add_argument('--thresold', type=str, dest='thresold',
                      help="Outlier thresold in microseconds")
     out_parser.add_argument('--statistic', type=str, dest='stat', default='elapsed_time',
                      help="Parameter for which thresold is applied. More useful parameters are"
                         +" elapsed_time, cpu, rows_processed, ph_reads, cr_reads, current_reads."
                         +" For the full list see the schema definition in db/arrow.py")
+    out_parser.add_argument('--start', metavar='start',
+                            type=lambda x: filters.__setitem__('start', x),
+                            help='Start timestamp in ISO 8601 format')
+    out_parser.add_argument('--end', metavar='end',
+                            type=lambda x: filters.__setitem__('end', x),
+                            help='End timestamp in ISO 8601 format')
 
     waits_parser = subparsers.add_parser('waits', help='Prints summary of the wait events for '
                     +'sql_id')
@@ -430,9 +437,7 @@ if __name__ == '__main__':
         if args.wait_name:
             s.wait_histogram(args.wait_name, args.fname)
     elif args.action == 'outliers':
-        if not args.sql_id:
-            sys.exit('Error: sql_io is mandatory parameter')
-        s.outliers(args.sql_id, args.thresold, args.stat)
+        s.outliers(args.sql_id, args.thresold, filters, args.stat)
     elif args.action == 'waits':
         s.waits(filters, args.thresold)
     elif args.action == 'db':
