@@ -6,6 +6,8 @@ import fnmatch
 import gzip
 import lzma
 import re
+from sys import exception
+from traceback import print_exception
 from typing import Optional
 from zoneinfo import ZoneInfo
 import filetype
@@ -96,8 +98,13 @@ def process_file(tracker, fname, orphans=False) -> collections.defaultdict():
                     parser_state = ParserState.NOC
                     container_ops = None
 
-                ops = ops_factory(match.group(1), match.group(2), match.group(4), file_meta,
+                try:
+                    ops = ops_factory(match.group(1), match.group(2), match.group(4), file_meta,
                                         tracker.time_tracker.get_wc)
+                except:
+                    print(f"Got exception from ops_factory, will ignore the line. Offending line #{file_meta['LINE_COUNT']}:")
+                    print(line)
+                    print_exception(exception())
                 tracker.add_ops(match.group(2), ops)
                 continue
 
