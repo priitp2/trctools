@@ -45,6 +45,7 @@ WAIT #140641987987624: nam='SQL*Net message to client' ela= 1 driver id=67556283
 FETCH #140641987987624:c=0,e=45,p=0,cr=1,cu=0,mis=0,r=4,dep=0,og=1,plh=2725028981,tim=5793511831594
 STAT #140641987987624 id=1 cnt=14 pid=0 pos=1 obj=89440 op='INDEX RANGE SCAN UGH_IDX (cr=5 pr=1 pw=0 str=1 time=439 us cost=4 size=246 card=6)'
 WAIT #140641987987624: nam='SQL*Net message from client' ela= 223 driver id=675562835 #bytes=1 p3=0 obj#=89440 tim=5793511831891
-CLOSE #140641987987624:c=3,e=3,dep=0,type=1,tim=5793511831927
 XCTEND rlbk=0, rd_only=1, tim=5793511831940
+EXEC #140641987987625:c=73,e=73,p=0,cr=0,cu=0,mis=0,r=0,dep=0,og=1,plh=2725028981,ti
+WAIT #140641987987625: nam='SQL*Net message to client' ela= 2 driver id=675562835 #bytes=1 p3=0 obj#=89440 tim=5793511830853
 =====================
