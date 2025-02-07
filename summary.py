@@ -183,7 +183,7 @@ class SummaryDuckdb:
         preds = create_preds(fis)
         inner_where = ''
         if thresold:
-            inner_where = f" {'AND' if preds else ''} span_id in (select span_id from v_elapsed_time where ela > {thresold})"
+            inner_where = f" {'AND' if preds else ''} span_id in (select span_id from v_elapsed_time where ela > {thresold}) and cursor_id <> '#0'"
         res = d.sql(f"""
 			SELECT
                             row_number() over(order by count(event_name) asc),
