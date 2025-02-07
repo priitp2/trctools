@@ -177,7 +177,7 @@ class SummaryDuckdb:
                         having sum({statistic}) > {thresold}
                         order by sum({statistic}) desc
                         LIMIT {self.tabsize};
-                    """
+                    """)
         table = tabulate.tabulate(res.fetchall(), tablefmt=self.tabtype,
                 headers=['#', 'cursor', statistic, 'timestamp', 'filename', 'first line#'])
         print(table)
