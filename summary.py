@@ -13,6 +13,16 @@ def sqlid2pred(sql_id):
     ids = [f"'{s}'" for s in sql_id.split(',')]
     return f"sql_id in ({','.join(ids)})"
 
+def thresold2pred(thresold):
+    """Turns (a list of) thresolds to predicates"""
+    th = thresold.split(',')
+    preds = ''
+    if len(th) == 2:
+        preds = (f"between {th[0]} and {th[1]}")
+    if len(th) == 1:
+        preds = (f"> {th[0]}")
+    return preds
+
 def create_preds(fis):
     """Turns parameters into SQL expressions."""
     preds = set()
@@ -161,11 +171,12 @@ class SummaryDuckdb:
             resp_hist.output_percentile_distribution(f, 1.0)
     def outliers(self, sql_id, thresold, fis, statistic='elapsed_time'):
         preds = create_preds(fis)
+        thresold_preds = thresold2pred(thresold)
         res = d.sql(f"""select
-                            row_number() over(order by sum({statistic}) asc),
+                            row_number() over(order by sum({statistic}) asc) rownum,
                             cursor_id "cursor",
                             sum({statistic}) "{statistic}",
-                            first(ts),
+                            first(ts) ts,
                             case when length(first(file_name)) > 30 then '<...>'||substr(first(file_name), length(first(file_name)) -35, 40) else first(file_name) end file_name,
                             first(line) "first line"
                         from
@@ -174,7 +185,7 @@ class SummaryDuckdb:
                             {preds}
                         group by
                             cursor_id, span_id
-                        having sum({statistic}) > {thresold}
+                        having sum({statistic}) {thresold_preds}
                         order by sum({statistic}) desc
                         LIMIT {self.tabsize};
                     """)
@@ -387,7 +398,7 @@ if __name__ == '__main__':
     out_parser.add_argument('--sql_id', type= lambda x: filters.__setitem__('sql_id', x),
                             help="Filter by comma separated list of sql_id's")
     out_parser.add_argument('--thresold', type=str, dest='thresold',
-                     help="Outlier thresold in microseconds")
+                     help="Outlier thresold in microseconds. Accepts comma-separated band of thresolds")
     out_parser.add_argument('--statistic', type=str, dest='stat', default='elapsed_time',
                      help="Parameter for which thresold is applied. More useful parameters are"
                         +" elapsed_time, cpu, rows_processed, ph_reads, cr_reads, current_reads."
