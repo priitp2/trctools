@@ -29,7 +29,7 @@ def create_preds(fis):
 
 class SummaryDuckdb:
     """ Initializes Duckdb with wiews and runs queries."""
-    def __init__(self, dbdir, tabtype, tabsize):
+    def __init__(self, dbdir, tabtype, tabsize, remove_idle):
         self.dbdir = dbdir
         self.tabtype = tabtype
         self.tabsize = tabsize
@@ -43,6 +43,7 @@ class SummaryDuckdb:
                     read_parquet('{dbdir}')
                 where
                     tim is not null
+                    {"and cursor_id <> '#0'" if remove_idle else ""}
                 group by sql_id, span_id;
               """)
         d.sql(f"""create or replace view cursor_elapsed_time as
@@ -354,6 +355,9 @@ if __name__ == '__main__':
                                 +" 'fancy_outline'")
     parser.add_argument('--table-size', metavar='tabsize', type=int, required=False,
                                 default=30, help='Number of rows in the table. Default is 30')
+    parser.add_argument('--remove-idle', metavar='remove_idle', type=bool, required=False,
+                                default=True, help='Removes cursor #0 from elapsed time calculation'
+                                +'(default)')
 
     summary_parser = subparsers.add_parser('summary', help='Generates summary of the executed SQL '
                         +'statements, execution counts, median and p99 execution times')
@@ -413,7 +417,7 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    s = SummaryDuckdb(args.dbdir + '/*', args.table_type, args.table_size)
+    s = SummaryDuckdb(args.dbdir + '/*', args.table_type, args.table_size, args.remove_idle)
 
     if args.action == 'summary':
         s.summary(filters)
