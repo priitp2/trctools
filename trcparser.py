@@ -70,6 +70,11 @@ class ParserState(Enum):
     PIC = 2
     PARSE_ERROR = 3
 
+def ex_helper(line, line_count):
+    print(f"Got exception from ops_factory, will ignore the line. Offending line #{line_count}:")
+    print(line)
+    print_exception(exception())
+    
 def process_file(tracker, fname, orphans=False) -> collections.defaultdict():
     """The god function. Does everything: reads the input file and parses the lines. """
 
@@ -103,9 +108,7 @@ def process_file(tracker, fname, orphans=False) -> collections.defaultdict():
                     ops = ops_factory(match.group(1), match.group(2), match.group(4), file_meta,
                                         tracker.time_tracker.get_wc)
                 except:
-                    print(f"Got exception from ops_factory, will ignore the line. Offending line #{file_meta['LINE_COUNT']}:")
-                    print(line)
-                    print_exception(exception())
+                    ex_helper(line, file_meta['LINE_COUNT'])
                     error_count += 1
                     continue
                 tracker.add_ops(match.group(2), ops)
@@ -114,20 +117,35 @@ def process_file(tracker, fname, orphans=False) -> collections.defaultdict():
             if (match := MULTILINE_MATCHER.match(line)) is not None:
                 if match.group(1) == 'BINDS':
                     parser_state = ParserState.BINDS
-                    container_ops = ops_factory('BINDS', match.group(2), '', file_meta,
+                    try:
+                        container_ops = ops_factory('BINDS', match.group(2), '', file_meta,
                                         tracker.time_tracker.get_wc)
+                    except:
+                        ex_helper(line, file_meta['LINE_COUNT'])
+                        error_count += 1
+                        continue
                     tracker.add_ops(container_ops.cursor, container_ops)
                     continue
                 if match.group(1) == 'PARSING IN CURSOR':
                     parser_state = ParserState.PIC
-                    container_ops = ops_factory('PIC', match.group(2), match.group(4), file_meta,
+                    try:
+                        container_ops = ops_factory('PIC', match.group(2), match.group(4), file_meta,
                                         tracker.time_tracker.get_wc)
+                    except:
+                        ex_helper(line, file_meta['LINE_COUNT'])
+                        error_count += 1
+                        continue
                     tracker.add_pic(container_ops.cursor, container_ops)
                     continue
                 if match.group(1) == 'PARSE ERROR':
                     parser_state = ParserState.PARSE_ERROR
-                    container_ops = ops_factory('PARSE ERROR', match.group(2), match.group(4),
+                    try:
+                        container_ops = ops_factory('PARSE ERROR', match.group(2), match.group(4),
                                         file_meta, tracker.time_tracker.get_wc)
+                    except:
+                        ex_helper(line, file_meta['LINE_COUNT'])
+                        error_count += 1
+                        continue
                     tracker.add_ops(container_ops.cursor, container_ops)
                     continue
 
@@ -144,14 +162,24 @@ def process_file(tracker, fname, orphans=False) -> collections.defaultdict():
                 continue
 
             if (match := LOB_MATCHER.match(line)) is not None:
-                ops = ops_factory(match.group(1), None, match.group(2), file_meta,
+                try:
+                    ops = ops_factory(match.group(1), None, match.group(2), file_meta,
                                     tracker.time_tracker.get_wc)
+                except:
+                    ex_helper(line, file_meta['LINE_COUNT'])
+                    error_count += 1
+                    continue
                 tracker.db.add_ops(tracker.db.get_span_id(), None, [ops])
                 continue
 
             if (match := XCTEND_MATCHER.match(line)) is not None:
-                ops = ops_factory('XCTEND', None, match.group(1), file_meta,
+                try:
+                    ops = ops_factory('XCTEND', None, match.group(1), file_meta,
                                     tracker.time_tracker.get_wc)
+                except:
+                    ex_helper(line, file_meta['LINE_COUNT'])
+                    error_count += 1
+                    continue
                 tracker.db.add_ops(tracker.db.get_span_id(), None, [ops])
                 continue
 
