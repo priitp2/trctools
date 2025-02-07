@@ -105,6 +105,7 @@ def process_file(tracker, fname, orphans=False) -> collections.defaultdict():
                     print(f"Got exception from ops_factory, will ignore the line. Offending line #{file_meta['LINE_COUNT']}:")
                     print(line)
                     print_exception(exception())
+                    continue
                 tracker.add_ops(match.group(2), ops)
                 continue
 
