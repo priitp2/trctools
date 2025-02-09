@@ -71,6 +71,7 @@ class ParserState(Enum):
     PARSE_ERROR = 3
 
 def ex_helper(line, line_count):
+    """Logs errors from lower layers"""
     print(f"Got exception from ops_factory, will ignore the line. Offending line #{line_count}:")
     print(line)
     print_exception(exception())
@@ -107,7 +108,7 @@ def process_file(tracker, fname, orphans=False) -> collections.defaultdict():
                 try:
                     ops = ops_factory(match.group(1), match.group(2), match.group(4), file_meta,
                                         tracker.time_tracker.get_wc)
-                except:
+                except (IndexError, ValueError):
                     ex_helper(line, file_meta['LINE_COUNT'])
                     error_count += 1
                     continue
@@ -120,7 +121,7 @@ def process_file(tracker, fname, orphans=False) -> collections.defaultdict():
                     try:
                         container_ops = ops_factory('BINDS', match.group(2), '', file_meta,
                                         tracker.time_tracker.get_wc)
-                    except:
+                    except (IndexError, ValueError):
                         ex_helper(line, file_meta['LINE_COUNT'])
                         error_count += 1
                         continue
@@ -131,7 +132,7 @@ def process_file(tracker, fname, orphans=False) -> collections.defaultdict():
                     try:
                         container_ops = ops_factory('PIC', match.group(2), match.group(4),
                                 file_meta, tracker.time_tracker.get_wc)
-                    except:
+                    except (IndexError, ValueError):
                         ex_helper(line, file_meta['LINE_COUNT'])
                         error_count += 1
                         continue
@@ -142,7 +143,7 @@ def process_file(tracker, fname, orphans=False) -> collections.defaultdict():
                     try:
                         container_ops = ops_factory('PARSE ERROR', match.group(2), match.group(4),
                                         file_meta, tracker.time_tracker.get_wc)
-                    except:
+                    except (IndexError, ValueError):
                         ex_helper(line, file_meta['LINE_COUNT'])
                         error_count += 1
                         continue
@@ -165,7 +166,7 @@ def process_file(tracker, fname, orphans=False) -> collections.defaultdict():
                 try:
                     ops = ops_factory(match.group(1), None, match.group(2), file_meta,
                                     tracker.time_tracker.get_wc)
-                except:
+                except (IndexError, ValueError):
                     ex_helper(line, file_meta['LINE_COUNT'])
                     error_count += 1
                     continue
@@ -176,14 +177,14 @@ def process_file(tracker, fname, orphans=False) -> collections.defaultdict():
                 try:
                     ops = ops_factory('XCTEND', None, match.group(1), file_meta,
                                     tracker.time_tracker.get_wc)
-                except:
+                except (IndexError, ValueError):
                     ex_helper(line, file_meta['LINE_COUNT'])
                     error_count += 1
                     continue
                 tracker.db.add_ops(tracker.db.get_span_id(), None, [ops])
                 continue
 
-            # FIXME: make this configurable
+            # '=====================' starts new tracing span
             if (match := RES_MATCHER.match(line)) is not None:
                 tracker.reset()
                 continue
