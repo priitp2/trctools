@@ -74,7 +74,7 @@ def ex_helper(line, line_count):
     print(f"Got exception from ops_factory, will ignore the line. Offending line #{line_count}:")
     print(line)
     print_exception(exception())
-    
+
 def process_file(tracker, fname, orphans=False) -> collections.defaultdict():
     """The god function. Does everything: reads the input file and parses the lines. """
 
@@ -129,8 +129,8 @@ def process_file(tracker, fname, orphans=False) -> collections.defaultdict():
                 if match.group(1) == 'PARSING IN CURSOR':
                     parser_state = ParserState.PIC
                     try:
-                        container_ops = ops_factory('PIC', match.group(2), match.group(4), file_meta,
-                                        tracker.time_tracker.get_wc)
+                        container_ops = ops_factory('PIC', match.group(2), match.group(4),
+                                file_meta, tracker.time_tracker.get_wc)
                     except:
                         ex_helper(line, file_meta['LINE_COUNT'])
                         error_count += 1
@@ -214,7 +214,5 @@ def process_file(tracker, fname, orphans=False) -> collections.defaultdict():
 
             if orphans:
                 print(f"non-matching line: {line}")
-    if error_count > 0:
-        print(f'Encountered {error_count} errors')
 
-    return file_meta['LINE_COUNT']
+    return (file_meta['LINE_COUNT'], error_count)
