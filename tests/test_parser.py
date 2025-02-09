@@ -42,7 +42,7 @@ class TestParser(unittest.TestCase):
         pics = 1
         sql_id = 'atxg62s17nkj4'
 
-        lines = trcparser.process_file(self.tracker, 'tests/traces/simple_trace.trc')
+        (lines, err) = trcparser.process_file(self.tracker, 'tests/traces/simple_trace.trc')
         self.assertEqual(lines, 51)
 
         # There is special statement for cursor #0, so len == 2
@@ -73,7 +73,7 @@ class TestParser(unittest.TestCase):
         waits = 12
         fetches = 4
 
-        lines = trcparser.process_file(self.tracker, 'tests/traces/simple_trace_2x.trc')
+        (lines, err) = trcparser.process_file(self.tracker, 'tests/traces/simple_trace_2x.trc')
         self.assertEqual(lines, 69)
 
         self.assertEqual(len(self.tracker.cursors), 1)
@@ -95,7 +95,7 @@ class TestParser(unittest.TestCase):
         # Elapsed is for both executions
         elapsed_both = 3710
 
-        lines = trcparser.process_file(self.tracker, 'tests/traces/simple_trace_missing_parse.trc')
+        (lines, err) = trcparser.process_file(self.tracker, 'tests/traces/simple_trace_missing_parse.trc')
         self.assertEqual(lines, 71)
 
         self.assertEqual(len(self.tracker.cursors), 1)
@@ -113,7 +113,7 @@ class TestParser(unittest.TestCase):
         self.assertEqual(self.get_count(self.tracker.db.batches, 3, 'XCTEND'), 2)
 
     def test_process_file_2_statements_1_cursor(self):
-        lines = trcparser.process_file(self.tracker, 'tests/traces/two_statements_one_cursor.trc')
+        (lines, err) = trcparser.process_file(self.tracker, 'tests/traces/two_statements_one_cursor.trc')
         self.tracker.flush()
         self.assertEqual(lines, 119)
 
@@ -134,13 +134,13 @@ class TestParser(unittest.TestCase):
 
     def test_stray_close(self):
         # PARSE/PIC happened before start of the trace. Just add the call to the database w/o sql_id
-        lines = trcparser.process_file(self.tracker, 'tests/traces/stray_close.trc')
+        (lines, err) = trcparser.process_file(self.tracker, 'tests/traces/stray_close.trc')
         self.tracker.flush()
         self.assertEqual(lines, 26)
         self.assertEqual(self.get_count(self.tracker.db.batches, 3, 'CLOSE'), 1)
 
     def test_lobs(self):
-        lines = trcparser.process_file(self.tracker, 'tests/traces/lobs.trc')
+        (lines, err) = trcparser.process_file(self.tracker, 'tests/traces/lobs.trc')
         self.tracker.flush()
         self.assertEqual(lines, 65)
         self.assertEqual(self.get_count(self.tracker.db.batches, 3, 'LOBWRITE'), 5)
@@ -148,7 +148,7 @@ class TestParser(unittest.TestCase):
         self.assertEqual(self.get_count(self.tracker.db.batches, 3, 'LOBPGSIZE'), 4)
 
     def test_error(self):
-        lines = trcparser.process_file(self.tracker, 'tests/traces/error.trc')
+        (lines, err) = trcparser.process_file(self.tracker, 'tests/traces/error.trc')
         self.tracker.flush()
         self.assertEqual(lines, 35)
         self.assertEqual(self.get_count(self.tracker.db.batches, 3, 'ERROR'), 2)
@@ -162,12 +162,12 @@ class TestParser(unittest.TestCase):
         self.assertEqual(ts1.astimezone(tz=ZoneInfo('UTC')), ts2.astimezone(tz=ZoneInfo('UTC')))
 
     def test_broken_date(self):
-        lines = trcparser.process_file(self.tracker, 'tests/traces/no_timezone.trc')
+        (lines, err) = trcparser.process_file(self.tracker, 'tests/traces/no_timezone.trc')
         self.tracker.flush()
         self.assertEqual(lines, 51)
 
     def test_parse_error(self):
-        lines = trcparser.process_file(self.tracker, 'tests/traces/parse_error.trc')
+        (lines, err) = trcparser.process_file(self.tracker, 'tests/traces/parse_error.trc')
         self.tracker.flush()
         self.assertEqual(lines, 36)
         self.assertEqual(self.get_count(self.tracker.db.batches, 3, 'PARSE ERROR'), 1)
@@ -176,7 +176,8 @@ class TestParser(unittest.TestCase):
     def test_broken_tracefile(self):
         '''Test for broken tracefile. There's a missing CRLF in the file and we expect parser
             not to throw an exception'''
-        lines = trcparser.process_file(self.tracker, 'tests/traces/broken_trace.trc')
+        (lines, err) = trcparser.process_file(self.tracker, 'tests/traces/broken_trace.trc')
+        self.assertEqual(err, 2)
 
 if __name__ == '__main__':
     unittest.main()
