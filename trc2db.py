@@ -35,18 +35,20 @@ def process_files(args) -> None:
     no_files = len(args.trace_files)
     fcount = 1
     cumul_lines = 0
+    cumul_errors = 0
     start_time = time.time_ns()
     for fname in args.trace_files:
         print(f"[{fcount}/{no_files}] processing file {fname}")
         start = time.time_ns()
-        lines = trcparser.process_file(tracker, fname, args.orphans)
+        (lines, errors) = trcparser.process_file(tracker, fname, args.orphans)
         cumul_lines += lines
+        cumul_errors += errors
         fcount += 1
         print(f"   -> {lines} lines, {int((time.time_ns() - start)/1000000000)} seconds")
 
     tracker.flush()
     print(f"Processed {cumul_lines} lines in {int((time.time_ns() - start_time)/1000000000)} "
-            +"seconds")
+            +"seconds, with {cumul_errors} errors")
 
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('trace_files', metavar='files', type=str, nargs='+',
