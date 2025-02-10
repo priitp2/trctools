@@ -160,8 +160,10 @@ class SummaryDuckdb:
                     """)
         print(res)
 
-    def create_hdrh(self, sql_id, fname):
-        res = d.sql(f"select ela from v_elapsed_time where sql_id = '{sql_id}'").fetchall()
+    def create_hdrh(self, sql_id, fname, fis):
+        preds = create_preds(fis)
+        res = d.sql(f"select ela from v_elapsed_time where sql_id = '{sql_id}' "
+                    +f"{'and' if preds else ''} {preds}").fetchall()
         resp_hist = HdrHistogram(1, 1000000000, 1)
         for ela in res:
             resp_hist.record_value(ela[0])
@@ -392,6 +394,12 @@ if __name__ == '__main__':
     hist_parser.add_argument('--wait_name', dest='wait_name', type=str,
                                     help='Name of the wait event')
     hist_parser.add_argument('--output', dest='fname', type=str, help='Output filename')
+    hist_parser.add_argument('--start', metavar='start',
+                            type=lambda x: filters.__setitem__('start', x),
+                            help='Start timestamp in ISO 8601 format')
+    hist_parser.add_argument('--end', metavar='end',
+                            type=lambda x: filters.__setitem__('end', x),
+                            help='End timestamp in ISO 8601 format')
 
     out_parser = subparsers.add_parser('outliers', help='Displays content of the trace files for '
                          +'the executions that took more than specified amount of time')
@@ -444,7 +452,7 @@ if __name__ == '__main__':
     elif args.action == 'histogram':
         if args.sql_id:
             for sqlid in args.sql_id.split(','):
-                s.create_hdrh(args.sql_id, args.fname)
+                s.create_hdrh(args.sql_id, args.fname, filters)
         if args.wait_name:
             s.wait_histogram(args.wait_name, args.fname)
     elif args.action == 'outliers':
