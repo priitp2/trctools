@@ -48,7 +48,7 @@ def process_files(args) -> None:
 
     tracker.flush()
     print(f"Processed {cumul_lines} lines in {int((time.time_ns() - start_time)/1000000000)} "
-            +"seconds, with {cumul_errors} errors")
+            +f"seconds, with {cumul_errors} errors")
 
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('trace_files', metavar='files', type=str, nargs='+',
