@@ -30,5 +30,8 @@ class TestSummary(unittest.TestCase):
 
         preds = summary.thresold2pred('xxx, yyy')
         self.assertRegex(preds, "between xxx and  yyy")
+
+        preds = summary.thresold2pred('')
+        self.assertEqual(preds, '')
 if __name__ == '__main__':
     unittest.main()

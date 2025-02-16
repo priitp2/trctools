@@ -15,6 +15,8 @@ def sqlid2pred(sql_id):
 
 def thresold2pred(thresold):
     """Turns (a list of) thresolds to predicates"""
+    if not thresold:
+        return ''
     th = thresold.split(',')
     preds = ''
     if len(th) == 2:
