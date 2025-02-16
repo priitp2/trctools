@@ -183,7 +183,7 @@ class SummaryDuckdb:
                             first(line) "first line"
                         from
                             read_parquet('{self.dbdir}')
-                        where
+                        {"where" if preds else ''}
                             {preds}
                         group by
                             cursor_id, span_id
