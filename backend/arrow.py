@@ -6,7 +6,7 @@ import pyarrow.parquet as pq
 __doc__ = ''' Adapter for pyarrow: turns stuff into Parquet files.'''
 # How many rows are bufferd and flushed to the disk in one file. Bigger number means
 # larger memory usage and less parquet files
-BATCH_SIZE = 500000000
+BUFFER_SIZE = 500000000
 PARQUET_SCHEMA_VERSION = '0.4'
 DEFAULT_FS = 'local'
 
@@ -128,9 +128,9 @@ class Backend:
         ''' Adds list of ops to the batch. Checks the size of the _ops_list and _table and
             triggers flush if needed.'''
         self._ops_list += [o.astuple(span_id, sql_id) for o in ops]
-        if len(self._ops_list) > BATCH_SIZE/100:
+        if len(self._ops_list) > BUFFER_SIZE/100:
             self._batch2table()
-        if self._table and self._table.get_total_buffer_size() > BATCH_SIZE:
+        if self._table and self._table.get_total_buffer_size() > BUFFER_SIZE:
             self.check_and_execute()
             self._table = None
     def flush_batches(self, tbl) -> None:
