@@ -118,13 +118,8 @@ def process_file(tracker, fname, orphans=False) -> collections.defaultdict():
             if (match := MULTILINE_MATCHER.match(line)) is not None:
                 if match.group(1) == 'BINDS':
                     parser_state = ParserState.BINDS
-                    try:
-                        container_ops = ops_factory('BINDS', match.group(2), '', file_meta,
+                    container_ops = ops_factory('BINDS', match.group(2), '', file_meta,
                                         tracker.time_tracker.get_wc)
-                    except (IndexError, ValueError):
-                        ex_helper(line, file_meta['LINE_COUNT'])
-                        error_count += 1
-                        continue
                     tracker.add_ops(container_ops.cursor, container_ops)
                     continue
                 if match.group(1) == 'PARSING IN CURSOR':
