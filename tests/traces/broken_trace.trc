@@ -49,3 +49,6 @@ XCTEND rlbk=0, rd_only=1, tim=5793511831940
 EXEC #140641987987625:c=73,e=73,p=0,cr=0,cu=0,mis=0,r=0,dep=0,og=1,plh=2725028981,ti
 WAIT #140641987987625: nam='SQL*Net message to client' ela= 2 driver id=675562835 #bytes=1 p3=0 obj#=89440 tim=5793511830853
 =====================
+PARSING IN CURSOR #140641987987622 len=123 dep=0 uid=127 oct=3 lid=127 tim=5793511830707 hv=41568804 ad
+select something_else from some_table;
+END OF STMT

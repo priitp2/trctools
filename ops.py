@@ -1,6 +1,8 @@
 from dataclasses import dataclass, fields, asdict
 import datetime
 import re
+from sys import exception
+from traceback import print_exception
 from typing import Any, Optional, Union, Callable
 
 __doc__ = """
@@ -221,14 +223,20 @@ class Pic(Ops):
             ts_callback: Callable[[int], datetime.datetime]):
         super().__init__(op_type, cursor, fmeta, ts_callback)
         for item in params.split(' '):
-            if len(item):
-                key = item.split('=')
-                if key[0] == 'sqlid':
-                    self.dbop.__dict__['sql_id'] = key[1].strip("'")
-                elif key[0] == 'ad':
-                    self.dbop.__dict__[key[0]] = key[1].strip("'")
-                else:
-                    self.dbop.__dict__[key[0]] = int(key[1])
+            # In case of broken line just ignore it. This allows us to capture rest of the lines
+            # From PIC
+            try:
+                if len(item):
+                    key = item.split('=')
+                    if key[0] == 'sqlid':
+                        self.dbop.__dict__['sql_id'] = key[1].strip("'")
+                    elif key[0] == 'ad':
+                        self.dbop.__dict__[key[0]] = key[1].strip("'")
+                    else:
+                        self.dbop.__dict__[key[0]] = int(key[1])
+            except (IndexError, ValueError):
+                print(f"Pic: got exception at line {fmeta['LINE_COUNT']}, offending line: {params}")
+                print_exception(exception())
         self.dbop.__dict__['raw'] = ''
     def __str__(self) -> str:
         return f"PARSING IN CURSOR len={self.dbop.len} dep={self.dbop.dep} uid={self.dbop.uid} " \
