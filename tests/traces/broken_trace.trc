@@ -56,4 +56,5 @@ PARSE ERROR #140604232973104:len=67 dep=1 uid=112 oct=3 li
 /* SQL Analyze(436,0) */ select username from dba_users order by 1
 WAIT #140641987987625: nam='SQL*Net message to client' ela= 2 driver id=675562835 #bytes=1 p3=0 obj#=89440 tim=5793511830853
 XCTEND rlbk=0, rd_only=1,
+LOBWRITE: type=TEMPORARY LOB,bytes=5,c=169,e=169,p=0,cr=0,cu=
 
