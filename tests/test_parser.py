@@ -177,7 +177,7 @@ class TestParser(unittest.TestCase):
         '''Test for broken tracefile. There's a missing CRLF in the file and we expect parser
             not to throw an exception'''
         (lines, err) = trcparser.process_file(self.tracker, 'tests/traces/broken_trace.trc')
-        self.assertEqual(err, 3)
+        self.assertEqual(err, 4)
 
 if __name__ == '__main__':
     unittest.main()
