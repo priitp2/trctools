@@ -130,13 +130,8 @@ def process_file(tracker, fname, orphans=False) -> collections.defaultdict():
                     continue
                 if match.group(1) == 'PARSE ERROR':
                     parser_state = ParserState.PARSE_ERROR
-                    try:
-                        container_ops = ops_factory('PARSE ERROR', match.group(2), match.group(4),
+                    container_ops = ops_factory('PARSE ERROR', match.group(2), match.group(4),
                                         file_meta, tracker.time_tracker.get_wc)
-                    except (IndexError, ValueError):
-                        ex_helper(line, file_meta['LINE_COUNT'])
-                        error_count += 1
-                        continue
                     tracker.add_ops(container_ops.cursor, container_ops)
                     continue
 

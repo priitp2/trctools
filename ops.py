@@ -283,9 +283,13 @@ class Error(Ops):
             ts_callback: Callable[[int], datetime.datetime]):
         super().__init__(op_type, cursor, fmeta, ts_callback)
         for item in params.split(' '):
-            if len(item):
-                key = item.split('=')
-                self.dbop.__dict__[key[0]] = int(key[1])
+            try:
+                if len(item):
+                    key = item.split('=')
+                    self.dbop.__dict__[key[0]] = int(key[1])
+            except (IndexError, ValueError):
+                print(f"Error: got exception at line {fmeta['LINE_COUNT']}, offending line: {params}")
+                print_exception(exception())
         if op_type == 'PARSE ERROR':
             self.dbop.__dict__['raw'] = ''
     def __str__(self) -> str:

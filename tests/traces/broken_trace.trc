@@ -52,3 +52,7 @@ WAIT #140641987987625: nam='SQL*Net message to client' ela= 2 driver id=67556283
 PARSING IN CURSOR #140641987987622 len=123 dep=0 uid=127 oct=3 lid=127 tim=5793511830707 hv=41568804 ad
 select something_else from some_table;
 END OF STMT
+PARSE ERROR #140604232973104:len=67 dep=1 uid=112 oct=3 li
+/* SQL Analyze(436,0) */ select username from dba_users order by 1
+WAIT #140641987987625: nam='SQL*Net message to client' ela= 2 driver id=675562835 #bytes=1 p3=0 obj#=89440 tim=5793511830853
+
