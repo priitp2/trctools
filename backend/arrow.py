@@ -78,7 +78,7 @@ class Backend:
         self._ops_list: list = []
         self._flush_count: int = 0
         self._table: Optional[pa.Table] = None
-        self.futures: list[Future] = []
+        self.future: Future = None
         self.executor = ThreadPoolExecutor(max_workers=1)
 
         self.set_fs()
@@ -111,19 +111,12 @@ class Backend:
     def check_and_execute(self) -> None:
         '''Flushes the data to the disk in the background and checks if any of the previous
             flushes have completed'''
-        f = self.executor.submit(self.flush_batches, self._table)
-        self.futures.append(f)
+        if self.future:
+            ex = self.future.exception()
+            if ex:
+                raise RuntimeError(ex)
+        self.future = self.executor.submit(self.flush_batches, self._table)
 
-        for w in self.futures:
-            if w.done():
-                del self.futures[self.futures.index(w)]
-                continue
-            try:
-                ex = w.exception(1)
-                if ex:
-                    raise RuntimeError(ex)
-            except TimeoutError:
-                continue
     def add_ops(self, span_id: int, sql_id: str, ops) -> None:
         ''' Adds list of ops to the batch. Checks the size of the _ops_list and _table and
             triggers flush if needed.'''
@@ -149,7 +142,6 @@ class Backend:
         if self._table is not None:
             self.check_and_execute()
             self._table = None
-        for f in self.futures:
-            ex = f.exception()
-            if ex:
-                raise RuntimeError(ex)
+        ex = self.future.exception()
+        if ex:
+            raise RuntimeError(ex)
