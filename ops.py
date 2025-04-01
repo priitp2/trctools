@@ -3,7 +3,7 @@ import datetime
 import re
 from sys import exception
 from traceback import print_exception
-from typing import Any, Optional, Union, Callable
+from typing import Any, Optional, Callable
 
 __doc__ = """
     Contains classes representing the various operations/lines in the trace file.
