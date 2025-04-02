@@ -1,5 +1,5 @@
 from concurrent.futures import ThreadPoolExecutor, Future
-from typing import Optional
+from typing import Optional,Union
 import pyarrow as pa
 import pyarrow.parquet as pq
 
@@ -55,6 +55,7 @@ PARQUET_SCHEMA = pa.schema([
 ])
 
 def make_fs(dbdir: str, fstype: str, fsopt: dict) -> pa.fs.FileSystem:
+    """Creates pyarrow FileSystem"""
     fs = None
     match fstype:
         case 'local':
@@ -71,6 +72,7 @@ def make_fs(dbdir: str, fstype: str, fsopt: dict) -> pa.fs.FileSystem:
     return fs
 
 class Backend:
+    """pyarrow/Parquet storage backend"""
     def __init__(self, dbdir: str, prefix: str) -> None:
         self.dbdir = dbdir
         self.filename = f'{dbdir}/{prefix}'
@@ -82,7 +84,10 @@ class Backend:
         self.executor = ThreadPoolExecutor(max_workers=1)
 
         self.set_fs()
-    def set_fs(self, fstype: str = DEFAULT_FS, fopt: dict = {}) -> None:
+    def set_fs(self, fstype: str = DEFAULT_FS, fopt: Union[dict, None] = None) -> None:
+        """Sets pyarrow FileSystem"""
+        if not fopt:
+            fopt = {}
         self.fs = make_fs(self.dbdir, fstype, fopt)
     def get_span_id(self) -> int:
         '''Span id generator'''
