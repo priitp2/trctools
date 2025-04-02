@@ -7,6 +7,10 @@ class TestCallTracker(unittest.TestCase):
     def setUp(self):
         dbs = Backend()
         self.tracker = CallTracker(dbs)
+    def test_no_backend(self):
+        tracker = CallTracker(None)
+        with self.assertRaises(RuntimeError):
+            tracker.flush()
     def test_add_cursor(self):
         self.tracker.add_pic(test_constants.CURSOR, test_constants.TRACKED_OPS['PIC'])
         self.assertEqual(len(self.tracker.cursors), 1)
