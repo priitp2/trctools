@@ -1,8 +1,9 @@
+from os import path
 import tempfile
 import unittest
 import datetime
 import duckdb as d
-from backend.arrow import Backend, PARQUET_SCHEMA_VERSION, make_fs
+from backend.arrow import Backend, PARQUET_SCHEMA_VERSION
 from call_tracker import CallTracker
 import trcparser
 
@@ -48,13 +49,15 @@ class TestArrow(unittest.TestCase):
                         +"where ops = 'HEADER' and event_name = 'PARQUET_SCHEMA';")
             self.assertEqual(res.fetchone()[0], PARQUET_SCHEMA_VERSION)
 
-    def test_make_fs_local(self):
-        tmpdir = 'test'
+    def test_make_set_fs(self):
         fstype = 'local'
-        fsopt = {}
         with tempfile.TemporaryDirectory() as db_dir:
-            fs = make_fs(f'{db_dir}/{tmpdir}', fstype, fsopt)
-            self.assertEqual(fs.type_name, fstype)
+            tmpdir = f'{db_dir}/tmpdir'
+            dbs = Backend(tmpdir, 'unittest')
+            self.assertTrue(path.exists(tmpdir))
+
+            with self.assertRaises(ValueError):
+                dbs.set_fs('unknown-file-system')
 
 if __name__ == '__main__':
     unittest.main()

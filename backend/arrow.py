@@ -54,23 +54,6 @@ PARQUET_SCHEMA = pa.schema([
     ('error_code', pa.uint16()), # Populated for the ERROR call
 ])
 
-def make_fs(dbdir: str, fstype: str, fsopt: dict) -> pa.fs.FileSystem:
-    """Creates pyarrow FileSystem"""
-    fs = None
-    match fstype:
-        case 'local':
-            fs = pa.fs.LocalFileSystem(**fsopt)
-            fs.create_dir(dbdir)
-        case 's3':
-            fs = pa.fs.S3FileSystem(**fsopt)
-        case 'gcs':
-            fs = pa.fs.GcsFileSystem(**fsopt)
-        case 'hadoop':
-            fs = pa.fs.HadoopFileSystem(**fsopt)
-        case 'subtree':
-            fs = pa.fs.SubTreeFileSystem(**fsopt)
-    return fs
-
 class Backend:
     """pyarrow/Parquet storage backend"""
     def __init__(self, dbdir: str, prefix: str) -> None:
@@ -88,7 +71,20 @@ class Backend:
         """Sets pyarrow FileSystem"""
         if not fopt:
             fopt = {}
-        self.fs = make_fs(self.dbdir, fstype, fopt)
+        match fstype:
+            case 'local':
+                self.fs = pa.fs.LocalFileSystem(**fopt)
+                self.fs.create_dir(self.dbdir)
+            case 's3':
+                self.fs = pa.fs.S3FileSystem(**fopt)
+            case 'gcs':
+                self.fs = pa.fs.GcsFileSystem(**fopt)
+            case 'hadoop':
+                self.fs = pa.fs.HadoopFileSystem(**fopt)
+            case 'subtree':
+                self.fs = pa.fs.SubTreeFileSystem(**fopt)
+            case _:
+                raise ValueError(f"Unknown file system: {fstype}")
     def get_span_id(self) -> int:
         '''Span id generator'''
         self._span_id += 1
