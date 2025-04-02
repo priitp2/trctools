@@ -59,5 +59,10 @@ class TestArrow(unittest.TestCase):
             with self.assertRaises(ValueError):
                 dbs.set_fs('unknown-file-system')
 
+        with self.assertRaises(TypeError):
+            dbs.set_fs('subtree')
+        with self.assertRaises(TypeError):
+            dbs.set_fs('hadoop')
+
 if __name__ == '__main__':
     unittest.main()
