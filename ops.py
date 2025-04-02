@@ -152,8 +152,6 @@ class Ops:
     def add_line(self, line: str) -> None:
         """Adds another line to the container."""
         self.dbop.__dict__['raw'] = "".join((self.dbop.__dict__['raw'], line))
-    def __str__(self) -> str:
-        return ''
 
 class Wait(Ops):
     """ Handles WAIT lines. Wait event name is parsed out, everything else is persisted as-is."""
