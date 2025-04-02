@@ -19,6 +19,8 @@ class TestOps(unittest.TestCase):
         self.assertEqual(ops.og, 7)
         self.assertEqual(ops.plh, 2725028981)
         self.assertEqual(ops.tim, 5793511830834)
+        # Isn't set for EXEC, should be 0
+        self.assertEqual(ops.err, 0)
 
     def test_init_close(self):
         ops = test_constants.TRACKED_OPS['CLOSE']
@@ -108,6 +110,13 @@ class TestOps(unittest.TestCase):
         self.assertEqual(test_constants.CURSOR, d['cursor'])
         self.assertEqual(ops.e, d['e'])
         self.assertEqual(ops.r, d['r'])
+
+        ops = test_constants.TRACKED_OPS['PIC']
+        ops.dbop.ts = None
+        d = ops.to_dict(span_id, test_constants.CURSOR)
+        self.assertEqual('PARSING IN CURSOR', d['op_type'])
+        # If ts is not set, to_dict generates it from the callback
+        self.assertIsNotNone(d['ts'])
 
 if __name__ == '__main__':
     unittest.main()
