@@ -88,9 +88,6 @@ class Ops:
             return self.dbop.sql_id
         if name in self.dbop.__dict__:
             return self.dbop.__dict__[name]
-        # For fields that are not set, just return 0
-        if name in [f.name for f in fields(self.dbop)]:
-            return 0
         raise AttributeError(f"Wrong attribute: {name}")
     def astuple(self, span_id: int, sql_id: str) -> tuple:
         """ Generates list that is used to persist Ops in the database. Children are supposed to 
