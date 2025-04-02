@@ -73,7 +73,7 @@ class CallTracker:
     def flush(self) -> None:
         '''Resets the tracker and flushes the db. '''
         if not self.db:
-            return
+            raise RuntimeError("Backend not set!")
         self.reset()
         self.db.flush()
         self.time_tracker.reset(None)
