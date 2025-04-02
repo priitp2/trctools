@@ -18,6 +18,11 @@ class TestCurrentStatement(unittest.TestCase):
             self.cstat.add_ops(ops)
         self.cstat.dump_to_db()
         self.assertEqual(len(self.cstat.dbs.batches), len(test_constants.TRACKED_OPS))
+    def test_empty_cursor(self):
+        with self.assertRaises(ValueError):
+            self.cstat = CurrentStatement('#1', None)
+        with self.assertRaises(ValueError):
+            self.cstat = CurrentStatement('#', None)
     def test_add_ops(self):
         for ops in test_constants.TRACKED_OPS.values():
             self.cstat.add_ops(ops)
