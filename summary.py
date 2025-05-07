@@ -200,7 +200,7 @@ class SummaryDuckdb:
         preds = create_preds(fis)
         inner_where = ''
         if thresold:
-            inner_where = f" {'AND' if preds else ''} span_id in (select span_id from v_elapsed_time where ela > {thresold}) and cursor_id <> '#0'"
+            inner_where = f" AND span_id in (select span_id from v_elapsed_time where ela > {thresold}) and cursor_id <> '#0'"
         res = d.sql(f"""
 			SELECT
                             row_number() over(order by count(event_name) asc),
@@ -224,14 +224,14 @@ class SummaryDuckdb:
                                 read_parquet ( '{self.dbdir}' )
                             WHERE
                                 ops = 'WAIT'
-                                AND {preds}
+                                {'AND' if preds else ''} {preds}
                                 {inner_where}
                         )
                         GROUP BY
                             event_name
                         ORDER BY
                             COUNT(*) DESC
-                        LIMIT {self.tabsize};
+                        LIMIT {self.tabsize}
                     """)
         table = tabulate.tabulate(res.fetchall(), tablefmt=self.tabtype,
                 headers=['#', 'wait', 'count', 'sum(us)', 'median(us)', 'p99(us)', 'max(us)'])
