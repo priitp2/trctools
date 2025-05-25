@@ -8,6 +8,7 @@ from call_tracker import CallTracker
 import trcparser
 
 class TestArrow(unittest.TestCase):
+    """Tests for pyarrow backend."""
     def test_lobs(self):
         """ Checks that we have correct number of rows in the parquet file."""
         with tempfile.TemporaryDirectory() as db_dir:
@@ -50,7 +51,8 @@ class TestArrow(unittest.TestCase):
             self.assertEqual(res.fetchone()[0], PARQUET_SCHEMA_VERSION)
 
     def test_make_set_fs(self):
-        fstype = 'local'
+        """Checks if Backend creates the directory. Setting unsupported or non-existing file
+            system should trigger an exception."""
         with tempfile.TemporaryDirectory() as db_dir:
             tmpdir = f'{db_dir}/tmpdir'
             dbs = Backend(tmpdir, 'unittest')
@@ -58,11 +60,10 @@ class TestArrow(unittest.TestCase):
 
             with self.assertRaises(ValueError):
                 dbs.set_fs('unknown-file-system')
-
-        with self.assertRaises(TypeError):
-            dbs.set_fs('subtree')
-        with self.assertRaises(TypeError):
-            dbs.set_fs('hadoop')
+            with self.assertRaises(TypeError):
+                dbs.set_fs('subtree')
+            with self.assertRaises(TypeError):
+                dbs.set_fs('hadoop')
 
 if __name__ == '__main__':
     unittest.main()
