@@ -49,7 +49,7 @@ class TestCallTracker(unittest.TestCase):
 
     def test_add_fetch(self):
         self.tracker.add_pic(test_constants.CURSOR, test_constants.TRACKED_OPS['PIC'])
-        for i in range(0, 3):
+        for _ in range(0, 3):
             self.tracker.add_ops(test_constants.CURSOR, test_constants.TRACKED_OPS['FETCH'])
         cursor = self.tracker.latest_cursors[test_constants.CURSOR]
         self.assertEqual(cursor.count_ops('FETCH'), 3)
