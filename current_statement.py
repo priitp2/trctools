@@ -27,10 +27,10 @@ class CurrentStatement:
         return len(self.ops) + len(self.ops_container)
     def add_ops(self, ops: Ops) -> None:
         """Adds database operation to the current statement"""
-        if self.cursor != ops.cursor:
-            raise KeyError(f"add_ops: wrong cursor, got {ops.cursor}, have {self.cursor}")
         if ops.op_type not in KNOWN_OPS:
             raise KeyError(f"add_ops: unknown ops type: {ops.op_type}")
+        if self.cursor != ops.cursor:
+            raise KeyError(f"add_ops: wrong cursor, got {ops.cursor}, have {self.cursor}")
         if ops.op_type in self.ops and ops.op_type not in ITERABLE_OPS:
             raise KeyError(f"add_ops: already set: ops {ops.op_type}")
         if ops.op_type in ITERABLE_OPS:
