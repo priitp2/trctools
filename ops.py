@@ -1,4 +1,4 @@
-from dataclasses import dataclass, fields, asdict
+from dataclasses import dataclass, asdict
 import datetime
 import re
 from sys import exception
@@ -66,9 +66,9 @@ class Ops:
     """
         Base class for various operations.
     """
-    def __init__(self, op_type: str, cursor: str, fmeta: dict,
-            ts_callback: Optional[Callable[[int], datetime.datetime]]) -> None:
+    def __init__(self, op_type: str, cursor: str, *args) -> None:
 
+        (fmeta, ts_callback) = args
         self.dbop = DatabaseOp(op_type = op_type,
             cursor = cursor,
             fname = fmeta['FILE_NAME'],
@@ -136,7 +136,6 @@ class Ops:
             self.dbop.container_id,
             self.dbop.err,
         )
-        #return astuple(self.dbop)
     def to_dict(self, span_id: int, sql_id: str) -> dict:
         """Returns DatabaseOp as a dict."""
         out = asdict(self.dbop)
@@ -155,8 +154,8 @@ class Ops:
 
 class Wait(Ops):
     """ Handles WAIT lines. Wait event name is parsed out, everything else is persisted as-is."""
-    def __init__(self, op_type: str, cursor: str, params: str, fmeta: dict,
-            ts_callback: Callable[[int], datetime.datetime]) -> None:
+    def __init__(self, op_type: str, cursor: str, params: str, *args) -> None:
+        (fmeta, ts_callback) = args
         super().__init__(op_type, cursor, fmeta, ts_callback)
         self.dbop.__dict__['raw'] = params
         match = wait_matcher.match(params)
@@ -171,8 +170,8 @@ class Wait(Ops):
 
 class Stat(Ops):
     """ Execuion plan and statistics(STAT). Persisted as-is."""
-    def __init__(self, op_type: str, cursor: str, params: str, fmeta: dict,
-            ts_callback: Callable[[int], datetime.datetime]) -> None:
+    def __init__(self, op_type: str, cursor: str, params: str, *args) -> None:
+        (fmeta, ts_callback) = args
         super().__init__(op_type, cursor, fmeta, ts_callback)
         self.dbop.__dict__['raw'] = params
     def __str__(self) -> str:
@@ -181,8 +180,8 @@ class Stat(Ops):
 class Meta(Ops):
     """ Handles trace file header lines and lines that start with stars (***). These lines contain
         wall clock readings, these are persisted in ts2."""
-    def __init__(self, op_type: str, cursor: str, params: str, fmeta: dict, name: str,
-            ts2: datetime.datetime) -> None:
+    def __init__(self, op_type: str, cursor: str, params: str, *args) -> None:
+        (fmeta, name, ts2) = args
         super().__init__(op_type, cursor, fmeta, None)
         self.dbop.__dict__['name'] = name
         self.dbop.__dict__['raw'] = params
@@ -194,8 +193,8 @@ class Meta(Ops):
 
 class Binds(Ops):
     """ Bind values. Everything is persisted as-is, in one string."""
-    def __init__(self, op_type: str, cursor: str, params: str, fmeta: dict,
-            ts_callback: Callable[[int], datetime.datetime]) -> None:
+    def __init__(self, op_type: str, cursor: str, params: str, *args) -> None:
+        (fmeta, ts_callback) = args
         super().__init__(op_type, cursor, fmeta, ts_callback)
         self.dbop.__dict__['raw'] = params
     def __str__(self) -> str:
@@ -203,8 +202,8 @@ class Binds(Ops):
 
 class Xctend(Ops):
     """ Commits (XCTEND)."""
-    def __init__(self, op_type: str, cursor: str, params: str, fmeta: dict,
-            ts_callback: Callable[[int], datetime.datetime]) -> None:
+    def __init__(self, op_type: str, cursor: str, params: str, *args) -> None:
+        (fmeta, ts_callback) = args
         super().__init__(op_type, cursor, fmeta, ts_callback)
         for item in params.split(', '):
             key = item.split('=')
@@ -214,11 +213,11 @@ class Xctend(Ops):
 
 class Pic(Ops):
     """ PARSE IN CURSOR lines. SQL statement is persisted as one string, in `raw` field"""
-    def __init__(self, op_type: str, cursor: str, params: str, fmeta: dict,
-            ts_callback: Callable[[int], datetime.datetime]):
+    def __init__(self, op_type: str, cursor: str, params: str, *args) -> None:
+        (fmeta, ts_callback) = args
         super().__init__(op_type, cursor, fmeta, ts_callback)
         for item in params.split(' '):
-            # In case of broken line just ignore it. This allows us to capture rest of the lines
+            # In case of broken line just ignore it. This allows us to capture args of the lines
             # From PIC
             try:
                 if len(item):
@@ -234,14 +233,14 @@ class Pic(Ops):
                 print_exception(exception())
         self.dbop.__dict__['raw'] = ''
     def __str__(self) -> str:
-        return f"PARSING IN CURSOR len={self.dbop.len} dep={self.dbop.dep} uid={self.dbop.uid} " \
-               + f"oct={self.dbop.oct} lid={self.dbop.lid} tim={self.dbop.tim} hv={self.dbop.hv} "\
-               + f"ad={self.dbop.ad} sqlid={self.dbop.sql_id}\n{self.dbop.raw}\nEND OF STMT"
+        return (f"PARSING IN CURSOR len={self.dbop.len} dep={self.dbop.dep} uid={self.dbop.uid} "
+                f"oct={self.dbop.oct} lid={self.dbop.lid} tim={self.dbop.tim} hv={self.dbop.hv} "
+                f"ad={self.dbop.ad} sqlid={self.dbop.sql_id}\n{self.dbop.raw}\nEND OF STMT")
 
 class Lob(Ops):
     """ Various LOB* operations."""
-    def __init__(self, op_type: str, cursor: str, params: str, fmeta: dict,
-            ts_callback: Callable[[int], datetime.datetime]):
+    def __init__(self, op_type: str, cursor: str, params: str, *args) -> None:
+        (fmeta, ts_callback) = args
         super().__init__(op_type, cursor, fmeta, ts_callback)
         for item in params.split(','):
             if len(item):
@@ -251,31 +250,31 @@ class Lob(Ops):
                 else:
                     self.dbop.__dict__[key[0]] = int(key[1])
     def __str__(self) -> str:
-        return f"{self.dbop.op_type}: type={self.dbop.type},bytes={self.dbop.r},c={self.dbop.c}," \
-               + f"e={self.dbop.e},p={self.dbop.p},cr={self.dbop.cr},cu={self.dbop.cu}," \
-               + f"tim={self.dbop.tim}"
+        return (f"{self.dbop.op_type}: type={self.dbop.type},bytes={self.dbop.r},c={self.dbop.c},"
+                f"e={self.dbop.e},p={self.dbop.p},cr={self.dbop.cr},cu={self.dbop.cu},"
+                f"tim={self.dbop.tim}")
 
 class Exec(Ops):
     """ Events related to the database client calls (EXEC, FETCH, PARSE, CLOSE). These have similar
         enough properties."""
-    def __init__(self, op_type: str, cursor: str, params: str, fmeta: dict,
-            ts_callback: Callable[[int], datetime.datetime]):
+    def __init__(self, op_type: str, cursor: str, params: str, *args) -> None:
+        (fmeta, ts_callback) = args
         super().__init__(op_type, cursor, fmeta, ts_callback)
         for item in params.split(','):
             if len(item):
                 key = item.split('=')
                 self.dbop.__dict__[key[0]] = int(key[1])
     def __str__(self) -> str:
-        str0 = f"{self.dbop.cursor}: {self.dbop.op_type} "
-        return str0 + f"c={self.dbop.c},e={self.dbop.e},p={self.dbop.p},cr={self.dbop.cr}," \
-                    + f"cu={self.dbop.cu},mis={self.dbop.mis},r={self.dbop.r}," \
-                    + f"dep={self.dbop.dep},og={self.dbop.og},plh={self.dbop.plh}," \
-                    + f"tim={self.dbop.tim},fname={self.dbop.fname},line={self.dbop.line}"
+        return (f"{self.dbop.cursor}: {self.dbop.op_type} "
+                f"c={self.dbop.c},e={self.dbop.e},p={self.dbop.p},cr={self.dbop.cr},"
+                f"cu={self.dbop.cu},mis={self.dbop.mis},r={self.dbop.r},"
+                f"dep={self.dbop.dep},og={self.dbop.og},plh={self.dbop.plh},"
+                f"tim={self.dbop.tim},fname={self.dbop.fname},line={self.dbop.line}")
 
 class Error(Ops):
     """Covers ERROR and PARSE ERROR calls."""
-    def __init__(self, op_type: str, cursor: str, params: str, fmeta: dict,
-            ts_callback: Callable[[int], datetime.datetime]):
+    def __init__(self, op_type: str, cursor: str, params: str, *args) -> None:
+        (fmeta, ts_callback) = args
         super().__init__(op_type, cursor, fmeta, ts_callback)
         for item in params.split(' '):
             try:
@@ -283,7 +282,8 @@ class Error(Ops):
                     key = item.split('=')
                     self.dbop.__dict__[key[0]] = int(key[1])
             except (IndexError, ValueError):
-                print(f"Error: got exception at line {fmeta['LINE_COUNT']}, offending line: {params}")
+                print(f"Error: got exception at line {fmeta['LINE_COUNT']}, offending line: "
+                    f"{params}")
                 print_exception(exception())
         if op_type == 'PARSE ERROR':
             self.dbop.__dict__['raw'] = ''
@@ -291,13 +291,13 @@ class Error(Ops):
         str0 = f"{self.dbop.op_type} {self.dbop.cursor}:"
         if self.dbop.op_type == 'ERROR':
             return str0 + f"err={self.dbop.err} tim={self.dbop.tim}"
-        return str0 + f"len={self.dbop.len} dep={self.dbop.dep} uid={self.dbop.uid} " \
-                    + f"oct={self.dbop.oct} lid={self.dbop.lid} tim={self.dbop.tim} " \
-                    + f"err={self.dbop.err}"
+        return str0 + (f"len={self.dbop.len} dep={self.dbop.dep} uid={self.dbop.uid} "
+                     f"oct={self.dbop.oct} lid={self.dbop.lid} tim={self.dbop.tim} "
+                     f"err={self.dbop.err}")
 
 def ops_factory(op_type: str, cursor: str, params: str, fmeta: dict,
-        ts_callback: Callable[[int], datetime.datetime],
-        name: Optional[str]=None, ts2: Optional[datetime.datetime]=None) -> Ops:
+            ts_callback: Callable[[int], datetime.datetime],
+            name: Optional[str]=None, ts2: Optional[datetime.datetime]=None) -> Ops:
     """
         Factory method for operations.
     """
