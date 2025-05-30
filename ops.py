@@ -3,7 +3,7 @@ import datetime
 import re
 from sys import exception
 from traceback import print_exception
-from typing import Any, Optional, Callable
+from typing import Any, Optional
 
 __doc__ = """
     Contains classes representing the various operations/lines in the trace file.
@@ -295,32 +295,35 @@ class Error(Ops):
                      f"oct={self.dbop.oct} lid={self.dbop.lid} tim={self.dbop.tim} "
                      f"err={self.dbop.err}")
 
-def ops_factory(op_type: str, cursor: str, params: str, fmeta: dict,
-            ts_callback: Callable[[int], datetime.datetime],
-            name: Optional[str]=None, ts2: Optional[datetime.datetime]=None) -> Ops:
+def ops_factory(op_type: str, cursor: str, params: str, *args, **kwargs) -> Ops:
     """
         Factory method for operations.
+        Expected args are fmeta (dict) and ts_callback (Callable[[int], datetime.datetime]).
+        Optional kwargs are name (str) and ts2 (datetime.datetime)
     """
     ops: Optional[Ops] = None
-    match op_type:
-        case 'WAIT':
+    match [op_type, *args, *kwargs.values()]:
+        case ['WAIT', fmeta, ts_callback]:
             ops = Wait(op_type, cursor, params, fmeta, ts_callback)
-        case 'STAT':
+        case ['STAT', fmeta, ts_callback]:
             ops = Stat(op_type, cursor, params, fmeta, ts_callback)
-        case 'BINDS':
+        case ['BINDS', fmeta, ts_callback]:
             ops = Binds(op_type, cursor, params, fmeta, ts_callback)
-        case 'STAR' | 'HEADER':
+        case ['STAR', fmeta, _, name, ts2]:
             ops = Meta(op_type, cursor, params, fmeta, name, ts2)
-        case 'XCTEND':
+        case ['HEADER', fmeta, _, name, _]:
+            ops = Meta(op_type, cursor, params, fmeta, name, None)
+        case ['XCTEND', fmeta, ts_callback]:
             ops = Xctend(op_type, cursor, params, fmeta, ts_callback)
-        case 'PIC':
+        case ['PIC', fmeta, ts_callback]:
             ops = Pic(op_type, cursor, params, fmeta, ts_callback)
-        case 'PARSE' | 'EXEC' | 'CLOSE' | 'FETCH':
+        case ['PARSE' | 'EXEC' | 'CLOSE' | 'FETCH', fmeta, ts_callback]:
             ops = Exec(op_type, cursor, params, fmeta, ts_callback)
-        case 'ERROR' | 'PARSE ERROR':
+        case ['ERROR' | 'PARSE ERROR', fmeta, ts_callback]:
             ops = Error(op_type, cursor, params, fmeta, ts_callback)
         case _ if op_type.startswith('LOB'):
+            (fmeta, ts_callback) = args
             ops = Lob(op_type, cursor, params, fmeta, ts_callback)
         case _:
-            raise AttributeError(f"Wrong op_type: {op_type}")
+            raise AttributeError(f"Wrong op_type: {op_type}, {[op_type, *args, *kwargs.values()]}")
     return ops
