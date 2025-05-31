@@ -76,17 +76,23 @@ def ex_helper(line, line_count):
     print(line)
     print_exception(exception())
 
+def init_fmeta(file_name: str) -> collections.defaultdict():
+    """fmeta contains file- or session level parameters, from line number to CLIENT_ID.
+        It returns None for the keys that are not present"""
+
+    fmeta = collections.defaultdict(lambda: None)
+    fmeta['FILE_NAME'] = file_name
+    fmeta['LINE_COUNT'] = 0
+    return fmeta
+
 def process_file(tracker, fname, orphans=False) -> collections.defaultdict():
     """The god function. Does everything: reads the input file and parses the lines. """
 
     parser_state: int = ParserState.NOC
     container_ops: Optional[Ops] = None
 
-    file_meta = collections.defaultdict(lambda: None)
-    file_meta['FILE_NAME'] = fname
-    file_meta['LINE_COUNT'] = 0
-    error_count = 0
-
+    error_count: int = 0
+    file_meta = init_fmeta(fname)
     opener = get_opener(fname)
     with opener(fname, 'rt', encoding='utf_8') as trace:
         for line in trace:
