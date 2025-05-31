@@ -66,9 +66,8 @@ def get_opener(fname):
 class ParserState(Enum):
     """Keeps track of the parser state"""
     NOC = 0 # Most of the events are single-line
-    BINDS = 1
-    PIC = 2
-    PARSE_ERROR = 3
+    MULTILINE = 1 # Multi-line events that do not have end marker, like BINDS and PARSE ERROR
+    PIC = 2 # PARSING IN CURSOR is a multi-line event with end marker
 
 def ex_helper(line, line_count):
     """Logs errors from lower layers"""
@@ -128,25 +127,24 @@ def process_file(tracker, fname, orphans=False) -> collections.defaultdict():
                                             file_meta, tracker.time_tracker.get_wc)
                 tracker.add_ops(container_ops.cursor, container_ops)
                 match match.group(1):
-                    case 'BINDS':
-                        parser_state = ParserState.BINDS
+                    case 'BINDS' | 'PARSE ERROR':
+                        parser_state = ParserState.MULTILINE
                     case 'PARSING IN CURSOR':
                         parser_state = ParserState.PIC
-                    case 'PARSE ERROR':
-                        parser_state = ParserState.PARSE_ERROR
                 continue
 
-            if parser_state in (ParserState.BINDS, ParserState.PARSE_ERROR):
-                container_ops.add_line(line)
-                continue
-
-            if parser_state == ParserState.PIC:
-                if (match := PIC_MATCHER.match(line)) is not None:
-                    parser_state = ParserState.NOC
-                    container_ops = None
-                else:
+            match parser_state:
+                case ParserState.MULTILINE:
                     container_ops.add_line(line)
-                continue
+                    continue
+                case ParserState.PIC:
+                    if (match := PIC_MATCHER.match(line)) is not None:
+                        parser_state = ParserState.NOC
+                        container_ops = None
+                    else:
+                        container_ops.add_line(line)
+                    continue
+
 
             if (match := LOB_MATCHER.match(line)) is not None:
                 try:
