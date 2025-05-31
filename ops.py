@@ -315,8 +315,8 @@ def ops_factory(op_type: str, cursor: str, params: str, *args, **kwargs) -> Ops:
             ops = Meta(op_type, cursor, params, fmeta, name, None)
         case ['XCTEND', fmeta, ts_callback]:
             ops = Xctend(op_type, cursor, params, fmeta, ts_callback)
-        case ['PIC', fmeta, ts_callback]:
-            ops = Pic(op_type, cursor, params, fmeta, ts_callback)
+        case ['PARSING IN CURSOR', fmeta, ts_callback]:
+            ops = Pic('PIC', cursor, params, fmeta, ts_callback)
         case ['PARSE' | 'EXEC' | 'CLOSE' | 'FETCH', fmeta, ts_callback]:
             ops = Exec(op_type, cursor, params, fmeta, ts_callback)
         case ['ERROR' | 'PARSE ERROR', fmeta, ts_callback]:

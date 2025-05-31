@@ -124,24 +124,17 @@ def process_file(tracker, fname, orphans=False) -> collections.defaultdict():
                 continue
 
             if (match := MULTILINE_MATCHER.match(line)) is not None:
-                if match.group(1) == 'BINDS':
-                    parser_state = ParserState.BINDS
-                    container_ops = ops_factory('BINDS', match.group(2), '', file_meta,
-                                        tracker.time_tracker.get_wc)
-                    tracker.add_ops(container_ops.cursor, container_ops)
-                    continue
-                if match.group(1) == 'PARSING IN CURSOR':
-                    parser_state = ParserState.PIC
-                    container_ops = ops_factory('PIC', match.group(2), match.group(4),
-                                file_meta, tracker.time_tracker.get_wc)
-                    tracker.add_pic(container_ops.cursor, container_ops)
-                    continue
-                if match.group(1) == 'PARSE ERROR':
-                    parser_state = ParserState.PARSE_ERROR
-                    container_ops = ops_factory('PARSE ERROR', match.group(2), match.group(4),
-                                        file_meta, tracker.time_tracker.get_wc)
-                    tracker.add_ops(container_ops.cursor, container_ops)
-                    continue
+                container_ops = ops_factory(match.group(1), match.group(2), match.group(4), file_meta,
+                                    tracker.time_tracker.get_wc)
+                tracker.add_ops(container_ops.cursor, container_ops)
+                match match.group(1):
+                    case 'BINDS':
+                        parser_state = ParserState.BINDS
+                    case 'PARSING IN CURSOR':
+                        parser_state = ParserState.PIC
+                    case 'PARSE ERROR':
+                        parser_state = ParserState.PARSE_ERROR
+                continue
 
             if parser_state in (ParserState.BINDS, ParserState.PARSE_ERROR):
                 container_ops.add_line(line)

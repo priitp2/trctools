@@ -12,7 +12,7 @@ FMETA = collections.defaultdict(lambda: None)
 FMETA['FILE_NAME'] = 'trace.trc'
 FMETA['LINE_COUNT'] = 77
 TRACKED_OPS = {
-    'PIC':ops.ops_factory('PIC', CURSOR, "len=80 dep=0 uid=331 oct=3 lid=331 tim=7104844976089 hv=1167462720 " \
+    'PIC':ops.ops_factory('PARSING IN CURSOR', CURSOR, "len=80 dep=0 uid=331 oct=3 lid=331 tim=7104844976089 hv=1167462720 " \
         + "ad='9d4125228' sqlid='6v48b7j2tc4a0'", FMETA, TS_CALLBACK),
     'PARSE':ops.ops_factory('PARSE', CURSOR,
         'c=73,e=73,p=1,cr=2,cu=3,mis=4,r=5,dep=6,og=7,plh=2725028981,tim=5793511830834', FMETA,

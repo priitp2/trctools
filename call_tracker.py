@@ -40,13 +40,15 @@ class CallTracker:
     def add_ops(self, cursor: str, ops: Ops) -> None:
         ''' Adds tracked operation.'''
 
+        if ops.op_type == 'PIC':
+            return self._add_pic(cursor, ops)
         cstat = self._get_statement(cursor)
         # If non-list ops is already set we assume previous client interaction is over and
         # we can close latest cursor/interaction
         if not cstat or (ops.op_type in cstat.ops):
             cstat = self.add_latest_cursor(cursor)
         cstat.add_ops(ops)
-    def add_pic(self, cursor: str, params: Ops) -> None:
+    def _add_pic(self, cursor: str, params: Ops) -> None:
         '''Separate function to add PIC ops. It is separate b/c of extra steps with sql_id.'''
         cstat = self._get_statement(cursor)
         if cstat:
