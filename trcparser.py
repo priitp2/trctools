@@ -80,6 +80,8 @@ def init_fmeta(file_name: str) -> collections.defaultdict():
     """fmeta contains file- or session level parameters, from line number to CLIENT_ID.
         It returns None for the keys that are not present"""
 
+    if not file_name:
+        raise ValueError('Missing file name')
     fmeta = collections.defaultdict(lambda: None)
     fmeta['FILE_NAME'] = file_name
     fmeta['LINE_COUNT'] = 0
