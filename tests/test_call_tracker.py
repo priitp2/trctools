@@ -66,12 +66,12 @@ class TestCallTracker(unittest.TestCase):
         self.tracker.add_ops(test_constants.CURSOR, test_constants.TRACKED_OPS['WAIT'])
         self.assertEqual(len(self.tracker.cursors), 1)
 
-    def test__get_statement(self):
-        self.assertEqual(self.tracker._get_statement('#123'), None)
+    def test__latest_cursors(self):
+        self.assertEqual(self.tracker.latest_cursors['#123'], None)
         self.tracker._add_pic(test_constants.CURSOR, test_constants.TRACKED_OPS['PIC'])
-        self.assertEqual(self.tracker._get_statement(test_constants.CURSOR).cursor,
+        self.assertEqual(self.tracker.latest_cursors[test_constants.CURSOR].cursor,
                 test_constants.CURSOR)
-        self.assertEqual(self.tracker._get_statement('#123'), None)
+        self.assertEqual(self.tracker.latest_cursors['#123'], None)
 
     def test_reset(self):
         self.tracker._add_pic(test_constants.CURSOR, test_constants.TRACKED_OPS['PIC'])
