@@ -124,8 +124,8 @@ def process_file(tracker, fname, orphans=False) -> collections.defaultdict():
                 continue
 
             if (match := MULTILINE_MATCHER.match(line)) is not None:
-                container_ops = ops_factory(match.group(1), match.group(2), match.group(4), file_meta,
-                                    tracker.time_tracker.get_wc)
+                container_ops = ops_factory(match.group(1), match.group(2), match.group(4),
+                                            file_meta, tracker.time_tracker.get_wc)
                 tracker.add_ops(container_ops.cursor, container_ops)
                 match match.group(1):
                     case 'BINDS':
