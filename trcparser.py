@@ -18,7 +18,6 @@ __doc__ = '''Parser for the SQL trace files. '''
 
 RES_MATCHER = re.compile(r'''^(={21})''')
 PIC_MATCHER = re.compile(r'''^END OF STMT(.*)''')
-XCTEND_MATCHER = re.compile(r'''^XCTEND (.*)''')
 
 # 2023-05-19T05:28:00.339263+02:00
 DATE_MATCHER = re.compile(r'''^\*{3} (\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\.\d{6}\+\d\d:\d\d)''')
@@ -28,7 +27,7 @@ STARS_MATCHER = re.compile(r'''^\*\*\* (SESSION ID:|CLIENT ID:|SERVICE NAME:|MOD
         +r'''|ACTION NAME:|CLIENT DRIVER:|CONTAINER ID:|CLIENT IP:|CONNECTION ID:)(\(.*\)) (.*)''')
 CALL_MATCHER = re.compile(r'''^(PARSE|EXEC|FETCH|WAIT|CLOSE|STAT|ERROR) (#\d+)(:| )(.*)''')
 MULTILINE_MATCHER = re.compile(r'''^(PARSING IN CURSOR|BINDS|PARSE ERROR) (#\d+)(:| )(.*)''')
-LOB_MATCHER = re.compile(r'''^(LOB[A-Z]+): (.*)''')
+XLOB_MATCHER = re.compile(r'''^(LOB[A-Z]+|XCTEND):* (.*)''')
 
 FILE_HEADER_MATCHER = re.compile(r'''^(Build label|ORACLE_HOME|System name'''
                         +r'''|Node name|Release|Version|Machine|CLID|Instance name'''
@@ -146,20 +145,9 @@ def process_file(tracker, fname, orphans=False) -> collections.defaultdict():
                     continue
 
 
-            if (match := LOB_MATCHER.match(line)) is not None:
+            if (match := XLOB_MATCHER.match(line)) is not None:
                 try:
                     ops = ops_factory(match.group(1), None, match.group(2), file_meta,
-                                    tracker.time_tracker.get_wc)
-                except (IndexError, ValueError):
-                    ex_helper(line, file_meta['LINE_COUNT'])
-                    error_count += 1
-                    continue
-                tracker.db.add_ops(tracker.db.get_span_id(), None, [ops])
-                continue
-
-            if (match := XCTEND_MATCHER.match(line)) is not None:
-                try:
-                    ops = ops_factory('XCTEND', None, match.group(1), file_meta,
                                     tracker.time_tracker.get_wc)
                 except (IndexError, ValueError):
                     ex_helper(line, file_meta['LINE_COUNT'])
