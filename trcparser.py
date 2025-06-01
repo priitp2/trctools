@@ -105,9 +105,9 @@ def process_file(tracker, fname, orphans=False) -> collections.defaultdict():
             if len(line) < 2:
                 continue
 
-            if (match := CALL_MATCHER.match(line)) is not None:
+            if (m := CALL_MATCHER.match(line)) is not None:
 
-                match match.group(1):
+                match m.group(1):
                     case 'BINDS' | 'PARSE ERROR':
                         parser_state = ParserState.MULTILINE
                     case 'PARSING IN CURSOR':
@@ -117,13 +117,13 @@ def process_file(tracker, fname, orphans=False) -> collections.defaultdict():
                         ops = None
 
                 try:
-                    ops = ops_factory(match.group(1), match.group(2), match.group(4), file_meta,
+                    ops = ops_factory(m.group(1), m.group(2), m.group(4), file_meta,
                                         tracker.time_tracker.get_wc)
                 except (IndexError, ValueError):
                     ex_helper(line, file_meta['LINE_COUNT'])
                     error_count += 1
                     continue
-                tracker.add_ops(match.group(2), ops)
+                tracker.add_ops(m.group(2), ops)
                 continue
 
             match parser_state:
@@ -138,9 +138,9 @@ def process_file(tracker, fname, orphans=False) -> collections.defaultdict():
                     continue
 
 
-            if (match := XLOB_MATCHER.match(line)) is not None:
+            if (m := XLOB_MATCHER.match(line)) is not None:
                 try:
-                    ops = ops_factory(match.group(1), None, match.group(2), file_meta,
+                    ops = ops_factory(m.group(1), None, m.group(2), file_meta,
                                     tracker.time_tracker.get_wc)
                 except (IndexError, ValueError):
                     ex_helper(line, file_meta['LINE_COUNT'])
@@ -150,31 +150,31 @@ def process_file(tracker, fname, orphans=False) -> collections.defaultdict():
                 continue
 
             # '=====================' starts new tracing span
-            if (match := RES_MATCHER.match(line)) is not None:
+            if (m := RES_MATCHER.match(line)) is not None:
                 tracker.reset()
                 continue
 
-            if (match := DATE_MATCHER.match(line)) is not None:
-                ts2 = get_timestamp(match.group(1))
+            if (m := DATE_MATCHER.match(line)) is not None:
+                ts2 = get_timestamp(m.group(1))
                 tracker.time_tracker.reset(ts2)
                 ops = ops_factory('STAR', None, None, file_meta, lambda x: None,
                                     'DATETIME', ts2)
                 tracker.db.add_ops(tracker.db.get_span_id(), None, [ops])
                 continue
 
-            if (match := STARS_MATCHER.match(line)) is not None:
-                ts2 = get_timestamp(match.group(3))
-                name = match.group(1).strip(':')
-                value = match.group(2).strip('()')
+            if (m := STARS_MATCHER.match(line)) is not None:
+                ts2 = get_timestamp(m.group(3))
+                name = m.group(1).strip(':')
+                value = m.group(2).strip('()')
                 file_meta[name] = value
                 tracker.time_tracker.reset(ts2)
                 star = ops_factory('STAR', None, value, file_meta, lambda x: None, name, ts2)
                 tracker.db.add_ops(tracker.db.get_span_id(), None, [star])
                 continue
 
-            if (match := FILE_HEADER_MATCHER.match(line)) is not None:
-                header = ops_factory('HEADER', None, match.group(2), file_meta,
-                                        lambda x: None, match.group(1), None)
+            if (m := FILE_HEADER_MATCHER.match(line)) is not None:
+                header = ops_factory('HEADER', None, m.group(2), file_meta,
+                                        lambda x: None, m.group(1), None)
                 tracker.db.add_ops(tracker.db.get_span_id(), None, [header])
                 continue
 
