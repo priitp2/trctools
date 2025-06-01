@@ -25,8 +25,7 @@ TIMEZONE_MATCHER = re.compile(r'''(?:.*)\+(\d\d:\d\d)''')
 
 STARS_MATCHER = re.compile(r'''^\*\*\* (SESSION ID:|CLIENT ID:|SERVICE NAME:|MODULE NAME:'''
         +r'''|ACTION NAME:|CLIENT DRIVER:|CONTAINER ID:|CLIENT IP:|CONNECTION ID:)(\(.*\)) (.*)''')
-CALL_MATCHER = re.compile(r'''^(PARSE|EXEC|FETCH|WAIT|CLOSE|STAT|ERROR) (#\d+)(:| )(.*)''')
-MULTILINE_MATCHER = re.compile(r'''^(PARSING IN CURSOR|BINDS|PARSE ERROR) (#\d+)(:| )(.*)''')
+CALL_MATCHER = re.compile(r'''^(PARSE|EXEC|FETCH|WAIT|CLOSE|STAT|ERROR|PARSING IN CURSOR|BINDS|PARSE ERROR) (#\d+)(:| )(.*)''')
 XLOB_MATCHER = re.compile(r'''^(LOB[A-Z]+|XCTEND):* (.*)''')
 
 FILE_HEADER_MATCHER = re.compile(r'''^(Build label|ORACLE_HOME|System name'''
@@ -89,7 +88,7 @@ def process_file(tracker, fname, orphans=False) -> collections.defaultdict():
     """The god function. Does everything: reads the input file and parses the lines. """
 
     parser_state: int = ParserState.NOC
-    container_ops: Optional[Ops] = None
+    ops: Optional[Ops] = None
 
     error_count: int = 0
     file_meta = init_fmeta(fname)
@@ -107,9 +106,15 @@ def process_file(tracker, fname, orphans=False) -> collections.defaultdict():
                 continue
 
             if (match := CALL_MATCHER.match(line)) is not None:
-                if parser_state != ParserState.NOC:
-                    parser_state = ParserState.NOC
-                    container_ops = None
+
+                match match.group(1):
+                    case 'BINDS' | 'PARSE ERROR':
+                        parser_state = ParserState.MULTILINE
+                    case 'PARSING IN CURSOR':
+                        parser_state = ParserState.PIC
+                    case _ if parser_state != ParserState.NOC:
+                        parser_state = ParserState.NOC
+                        ops = None
 
                 try:
                     ops = ops_factory(match.group(1), match.group(2), match.group(4), file_meta,
@@ -121,27 +126,15 @@ def process_file(tracker, fname, orphans=False) -> collections.defaultdict():
                 tracker.add_ops(match.group(2), ops)
                 continue
 
-            if (match := MULTILINE_MATCHER.match(line)) is not None:
-                container_ops = ops_factory(match.group(1), match.group(2), match.group(4),
-                                            file_meta, tracker.time_tracker.get_wc)
-                tracker.add_ops(container_ops.cursor, container_ops)
-                match match.group(1):
-                    case 'BINDS' | 'PARSE ERROR':
-                        parser_state = ParserState.MULTILINE
-                    case 'PARSING IN CURSOR':
-                        parser_state = ParserState.PIC
-                continue
-
             match parser_state:
                 case ParserState.MULTILINE:
-                    container_ops.add_line(line)
+                    ops.add_line(line)
                     continue
                 case ParserState.PIC:
                     if (match := PIC_MATCHER.match(line)) is not None:
                         parser_state = ParserState.NOC
-                        container_ops = None
                     else:
-                        container_ops.add_line(line)
+                        ops.add_line(line)
                     continue
 
 
