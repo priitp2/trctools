@@ -7,7 +7,7 @@ backends are Parquet files, Oracle database, or anything that speaks OTLP.
 
 # Installation
 
-Scripts are tested with Python 3.11, but in principle it should work with older versions as well.
+Scripts are tested with Python 3.12, but in principle it should work with older versions as well.
 
 ```
 $ git clone https://github.com/priitp2/trctools.git
