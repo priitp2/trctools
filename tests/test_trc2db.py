@@ -46,5 +46,20 @@ class TestTrc2db(unittest.TestCase):
 
             res = d.sql(f"select count(distinct file_name) from read_parquet('{pfile}');")
             self.assertEqual(res.fetchone()[0], 4)
+    def test_process_one_file_check_result(self):
+        """High level test for process_file. Checks if data in the Parquet file is correct"""
+        with tempfile.TemporaryDirectory() as db_dir:
+            args = DummyArgs(dbdir=db_dir, trace_files=['tests/traces/mixed_execs.trc'])
+            trc2db.process_files(args)
+
+            pfile = f"{db_dir}/{args.file_prefix}.0"
+            res = d.sql(f"select count(distinct span_id) from read_parquet('{pfile}');")
+            self.assertEqual(res.fetchone()[0], 19)
+
+            res = d.sql(f"select sum(elapsed_time) from read_parquet('{pfile}') where span_id = 15;")
+            self.assertEqual(res.fetchone()[0], 6012)
+
+            res = d.sql(f"select sum(rows_processed) from read_parquet('{pfile}') where span_id = 18;")
+            self.assertEqual(res.fetchone()[0], 1)
 if __name__ == '__main__':
     unittest.main()
