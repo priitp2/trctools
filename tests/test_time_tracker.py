@@ -29,8 +29,8 @@ class TestTimeTracker(unittest.TestCase):
         tracker = TimeTracker()
 
         # wall clock hasn't been set yet, so there's nothing to return
-        with self.assertRaises(ValueError):
-            tracker.get_wc(TIM0)
+        nothing = tracker.get_wc(TIM0)
+        self.assertEqual(nothing, None)
 
         # 2023-05-18T13:56:18.679265+02:00
         clock = datetime(2023, 5, 18, 13, 56, 18, 679265)
