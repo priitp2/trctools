@@ -56,6 +56,9 @@ class TestTrc2db(unittest.TestCase):
             res = d.sql(f"select count(distinct span_id) from read_parquet('{pfile}');")
             self.assertEqual(res.fetchone()[0], 19)
 
+            res = d.sql(f"select count(distinct sql_id) from read_parquet('{pfile}');")
+            self.assertEqual(res.fetchone()[0], 2)
+
             res = d.sql(f"select sum(elapsed_time) from read_parquet('{pfile}') where span_id = 15;")
             self.assertEqual(res.fetchone()[0], 6012)
 
