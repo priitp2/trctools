@@ -54,7 +54,7 @@ class SummaryDuckdb:
                 from
                     read_parquet('{dbdir}')
                 where
-                    tim is not null
+                    tim is not null and tim is not 0
                     {"and cursor_id <> '#0'" if remove_idle else ""}
                 group by sql_id, span_id;
               """)
