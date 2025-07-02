@@ -94,11 +94,10 @@ def process_file(tracker, fname, orphans=False) -> collections.defaultdict():
     file_meta = init_fmeta(fname)
     opener = get_opener(fname)
     with opener(fname, 'rt', encoding='utf_8') as trace:
-        for (nr, line) in enumerate(trace, 1):
-            file_meta['LINE_COUNT'] = nr
+        for (file_meta['LINE_COUNT'], line) in enumerate(trace, 1):
 
             # Skip the first 3 lines
-            if nr < 3:
+            if file_meta['LINE_COUNT'] < 4:
                 continue
 
             # FIXME: skip lines with CR
