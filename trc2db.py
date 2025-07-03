@@ -53,11 +53,11 @@ def process_files(args) -> None:
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('trace_files', metavar='files', type=str, nargs='+',
                             help='Trace files to process')
-parser.add_argument('--backend', type=str, default = 'parquet', dest='db',
+parser.add_argument('-b', '--backend', type=str, default = 'parquet', dest='db',
                     help="Persists raw data in the some kind of storage, supported"
                     +" implementations: oracle, parquet, otlp")
-parser.add_argument('--dbdir', type=str, default = './', dest='dbdir',
-                    help="Directory for the parquet files")
+parser.add_argument('-d', '--dbdir', type=str, default = './out', dest='dbdir',
+                    help="Directory for the parquet files. Default: ./out")
 parser.add_argument('--fstype', type=str, default = 'local', dest='fstype',
                     help="File system type, possible options: local, s3, gcs, hadoop, subtree "
                     +"default: local")
