@@ -47,14 +47,18 @@ class CurrentStatement:
             if ops.op_type == op_type:
                 out += 1
         return out
-    def dump_to_db(self) -> None:
-        """Turns ops into lists and adds to the database"""
-        if not self.dbs:
-            raise TypeError("dump_to_db: database not set!")
-        span_id = self.dbs.get_span_id()
+    def to_list(self, span_id: int) -> list:
+        """Turns ops into list"""
         out = []
 
         for ops in self.ops.values():
             out.append(ops)
         out += self.ops_container
+        return out
+    def dump_to_db(self) -> None:
+        """Turns ops into lists and adds to the database"""
+        if not self.dbs:
+            raise TypeError("dump_to_db: database not set!")
+        span_id = self.dbs.get_span_id()
+        out = self.to_list(span_id)
         self.dbs.add_ops(span_id, self.sql_id, out)
