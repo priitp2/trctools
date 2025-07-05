@@ -50,29 +50,27 @@ def process_files(args) -> None:
     print(f"Processed {cumul_lines} lines in {int((time.time_ns() - start_time)/1000000000)} "
             +f"seconds, with {cumul_errors} errors")
 
-parser = argparse.ArgumentParser(description=__doc__)
-parser.add_argument('trace_files', metavar='files', type=str, nargs='+',
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('trace_files', metavar='files', type=str, nargs='+',
                             help='Trace files to process')
-parser.add_argument('-b', '--backend', type=str, default = 'parquet', dest='db',
+    parser.add_argument('-b', '--backend', type=str, default = 'parquet', dest='db',
                     help="Persists raw data in the some kind of storage, supported"
                     +" implementations: oracle, parquet, otlp")
-parser.add_argument('-d', '--dbdir', type=str, default = './out', dest='dbdir',
+    parser.add_argument('-d', '--dbdir', type=str, default = './out', dest='dbdir',
                     help="Directory for the parquet files. Default: ./out")
-parser.add_argument('--fstype', type=str, default = 'local', dest='fstype',
+    parser.add_argument('--fstype', type=str, default = 'local', dest='fstype',
                     help="File system type, possible options: local, s3, gcs, hadoop, subtree "
                     +"default: local")
-parser.add_argument('--fsopts', type=str, default = {}, dest='fsopts',
+    parser.add_argument('--fsopts', type=str, default = {}, dest='fsopts',
                     help="JSON object with file system option overrides. This is passed directly "
                     +"to pyarrow filesystem implementation")
-parser.add_argument('--db-file-prefix', type=str, default = 'parquet', dest='file_prefix',
+    parser.add_argument('--db-file-prefix', type=str, default = 'parquet', dest='file_prefix',
                     help="Parquet file name prefix")
-parser.add_argument('--traceid-parameter', type=str, default = 'CLIENT ID', dest='traceid',
+    parser.add_argument('--traceid-parameter', type=str, default = 'CLIENT ID', dest='traceid',
                     help="Parameter that service uses to pass the trace_id to the database")
-parser.add_argument('--log-orphans', type=bool, default = False, dest='orphans',
+    parser.add_argument('--log-orphans', type=bool, default = False, dest='orphans',
                     help="Logs lines not matched by the parser")
 
-arguments = parser.parse_args()
-
-
-if __name__ == '__main__':
+    arguments = parser.parse_args()
     process_files(arguments)
