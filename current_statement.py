@@ -8,8 +8,8 @@ ITERABLE_OPS: tuple[str, ...] = ('WAIT', 'FETCH', 'STAT')
 
 class CurrentStatement:
     """Tracks operations done within one database interaction/span."""
-    def __init__(self, cursor: str, dbs, sql_id: Optional[str]=None) -> None:
-        self.__slots__ = ('cursor', 'sql_id', 'dbs', 'known_ops', 'ops', 'ops_container')
+    def __init__(self, cursor: str, sql_id: Optional[str]=None) -> None:
+        self.__slots__ = ('cursor', 'sql_id', 'known_ops', 'ops', 'ops_container')
 
         # Cursor is 0 or a large number
         if len(cursor) <= 2 and cursor != '#0':
@@ -20,7 +20,6 @@ class CurrentStatement:
         self.ops: dict[str, Ops] = {}
         self.ops_container: list[Ops] = []
         self.sql_id = sql_id
-        self.dbs = dbs
 
     def __len__(self) -> int:
         """Returns number of operations in span"""
@@ -55,10 +54,3 @@ class CurrentStatement:
             out.append(ops)
         out += self.ops_container
         return out
-    def dump_to_db(self) -> None:
-        """Turns ops into lists and adds to the database"""
-        if not self.dbs:
-            raise TypeError("dump_to_db: database not set!")
-        span_id = self.dbs.get_span_id()
-        out = self.to_list(span_id)
-        self.dbs.add_ops(span_id, self.sql_id, out)

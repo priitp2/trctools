@@ -27,12 +27,12 @@ class CallTracker:
             # or from here with dummy sql_id
             if cursor not in self.cursors:
                 self.cursors[cursor] = None
-            self.latest_cursors[cursor] = CurrentStatement(cursor, self.db, self.cursors[cursor])
+            self.latest_cursors[cursor] = CurrentStatement(cursor, self.cursors[cursor])
             # Trace can contain cursor without matching PARSING IN CURSOR
             return self.latest_cursors[cursor]
         if self.db:
-            stat.dump_to_db()
-        self.latest_cursors[cursor] = CurrentStatement(cursor, self.db, self.cursors[cursor])
+            self.dump_to_db(stat)
+        self.latest_cursors[cursor] = CurrentStatement(cursor, self.cursors[cursor])
         return self.latest_cursors[cursor]
     def add_ops(self, cursor: str, ops: Ops) -> None:
         ''' Adds tracked operation.'''
@@ -64,3 +64,11 @@ class CallTracker:
         self.reset()
         self.db.flush()
         self.time_tracker.reset(None)
+    def dump_to_db(self, stat: CurrentStatement) -> None:
+        """Adds CurrentStatement to the database"""
+        if not self.db:
+            raise TypeError("dump_to_db: database not set!")
+        span_id = self.db.get_span_id()
+        out = stat.to_list(span_id)
+        self.db.add_ops(span_id, stat.sql_id, out)
+

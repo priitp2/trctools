@@ -13,11 +13,8 @@ class TestCurrentStatement(unittest.TestCase):
         self.cstat.dbs = Backend()
         for ops in test_constants.TRACKED_OPS.values():
             self.cstat.add_ops(ops)
-        self.cstat.dump_to_db()
-        self.assertEqual(len(self.cstat.dbs.batches), len(test_constants.TRACKED_OPS))
-    def test_dump_to_db(self):
-        with self.assertRaisesRegex(BaseException, 'dump_to_db: database not set!'):
-            self.cstat.dump_to_db()
+        out = self.cstat.to_list(1)
+        self.assertEqual(len(out), len(test_constants.TRACKED_OPS))
     def test_empty_cursor(self):
         with self.assertRaises(ValueError):
             self.cstat = CurrentStatement('#1', None)
