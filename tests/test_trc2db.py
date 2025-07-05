@@ -4,6 +4,8 @@ import unittest
 import duckdb as d
 import trc2db
 
+__doc__ = """Tests for trc2db.py"""
+
 @dataclass
 class DummyArgs:
     """Dummy arguments for the functions from trc2db.py"""
@@ -35,9 +37,12 @@ class TestTrc2db(unittest.TestCase):
             res = d.sql(f"select count(*) from read_parquet('{pfile}');")
             self.assertEqual(res.fetchone()[0], 59)
     def test_process_comp_file(self):
+        """Test if compressed files can be processed."""
         with tempfile.TemporaryDirectory() as db_dir:
-            args = DummyArgs(dbdir=db_dir, trace_files=('tests/traces/two_statements_one_cursor.trc.gz',
-                'tests/traces/mixed_execs.trc.bz2', 'tests/traces/lobread.trc.xz',
+            args = DummyArgs(dbdir=db_dir, trace_files=(
+                'tests/traces/two_statements_one_cursor.trc.gz',
+                'tests/traces/mixed_execs.trc.bz2',
+                'tests/traces/lobread.trc.xz',
                 'tests/traces/lobread.trc.lzma'))
             trc2db.process_files(args)
             pfile = f"{db_dir}/{args.file_prefix}.0"
@@ -59,15 +64,18 @@ class TestTrc2db(unittest.TestCase):
             res = d.sql(f"select count(distinct sql_id) from read_parquet('{pfile}');")
             self.assertEqual(res.fetchone()[0], 2)
 
-            res = d.sql(f"select sum(elapsed_time) from read_parquet('{pfile}') where span_id = 15;")
+            res = d.sql(f"select sum(elapsed_time) from read_parquet('{pfile}') "
+                        +"where span_id = 15;")
             self.assertEqual(res.fetchone()[0], 6012)
 
-            res = d.sql(f"select sum(rows_processed) from read_parquet('{pfile}') where span_id = 18;")
+            res = d.sql(f"select sum(rows_processed) from read_parquet('{pfile}') "
+                        +"where span_id = 18;")
             self.assertEqual(res.fetchone()[0], 1)
     def test_process_one_file_check_lines(self):
         """Checks if line numbers are correct"""
         with tempfile.TemporaryDirectory() as db_dir:
-            args = DummyArgs(dbdir=db_dir, trace_files=['tests/traces/two_statements_one_cursor.trc'])
+            args = DummyArgs(dbdir=db_dir,
+                    trace_files=['tests/traces/two_statements_one_cursor.trc'])
             trc2db.process_files(args)
 
             pfile = f"{db_dir}/{args.file_prefix}.0"
