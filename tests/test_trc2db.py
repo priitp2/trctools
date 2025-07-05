@@ -64,5 +64,15 @@ class TestTrc2db(unittest.TestCase):
 
             res = d.sql(f"select sum(rows_processed) from read_parquet('{pfile}') where span_id = 18;")
             self.assertEqual(res.fetchone()[0], 1)
+    def test_process_one_file_check_lines(self):
+        """Checks if line numbers are correct"""
+        with tempfile.TemporaryDirectory() as db_dir:
+            args = DummyArgs(dbdir=db_dir, trace_files=['tests/traces/two_statements_one_cursor.trc'])
+            trc2db.process_files(args)
+
+            pfile = f"{db_dir}/{args.file_prefix}.0"
+            res = d.sql(f"select line from read_parquet('{pfile}') where ops = 'PIC';")
+            out = {l[0] for l in res.fetchall()}
+            self.assertTrue(out >= {30, 46, 68})
 if __name__ == '__main__':
     unittest.main()
