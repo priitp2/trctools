@@ -23,6 +23,7 @@ class TestCurrentStatement(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.cstat = CurrentStatement(None, None)
     def test_add_ops(self):
+        """Check if adding ops works."""
         for ops in test_constants.TRACKED_OPS.values():
             self.cstat.add_ops(ops)
         stat = test_constants.TRACKED_OPS['STAT']
@@ -39,6 +40,12 @@ class TestCurrentStatement(unittest.TestCase):
         # Missing in TRACKED_OPS
         self.assertFalse('BINDS' in self.cstat.ops)
 
+    def test_add_wrong_cursor(self):
+        """Adding ops with different cursor should fail"""
+        # This sets the cursor
+        ops = test_constants.TRACKED_OPS['EXEC']
+        self.cstat.add_ops(ops)
+
         wrong_cs = ops_factory('WAIT', test_constants.WRONG_CURSOR,
                                " nam='db file sequential read' ela= 403 file#=414 block#=2682927 ",
                                test_constants.FMETA, lambda x: None)
@@ -49,7 +56,11 @@ class TestCurrentStatement(unittest.TestCase):
         with self.assertRaisesRegex(BaseException, 'add_ops: unknown ops type:*'):
             self.cstat.add_ops(wrong_ops)
 
+    def test_ops_already_set(self):
+        """Adding tracked non-container ops should fail"""
         ops = test_constants.TRACKED_OPS['EXEC']
+        self.cstat.add_ops(ops)
+
         with self.assertRaisesRegex(BaseException, 'add_ops: already set: *'):
             self.cstat.add_ops(ops)
 
