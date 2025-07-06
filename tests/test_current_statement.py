@@ -8,16 +8,20 @@ class TestCurrentStatement(unittest.TestCase):
     def setUp(self):
         self.cstat = CurrentStatement(test_constants.CURSOR, None)
     def test_to_list(self):
+        """Check if to_list returns correct # of elements."""
         self.cstat.dbs = Backend()
         for ops in test_constants.TRACKED_OPS.values():
             self.cstat.add_ops(ops)
         out = self.cstat.to_list(1)
         self.assertEqual(len(out), len(test_constants.TRACKED_OPS))
     def test_empty_cursor(self):
+        """Malformed cursor should trigger exception"""
         with self.assertRaises(ValueError):
             self.cstat = CurrentStatement('#1', None)
         with self.assertRaises(ValueError):
             self.cstat = CurrentStatement('#', None)
+        with self.assertRaises(ValueError):
+            self.cstat = CurrentStatement(None, None)
     def test_add_ops(self):
         for ops in test_constants.TRACKED_OPS.values():
             self.cstat.add_ops(ops)
