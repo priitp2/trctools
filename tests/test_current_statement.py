@@ -1,10 +1,8 @@
 import unittest
 from current_statement import CurrentStatement
-from ops import ops_factory 
+from ops import ops_factory
 from tests.mock_backend import Backend
 import tests.test_constants as test_constants
-
-FAKE_TIME_TRACKER = lambda x: None
 
 class TestCurrentStatement(unittest.TestCase):
     def setUp(self):
@@ -37,8 +35,9 @@ class TestCurrentStatement(unittest.TestCase):
         # Missing in TRACKED_OPS
         self.assertFalse('BINDS' in self.cstat.ops)
 
-        wrong_cs = ops_factory('WAIT', test_constants.WRONG_CURSOR, " nam='db file sequential read' " \
-                + "ela= 403 file#=414 block#=2682927 ", test_constants.FMETA, FAKE_TIME_TRACKER)
+        wrong_cs = ops_factory('WAIT', test_constants.WRONG_CURSOR,
+                               " nam='db file sequential read' ela= 403 file#=414 block#=2682927 ",
+                               test_constants.FMETA, lambda x: None)
         with self.assertRaisesRegex(BaseException, 'add_ops: wrong cursor *'):
             self.cstat.add_ops(wrong_cs)
 
@@ -58,7 +57,7 @@ class TestCurrentStatement(unittest.TestCase):
         self.assertEqual(self.cstat.count_ops('EXEC'), 1)
 
         wait = test_constants.TRACKED_OPS['WAIT']
-        for i in range(0, 3):
+        for _ in range(0, 3):
             self.cstat.add_ops(wait)
         self.assertEqual(self.cstat.count_ops('WAIT'), 3)
     def test_len(self):
@@ -69,7 +68,7 @@ class TestCurrentStatement(unittest.TestCase):
         self.assertEqual(len(self.cstat), 1)
 
         wait = test_constants.TRACKED_OPS['WAIT']
-        for i in range(0, 3):
+        for _ in range(0, 3):
             self.cstat.add_ops(wait)
         self.assertEqual(len(self.cstat), 4)
 if __name__ == '__main__':
