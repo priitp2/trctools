@@ -89,5 +89,20 @@ class TestCurrentStatement(unittest.TestCase):
         for _ in range(0, 3):
             self.cstat.add_ops(wait)
         self.assertEqual(len(self.cstat), 4)
+    def test_add_lob(self):
+        """Tests add_lob."""
+        ops = TRACKED_OPS['EXEC']
+        self.cstat.add_ops(ops)
+
+        with self.assertRaisesRegex(BaseException, 'add_lob: wrong ops: *'):
+            self.cstat.add_lob(ops)
+
+        ops = ops_factory('LOBWRITE', CURSOR, "type=TEMPORARY LOB,bytes=5,c=169,e=169,p=0,cr=0,"
+                +"cu=7,tim=4696599871319", FMETA, None)
+        with self.assertRaisesRegex(BaseException, 'add_lob: expected cursor #0, got *'):
+            self.cstat.add_lob(ops)
+
+        self.cstat.add_lob(UNTRACKED_OPS['LOB'])
+        self.assertEqual(self.cstat.count_ops('LOBWRITE'), 1)
 if __name__ == '__main__':
     unittest.main()
