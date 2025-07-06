@@ -5,6 +5,7 @@ from tests.mock_backend import Backend
 import tests.test_constants as test_constants
 
 class TestCurrentStatement(unittest.TestCase):
+    """Tests for CurrentStatement."""
     def setUp(self):
         self.cstat = CurrentStatement(test_constants.CURSOR, None)
     def test_to_list(self):
@@ -65,6 +66,7 @@ class TestCurrentStatement(unittest.TestCase):
             self.cstat.add_ops(ops)
 
     def test_count_ops(self):
+        """Check if count_ops works."""
         self.assertEqual(self.cstat.count_ops('FETCH'), 0)
 
         ops = test_constants.TRACKED_OPS['EXEC']
@@ -76,6 +78,7 @@ class TestCurrentStatement(unittest.TestCase):
             self.cstat.add_ops(wait)
         self.assertEqual(self.cstat.count_ops('WAIT'), 3)
     def test_len(self):
+        """Check if we have correct # of ops."""
         self.assertEqual(len(self.cstat), 0)
 
         ops = test_constants.TRACKED_OPS['EXEC']
