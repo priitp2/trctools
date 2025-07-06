@@ -17,23 +17,30 @@ class CallTracker:
 
         self.dummy_counter = 0
         self.time_tracker = TimeTracker()
+        self.stat: CurrentStatement = None
+    def _get_cursor(self, cursor: str) -> CurrentStatement:
+        if not self.stat or self.stat.cursor != cursor:
+            self.stat = self.latest_cursors[cursor]
+        return self.stat
+    def _set_cursor(self, cursor: str) -> None:
+        # Cursors/statements come either throug PARSING IN CURSOR with sql_id,
+        # or from here with dummy sql_id
+        if cursor not in self.cursors:
+            self.cursors[cursor] = None
+        crs = CurrentStatement(cursor, self.cursors[cursor])
+        self.latest_cursors[cursor] = crs
+        self.stat = crs
+        return crs
     def add_latest_cursor(self, cursor: str) -> CurrentStatement:
         ''' Tracks client interactions. If cursor is present then this is new execution,
             so dump the cursor to the database and overwrite the latest_cursor.
         '''
-        stat = self.latest_cursors[cursor]
+        stat = self._get_cursor(cursor)
         if not stat:
-            # Cursors/statements come either throug add_parsing_in() with sql_id,
-            # or from here with dummy sql_id
-            if cursor not in self.cursors:
-                self.cursors[cursor] = None
-            self.latest_cursors[cursor] = CurrentStatement(cursor, self.cursors[cursor])
-            # Trace can contain cursor without matching PARSING IN CURSOR
-            return self.latest_cursors[cursor]
+            return self._set_cursor(cursor)
         if self.db:
             self.dump_to_db(stat)
-        self.latest_cursors[cursor] = CurrentStatement(cursor, self.cursors[cursor])
-        return self.latest_cursors[cursor]
+        return self._set_cursor(cursor)
     def add_ops(self, cursor: str, ops: Ops) -> None:
         ''' Adds tracked operation.'''
 
@@ -41,7 +48,7 @@ class CallTracker:
             self.cursors[cursor] = ops.sqlid
             cstat = self.add_latest_cursor(cursor)
         else:
-            cstat = self.latest_cursors[cursor]
+            cstat = self._get_cursor(cursor)
         # If non-list ops is already set we assume previous client interaction is over and
         # we can close latest cursor/interaction
         if not cstat or (ops.op_type in cstat.ops):
@@ -71,4 +78,3 @@ class CallTracker:
         span_id = self.db.get_span_id()
         out = stat.to_list(span_id)
         self.db.add_ops(span_id, stat.sql_id, out)
-
