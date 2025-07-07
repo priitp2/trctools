@@ -109,5 +109,15 @@ class TestCallTracker(unittest.TestCase):
         # This won't close the db interaction
         self.tracker.add_ops(test_constants.CURSOR, test_constants.TRACKED_OPS['WAIT'])
         self.assertEqual(len(self.tracker.db.batches), 2)
+    def test_add_lob(self):
+        self.assertFalse(self.tracker.add_lob(None))
+        self.assertFalse(self.tracker.add_lob(test_constants.UNTRACKED_OPS['LOB']))
+
+        self.tracker.add_ops(test_constants.CURSOR, test_constants.TRACKED_OPS['EXEC'])
+        self.assertTrue(self.tracker.add_lob(test_constants.UNTRACKED_OPS['LOB']))
+
+        self.tracker.flush()
+        self.assertEqual(len(self.tracker.db.batches), 2)
+
 if __name__ == '__main__':
     unittest.main()

@@ -54,6 +54,15 @@ class CallTracker:
         if not cstat or (ops.op_type in cstat.ops):
             cstat = self.add_latest_cursor(cursor)
         cstat.add_ops(ops)
+    def add_lob(self, lob: Ops) -> bool:
+        '''Add LOB operation to the current span. This bypasses normal flow since LOB ops have
+            cursor #0.'''
+        if not lob:
+            return False
+        if not self.stat:
+            return False
+        self.stat.add_lob(lob)
+        return True
     def reset(self) -> None:
         '''Cleans the state of the tracker. Removes empty statements from latest_cursor. '''
         empty = []
