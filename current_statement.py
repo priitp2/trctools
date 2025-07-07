@@ -37,11 +37,11 @@ class CurrentStatement:
             return
         self.ops[ops.op_type] = ops
     def add_lob(self, ops: Ops) -> None:
-        """Adds LOB operation. These are with cursor #0, so relax the checks."""
+        """Adds LOB operation. These are without cursor, so relax the checks."""
         if not ops.op_type.startswith('LOB'):
             raise KeyError(f"add_lob: wrong ops: {ops.op_type}")
-        if ops.cursor != '#0':
-            raise KeyError(f"add_lob: expected cursor #0, got {ops.cursor}")
+        if ops.cursor:
+            raise KeyError(f"add_lob: expected cursor None, got {ops.cursor}")
         self.ops_container.append(ops)
     def count_ops(self, op_type: str) -> int:
         """Counts number of (listy) ops. Useful for tests."""
