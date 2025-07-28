@@ -139,13 +139,13 @@ def process_file(tracker, fname, orphans=False) -> collections.defaultdict():
 
             if (m := XLOB_MATCHER.match(line)) is not None:
                 try:
-                    ops = ops_factory(m.group(1), None, m.group(2), file_meta,
+                    lob = ops_factory(m.group(1), None, m.group(2), file_meta,
                                     tracker.time_tracker.get_wc)
                 except (IndexError, ValueError):
                     ex_helper(line, file_meta['LINE_COUNT'])
                     error_count += 1
                     continue
-                tracker.db.add_ops(tracker.db.get_span_id(), None, [ops])
+                tracker.db.add_ops(tracker.db.get_span_id(), None, [lob])
                 continue
 
             # '=====================' starts new tracing span
@@ -156,9 +156,9 @@ def process_file(tracker, fname, orphans=False) -> collections.defaultdict():
             if (m := DATE_MATCHER.match(line)) is not None:
                 ts2 = get_timestamp(m.group(1))
                 tracker.time_tracker.reset(ts2)
-                ops = ops_factory('STAR', None, None, file_meta, lambda x: None,
+                dt = ops_factory('STAR', None, None, file_meta, lambda x: None,
                                     'DATETIME', ts2)
-                tracker.db.add_ops(tracker.db.get_span_id(), None, [ops])
+                tracker.db.add_ops(tracker.db.get_span_id(), None, [dt])
                 continue
 
             if (m := STARS_MATCHER.match(line)) is not None:
