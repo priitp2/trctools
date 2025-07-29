@@ -105,6 +105,10 @@ def process_file(tracker, fname, orphans=False) -> collections.defaultdict():
             if len(line) < 2:
                 continue
 
+            if parser_state == ParserState.BINDS and line.startswith(' '):
+                ops.add_line(line)
+                continue
+
             if (m := CALL_MATCHER.match(line)) is not None:
 
                 match m.group(1):
@@ -130,10 +134,6 @@ def process_file(tracker, fname, orphans=False) -> collections.defaultdict():
                 continue
 
             match parser_state:
-                case ParserState.BINDS:
-                    if line.startswith(' '):
-                        ops.add_line(line)
-                        continue
                 case ParserState.PARSE_ERROR:
                     ops.add_line(line)
                     continue
