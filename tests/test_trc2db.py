@@ -71,6 +71,10 @@ class TestTrc2db(unittest.TestCase):
             res = d.sql(f"select sum(rows_processed) from read_parquet('{pfile}') "
                         +"where span_id = 18;")
             self.assertEqual(res.fetchone()[0], 1)
+
+            res = d.sql(f"select count(*) from read_parquet('{pfile}') "
+                        +"where ops = 'STAR';")
+            self.assertEqual(res.fetchone()[0], 4)
     def test_process_one_file_check_lines(self):
         """Checks if line numbers are correct"""
         with tempfile.TemporaryDirectory() as db_dir:
