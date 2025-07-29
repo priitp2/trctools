@@ -64,8 +64,9 @@ def get_opener(fname):
 class ParserState(Enum):
     """Keeps track of the parser state"""
     NOC = 0 # Most of the events are single-line
-    MULTILINE = 1 # Multi-line events that do not have end marker, like BINDS and PARSE ERROR
-    PIC = 2 # PARSING IN CURSOR is a multi-line event with end marker
+    BINDS = 1 # BINDS and PARSE ERROR do not have a end marker
+    PARSE_ERROR = 2
+    PIC = 3 # PARSING IN CURSOR is a multi-line event with end marker
 
 def ex_helper(line, line_count):
     """Logs errors from lower layers"""
@@ -107,8 +108,10 @@ def process_file(tracker, fname, orphans=False) -> collections.defaultdict():
             if (m := CALL_MATCHER.match(line)) is not None:
 
                 match m.group(1):
-                    case 'BINDS' | 'PARSE ERROR':
-                        parser_state = ParserState.MULTILINE
+                    case 'BINDS':
+                        parser_state = ParserState.BINDS
+                    case 'PARSE ERROR':
+                        parser_state = ParserState.PARSE_ERROR
                     case 'PARSING IN CURSOR':
                         parser_state = ParserState.PIC
                     case _ if parser_state != ParserState.NOC:
@@ -119,6 +122,7 @@ def process_file(tracker, fname, orphans=False) -> collections.defaultdict():
                     ops = ops_factory(m.group(1), m.group(2), m.group(4), file_meta,
                                         tracker.time_tracker.get_wc)
                 except (IndexError, ValueError):
+                    print(f"process_file: ops = {ops}")
                     ex_helper(line, file_meta['LINE_COUNT'])
                     error_count += 1
                     continue
@@ -126,7 +130,7 @@ def process_file(tracker, fname, orphans=False) -> collections.defaultdict():
                 continue
 
             match parser_state:
-                case ParserState.MULTILINE:
+                case ParserState.BINDS | ParserState.PARSE_ERROR:
                     ops.add_line(line)
                     continue
                 case ParserState.PIC:
