@@ -23,6 +23,7 @@ BINDS #140386304541280:
   oacdty=01 mxl=128(80) mxlc=00 mal=00 scl=00 pre=00
   oacflg=03 fl2=1000010 frm=01 csi=873 siz=160 off=0
   kxsbbbfp=7fae3bd02fd8  bln=128  avl=20  flg=05
+*** 2022-10-25T15:07:20.941104+02:00 (OPRD21(11))
   value="jari.werner.12707208"
  Bind#1
   oacdty=01 mxl=32(24) mxlc=00 mal=00 scl=00 pre=00
