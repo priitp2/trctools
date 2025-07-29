@@ -130,7 +130,11 @@ def process_file(tracker, fname, orphans=False) -> collections.defaultdict():
                 continue
 
             match parser_state:
-                case ParserState.BINDS | ParserState.PARSE_ERROR:
+                case ParserState.BINDS:
+                    if line.startswith(' '):
+                        ops.add_line(line)
+                        continue
+                case ParserState.PARSE_ERROR:
                     ops.add_line(line)
                     continue
                 case ParserState.PIC:
