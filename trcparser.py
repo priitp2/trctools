@@ -70,7 +70,7 @@ class ParserState(Enum):
 
 def ex_helper(line, line_count):
     """Logs errors from lower layers"""
-    print(f"Got exception from ops_factory, will ignore the line. Offending line #{line_count}:")
+    print(f"Got exception whole handling the line, ignoring. Offending line #{line_count}:")
     print(line)
     print_exception(exception())
 
@@ -130,7 +130,15 @@ def process_file(tracker, fname, orphans=False) -> collections.defaultdict():
                     ex_helper(line, file_meta['LINE_COUNT'])
                     error_count += 1
                     continue
-                tracker.add_ops(m.group(2), ops)
+                try:
+                    # This throws error if cursor in STAT is malformed
+                    tracker.add_ops(m.group(2), ops)
+                except ValueError:
+                    if m.group(1) == 'STAT':
+                        ex_helper(line, file_meta['LINE_COUNT'])
+                        error_count += 1
+                        continue
+                    raise
                 continue
 
             match parser_state:

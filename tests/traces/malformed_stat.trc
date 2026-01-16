@@ -1,0 +1,36 @@
+Trace file /u01/app/oracle/diag/rdbms/xxx.trc
+Oracle Database 19c Enterprise Edition Release 19.0.0.0.0 - Production
+Version 19.29.0.0.0
+Build label:    RDBMS_19.29.0.0.0DBRU_LINUX.X64_251001
+ORACLE_HOME:    /u01/app/oracle/product/19-db-19292
+System name:    Linux
+Node name:      oc1r204n02.example.net
+Release:        5.15.0-315.196.5.2.el9uek.x86_64
+Version:        #2 SMP Sat Dec 20 05:33:02 PST 2025
+Machine:        x86_64
+CLID:   P
+Instance name: exampledbr204n02
+Instance number: 4
+Database name: exampledb
+Database unique name: exampledb
+Database id: 1520689914
+Database role: PRIMARY
+Redo thread mounted by this instance: 4
+Oracle process number: 1315
+Unix process pid: 3318059, image: oracle@exampler204n02.example.net
+
+
+*** 2026-01-15T06:03:13.715237+01:00 (OPRD23(7))
+*** SESSION ID:(1612.24116) 2026-01-15T06:03:13.715261+01:00
+*** CLIENT ID:() 2026-01-15T06:03:13.715264+01:00
+*** SERVICE NAME:(example.com) 2026-01-15T06:03:13.715267+01:00
+*** MODULE NAME:(JarLauncher) 2026-01-15T06:03:13.715270+01:00
+*** ACTION NAME:() 2026-01-15T06:03:13.715273+01:00
+*** CLIENT DRIVER:(jdbcthin : 23.7.0.25.01) 2026-01-15T06:03:13.715276+01:00
+*** CONTAINER ID:(7) 2026-01-15T06:03:13.715278+01:00
+
+EXEC #140463666059192:c=574,e=872,p=0,cr=4,cu=1,mis=0,r=0,dep=1,og=1,plh=1321678281,tim=600392557189
+FETCH #140463666059192:c=4,e=4,p=0,cr=0,cu=0,mis=0,r=1,dep=1,og=1,plh=1321678281,tim=600392557217
+STAT #140463666059192 id=1 cnt=1 pid=0 pos=1 obj=0 op='FOR UPDATE  (cr=4 pr=0 pw=0 str=1 time=399 us)'
+STAT #1 (cr=0 pr=0 pw=0 str=1 time=29 us)'
+XCTEND rlbk=0, rd_only=0, tim=600392574302

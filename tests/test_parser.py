@@ -178,9 +178,16 @@ class TestParser(unittest.TestCase):
             not to throw an exception'''
         (lines, err) = trcparser.process_file(self.tracker, 'tests/traces/broken_trace.trc')
         self.assertEqual(err, 4)
+
     def test_init_fmeta(self):
         with self.assertRaises(ValueError):
             trcparser.init_fmeta('')
+
+    def test_malformed_stat(self):
+        '''Test that we survive malformed exec'''
+        (lines, err) = trcparser.process_file(self.tracker, 'tests/traces/malformed_stat.trc')
+        self.assertEqual(lines, 36)
+        self.assertEqual(err, 1)
 
 if __name__ == '__main__':
     unittest.main()
