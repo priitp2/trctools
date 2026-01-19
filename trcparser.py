@@ -134,9 +134,9 @@ def process_file(tracker, fname, orphans=False) -> collections.defaultdict():
                     # This throws error if cursor in STAT is malformed
                     tracker.add_ops(m.group(2), ops)
                 except ValueError:
-                    if m.group(1) == 'STAT':
-                        ex_helper(line, file_meta['LINE_COUNT'])
-                        error_count += 1
+                    ex_helper(line, file_meta['LINE_COUNT'])
+                    error_count += 1
+                    if m.group(1) in ('STAT', 'BINDS'):
                         continue
                     raise
                 continue
